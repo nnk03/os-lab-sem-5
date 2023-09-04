@@ -1,0 +1,7 @@
+load --os $HOME/myexpos/spl/spl_progs/os-startup-stage-12.xsm
+load --init $HOME/myexpos/expl/samples/numbers.xsm
+load --int=10 $HOME/myexpos/spl/spl_progs/haltprog.xsm
+load --exhandler $HOME/myexpos/spl/spl_progs/haltprog.xsm
+load --library $HOME/myexpos/expl/library.lib
+load --int=timer $HOME/myexpos/spl/spl_progs/timer-stage-12.xsm
+load --int=7 $HOME/myexpos/spl/spl_progs/sample-int-7-stage-10.xsm
