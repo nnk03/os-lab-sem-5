@@ -71,7 +71,7 @@ PTBR = PAGE_TABLE_BASE + 20;
 [PROCESS_TABLE + 16 + 12] = 0;
 
 
-SP = 8 * 512;
+//SP = 8 * 512;
 
 return;
 

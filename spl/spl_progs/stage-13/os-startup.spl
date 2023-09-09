@@ -19,8 +19,8 @@ loadi(70, 12); // idle-process
 loadi(2, 15);
 loadi(3, 16);
 
-loadi(67, 54);
-loadi(68, 55); // loading module 7
+loadi(54, 67);
+loadi(55, 68); // loading module 7
 
 // setting SP to (user area page number * 512 - 1) , i.e 82
 SP = 82 * 512 - 1;

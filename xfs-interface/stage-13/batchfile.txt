@@ -1,4 +1,6 @@
 load --os $HOME/myexpos/spl/spl_progs/stage-13/os-startup.xsm
+load --idle $HOME/myexpos/expl/samples/idle-process.xsm
+load --module 7 $HOME/myexpos/spl/spl_progs/stage-13/boot-module.xsm
 load --init $HOME/myexpos/expl/samples/numbers.xsm
 load --int=10 $HOME/myexpos/spl/spl_progs/haltprog.xsm
 load --exhandler $HOME/myexpos/spl/spl_progs/haltprog.xsm

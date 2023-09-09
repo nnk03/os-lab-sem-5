@@ -2,7 +2,7 @@
 // Setting SP to UArea Page number * 512 - 1
 SP = [PROCESS_TABLE + ([SYSTEM_STATUS_TABLE + 1] * 16) + 11] * 512 - 1;
 backup;
-print [SYSTEM_STATUS_TABLE + 1];
+//print [SYSTEM_STATUS_TABLE + 1];
 
 alias currentPID R0;
 currentPID = [SYSTEM_STATUS_TABLE + 1];
