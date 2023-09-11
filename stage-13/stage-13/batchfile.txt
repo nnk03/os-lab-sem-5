@@ -1,0 +1,5 @@
+load --os /home/neeraj/myexpos/stage-13/stage-13
+load --init /home/neeraj/myexpos/stage-13/stage-13
+load --module 7 /home/neeraj/myexpos/stage-13/stage-13
+load --int=10 /home/neeraj/myexpos/stage-13/stage-13
+
