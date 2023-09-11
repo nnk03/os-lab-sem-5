@@ -22,13 +22,13 @@ loadi(3, 16);
 loadi(54, 67);
 loadi(55, 68); // loading module 7
 
-loadi(83,70);
-loadi(50,63);
-loadi(51,64);
-loadi(40,53);
-loadi(41,54);
-loadi(48,61);
-loadi(49,62);
+//loadi(83,70);
+//loadi(50,63);
+//loadi(51,64);
+//loadi(40,53);
+//loadi(41,54);
+//loadi(48,61);
+//loadi(49,62);
 
 // for init process
 
