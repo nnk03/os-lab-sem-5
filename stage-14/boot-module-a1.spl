@@ -24,17 +24,6 @@ loadi(55, 68); // loading module 7
 
 loadi(83, 69); // for even.xsm
 
-loadi(50, 63);
-loadi(51, 64); // for module - 5  --> scheduler
-
-
-alias cnt R0;
-cnt = 0;
-while(cnt < MAX_PROC_NUM) do 
-	[PROCESS_TABLE + (cnt * 16) + 4] = TERMINATED;
-	cnt = cnt + 1;
-endwhile;
-
 // for odd.xsm
 
 PTBR = PAGE_TABLE_BASE + 20;
@@ -133,8 +122,7 @@ PTLR = 10;
 [PROCESS_TABLE + 32 + 13] = 8 * 512;
 //KPTR 
 [PROCESS_TABLE + 32 + 12] = 0;
-
-[76 * 512] = [65 * 512 + 1];
+[76*512]=[65*512+1];
 [84 * 512] = [83 * 512 + 1];
 //
 return;
