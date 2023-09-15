@@ -2,7 +2,7 @@ load --init $HOME/myexpos/stage-14/odd.xsm
 load --os $HOME/myexpos/stage-14/os-startup.xsm
 load --module 7 $HOME/myexpos/stage-14/boot-module-a1.xsm
 load --idle $HOME/myexpos/stage-14/idle-process.xsm
-load --int=10 $HOME/myexpos/stage-14/haltprog.xsm
+load --int=10 $HOME/myexpos/stage-14/int10.xsm
 load --library $HOME/myexpos/expl/library.lib
 load --int=timer $HOME/myexpos/stage-14/timer.xsm
 load --int=7 $HOME/myexpos/stage-14/int7.xsm
