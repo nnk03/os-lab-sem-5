@@ -13,7 +13,7 @@ while(num < MAX_PROC_NUM) do
 	endif;
 	num = num + 1;
 endwhile;
-call CONTEXT_SWITCH;
+call MOD_5;
 
 
 restore;
