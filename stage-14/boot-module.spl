@@ -85,7 +85,6 @@ PTLR = 10;
 [PROCESS_TABLE + 16 + 12] = 0;
 
 
-// for even.xsm
 
 PTBR = PAGE_TABLE_BASE + 40;
 PTLR = 10;
@@ -97,9 +96,9 @@ PTLR = 10;
 [PTBR+3] = "0100";
 
 //Heap
-[PTBR+4] = 81;
+[PTBR+4] = -1;
 [PTBR+5] = "0110";
-[PTBR+6] = 82;
+[PTBR+6] = -1;
 [PTBR+7] = "0110";
 
 //Code
@@ -118,7 +117,6 @@ PTLR = 10;
 [PTBR+18] = 85;
 [PTBR+19] = "0110";
 
-// for odd.xsm
 //PID
 [PROCESS_TABLE + 32 + 1] = 2;
 //STATE
