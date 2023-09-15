@@ -1,0 +1,12 @@
+load --init $HOME/myexpos/stage-15/odd.xsm
+load --exec $HOME/myexpos/stage-15/even.xsm
+load --os $HOME/myexpos/stage-15/os-startup.xsm
+load --module 7 $HOME/myexpos/stage-15/boot-module.xsm
+load --idle $HOME/myexpos/stage-15/idle-process.xsm
+load --int=10 $HOME/myexpos/stage-15/haltprog.xsm
+load --library $HOME/myexpos/expl/library.lib
+load --int=timer $HOME/myexpos/stage-15/timer.xsm
+load --int=7 $HOME/myexpos/stage-15/int7.xsm
+load --module 5 $HOME/myexpos/stage-15/scheduler.xsm
+load --module 4 $HOME/myexpos/stage-15/mod4.xsm
+load --module 0 $HOME/myexpos/stage-15/mod0.xsm

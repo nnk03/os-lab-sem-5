@@ -1,0 +1,26 @@
+// device manager
+alias functionNum R1;
+alias currentPID R2;
+alias word R3;
+if(functionNum == 3) then
+    multipush(R1, R2, R3);
+    R1 = 8;
+    R2 = currentPID;
+    call MOD_0;
+    // ignoring value in R0 as acquire terminal does not have a return value
+    multipop(R1, R2, R3);
+    print word;
+    multipush(R1, R2, R3);
+    R1 = 9;
+    R2 = currentPID;
+    call MOD_0;
+    // return value stored in R0
+    // as of now, we will ignore it
+    multipop(R1, R2, R3);
+    return;
+
+
+else
+    return;
+
+endif;
