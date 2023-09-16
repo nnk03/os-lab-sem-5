@@ -1,0 +1,55 @@
+// device manager
+alias functionNum R1;
+alias currentPID R2;
+alias word R3;
+
+if(functionNum == TERMINAL_READ) then
+// we will add the Terminal Read function
+    multipush(R1, R2, R3);
+    R1 = ACQUIRE_TERMINAL;
+    R2 = currentPID;
+    call MOD_0; // call RESOURCE_MANAGER also does the same thing 
+    multipop(R1, R2, R3);
+    read;
+    [PROCESS_TABLE + (currentPID * 16) + 4] = WAIT_TERMINAL;
+    multipush(R1, R2, R3);
+    call CONTEXT_SWITCH;
+    multipop(R1, R2, R3);
+    alias virt_address R4;
+    alias phy_address R5;
+    alias word_address R3;
+    virt_address = word_address;
+    phy_address = [PTBR + (virt_address / 512) * 2] * 512 + (virt_address % 512);
+    [phy_address] = [PROCESS_TABLE + (currentPID * 16) + 8];
+    return;
+
+
+
+
+
+
+endif;
+
+
+if(functionNum == TERMINAL_WRITE) then
+    multipush(R1, R2, R3);
+    R1 = ACQUIRE_TERMINAL;
+    R2 = currentPID;
+    call MOD_0;
+    // ignoring value in R0 as acquire terminal does not have a return value
+    multipop(R1, R2, R3);
+    print word;
+    multipush(R1, R2, R3);
+    R1 = RELEASE_TERMINAL;
+    R2 = currentPID;
+    call MOD_0;
+    // return value stored in R0
+    // as of now, we will ignore it
+    multipop(R1, R2, R3);
+    return;
+
+
+else
+    return;
+
+endif;
