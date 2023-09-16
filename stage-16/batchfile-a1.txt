@@ -1,0 +1,13 @@
+load --os $HOME/myexpos/stage-16/os-startup.xsm
+load --module 7 $HOME/myexpos/stage-16/boot-module.xsm
+load --idle $HOME/myexpos/stage-16/idle-process.xsm
+load --init $HOME/myexpos/stage-16/bubble-sort.xsm
+load --library $HOME/myexpos/expl/library.lib
+load --int=timer $HOME/myexpos/stage-16/timer.xsm
+load --int=10 $HOME/myexpos/stage-16/int10.xsm
+load --int=7 $HOME/myexpos/stage-16/int7.xsm
+load --int=6 $HOME/myexpos/stage-16/int6.xsm
+load --module 5 $HOME/myexpos/stage-16/scheduler.xsm
+load --module 4 $HOME/myexpos/stage-16/mod4.xsm
+load --module 0 $HOME/myexpos/stage-16/mod0.xsm
+load --int=console $HOME/myexpos/stage-16/console-int.xsm
