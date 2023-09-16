@@ -1,4 +1,4 @@
-breakpoint;
+//breakpoint;
 alias currentPID R10;
 currentPID = [SYSTEM_STATUS_TABLE + 1];
 [PROCESS_TABLE + currentPID * 16 + 4] = TERMINATED;
@@ -13,7 +13,7 @@ while(counter < 16) do
 	endif;
 	counter = counter + 1;
 endwhile;
-breakpoint;
+//breakpoint;
 if(check_for_non_terminated == 0) then 
 	halt;
 else
