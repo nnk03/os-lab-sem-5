@@ -16,3 +16,11 @@ In device manager, function 8 is Terminal Acquire, function 9 is Terminal Releas
 `module 4 --> device manager`
 
 `int 6 --> Read system call`
+
+`int=console --> console interrupt`
+
+`module 1 --> Process manager module`
+
+`module 2 --> Memory manager module`
+
+`int 9 --> Exec system call`
