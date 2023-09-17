@@ -1,0 +1,78 @@
+// memory manager module
+
+
+alias functionNum R1;
+// since function number is present in R1
+
+
+if(functionNum == GET_FREE_PAGE) then
+    alias PID R8;
+    PID = [SYSTEM_STATUS_TABLE + 1];
+    
+    alias process_table_entry R9;
+    process_table_entry = PROCESS_TABLE + (PID * 16);
+
+    // incrementing WAIT_MEM_COUNT
+    [SYSTEM_STATUS_TABLE + 3] = [SYSTEM_STATUS_TABLE + 3] + 1;
+    
+    
+    while([SYSTEM_STATUS_TABLE + 2] == 0) do 
+        [process_table_entry + 4] = WAIT_MEM;
+        call CONTEXT_SWITCH;
+    endwhile;
+    // decrementing WAIT_MEM_COUNT
+    [SYSTEM_STATUS_TABLE + 3] = [SYSTEM_STATUS_TABLE + 3] - 1;
+
+    // decrementing MEM_FREE_COUNT
+    [SYSTEM_STATUS_TABLE + 2] = [SYSTEM_STATUS_TABLE + 2] - 1;
+
+    alias cnt R10;
+    cnt = 0;
+    while(cnt < NUM_MEM_PAGES) do 
+        if([MEMORY_FREE_LIST + cnt] == 0) then
+            [MEMORY_FREE_LIST + cnt] = 1;
+            R0 = cnt;
+            return;
+        endif;
+        cnt = cnt + 1;
+    endwhile;
+
+    // if no free page is found, then return value is -1
+    R0 = -1;
+    return;
+
+endif;
+
+
+if(functionNum == RELEASE_PAGE) then
+
+    alias page_num R2;
+    // page to be released is in R2
+
+    // decrementing the corresponding entry in memory free list
+    [MEMORY_FREE_LIST + page_num] = [MEMORY_FREE_LIST + page_num] - 1;
+    
+    // incrementing MEM_FREE_COUNT
+    [SYSTEM_STATUS_TABLE + 2] = [SYSTEM_STATUS_TABLE + 2] + 1;
+
+    alias cnt R10;
+    while( cnt < MAX_PROC_NUM ) do 
+        if([PROCESS_TABLE + (cnt * 16) + 4] == WAIT_MEM) then
+            // changing state from WAIT_MEM to READY
+            [PROCESS_TABLE + (cnt * 16) + 4] = READY; 
+        endif;
+        cnt = cnt + 1;
+    endwhile;
+
+    return;
+
+endif;
+
+
+
+return;
+
+
+
+
+

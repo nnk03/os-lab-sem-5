@@ -21,14 +21,10 @@ loadi(64,14); //library
 loadi(16, 29);
 loadi(17, 30); // for int-7 handler
 
-loadi(69, 11);
-loadi(70, 12); // idle-process
 
-loadi(2, 15);
-loadi(3, 16); // exception handler
+// loadi(2, 15);
+// loadi(3, 16); // exception handler
 
-loadi(54, 67);
-loadi(55, 68); // loading module 7
 
 loadi(83, 69); // for even.xsm
 
@@ -42,6 +38,18 @@ loadi(48, 61);
 loadi(49, 62); // for module 4 --> device manager 
 
 [TERMINAL_STATUS_TABLE + 0] = 0; // denoting terminal is free before scheduling the first process
+
+loadi(20, 33);
+loadi(21, 34); // for interrupt 9 --> exec
+
+loadi(42, 55);
+loadi(43, 56); // for module 1 --> Process manager
+
+loadi(44, 57);
+loadi(45, 58); // for module 2 --> memory manager;
+
+loadi(59, 3);
+loadi(60, 4); // for loading memory copy of inode table
 
 alias cnt R0;
 cnt = 0;
@@ -103,6 +111,26 @@ PTLR = 10;
 
 [76 * 512] = [65 * 512 + 1];
 //
+
+//  the effective free pool (MEM_FREE_COUNT value) at the end of OS initialization process starts from memory page 83.
+cnt = 0;
+while(cnt < 83) do 
+    [MEMORY_FREE_LIST + cnt] = 1;
+    cnt = cnt + 1;
+endwhile;
+
+while(cnt < MAX_MEM_PAGE) do 
+    [MEMORY_FREE_LIST + cnt] = 0;
+    cnt = cnt + 1;
+endwhile;
+
+
+// initializing WAIT_MEM_COUNT to zero
+[SYSTEM_STATUS_TABLE + 3] = 0;
+
+// initializing MEM_FREE_COUNT in system status table
+[SYSTEM_STATUS_TABLE + 2] = 128 - 83;
+
 return;
 
 
