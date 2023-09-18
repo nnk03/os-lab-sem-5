@@ -11,7 +11,7 @@ if(functionNum == ACQUIRE_TERMINAL) then
     [TERMINAL_STATUS_TABLE + 0] = 1;
     [TERMINAL_STATUS_TABLE + 1] = currentPID;
     // print "ACQUIRED";
-    breakpoint;
+    // breakpoint;
     return;
 
 endif;
@@ -31,7 +31,7 @@ if(functionNum == RELEASE_TERMINAL) then
     endwhile;
     R0 = 0;
     // print "RELEASED";
-    breakpoint;
+    //breakpoint;
     return;
 endif;
 return;

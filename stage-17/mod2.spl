@@ -6,6 +6,7 @@ alias functionNum R1;
 
 
 if(functionNum == GET_FREE_PAGE) then
+    breakpoint;
     alias PID R8;
     PID = [SYSTEM_STATUS_TABLE + 1];
     
@@ -39,13 +40,14 @@ if(functionNum == GET_FREE_PAGE) then
 
     // if no free page is found, then return value is -1
     R0 = -1;
+    breakpoint;
     return;
 
 endif;
 
 
 if(functionNum == RELEASE_PAGE) then
-
+    breakpoint;
     alias page_num R2;
     // page to be released is in R2
 
@@ -63,7 +65,7 @@ if(functionNum == RELEASE_PAGE) then
         endif;
         cnt = cnt + 1;
     endwhile;
-
+    breakpoint;
     return;
 
 endif;

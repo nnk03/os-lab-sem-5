@@ -103,6 +103,8 @@ call MEMORY_MANAGER;
 [PTBR + 18] = R0;
 [PTBR + 19] = "0110";
 
+
+
 // stack we are freeing last so that we can use the same stack for the 
 // previous multipush and multipop statements ??
 
@@ -117,7 +119,7 @@ endwhile;
 
 // saving entry point to top of stack
 [[PTBR + 16] * 512] = [[PTBR + 8] * 512 + 1];
-
+SP = 8 * 512;
 // changing the mode flag
 [processTableEntry + 9] = 0;
 
