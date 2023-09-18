@@ -3,9 +3,9 @@ breakpoint;
 
 
 
-[PROCESS_TABLE + ([SYSTEM_STATUS_TABLE + 1] * 16) + 12] = SP % 512;
-[PROCESS_TABLE + ([SYSTEM_STATUS_TABLE + 1] * 16) + 14] = PTBR;
-[PROCESS_TABLE + ([SYSTEM_STATUS_TABLE + 1] * 16) + 15] = PTLR;
+//[PROCESS_TABLE + ([SYSTEM_STATUS_TABLE + 1] * 16) + 12] = SP % 512;
+//[PROCESS_TABLE + ([SYSTEM_STATUS_TABLE + 1] * 16) + 14] = PTBR;
+//[PROCESS_TABLE + ([SYSTEM_STATUS_TABLE + 1] * 16) + 15] = PTLR;
 
 alias currentPID R0;
 alias process_table_entry R1;
