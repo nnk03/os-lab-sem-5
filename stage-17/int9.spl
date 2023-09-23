@@ -51,12 +51,17 @@ R2 = PID;
 call PROCESS_MANAGER;
 multipop(R7, R8, R9, R10, R11, R12, R13, R14);
 
+// reclaiming the same user area page
 [MEMORY_FREE_LIST + [processTableEntry + 11]] = [MEMORY_FREE_LIST + [processTableEntry + 11]] + 1;
+
+//decrementing the MEM_FREE_COUNT
 [SYSTEM_STATUS_TABLE + 2] = [SYSTEM_STATUS_TABLE + 2] - 1;
 
 SP = [processTableEntry + 11] * 512 - 1;
 [processTableEntry + 4] = RUNNING;
 
+// storing the inode index in the process table
+[processTableEntry + 7] = cnt;
 
 //library
 [PTBR + 0] = 63;
