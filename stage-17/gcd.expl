@@ -7,7 +7,7 @@ begin
 
     temp = exposcall("Read", -1, a);
     temp = exposcall("Read", -1, b);
-    if(a < b) then
+    if(b < a) then
         temp = a;
         a = b;
         b = temp;
@@ -16,8 +16,9 @@ begin
         temp = exposcall("Write", -1, a); 
     else
         while(b != 0) do 
-            a = b;
-            b = (a % b);
+            temp = a; 
+            a = b % a;
+            b = temp;
         endwhile;
         temp = exposcall("Write", -2, a);
     endif;
