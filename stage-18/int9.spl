@@ -1,3 +1,5 @@
+// exec
+
 // breakpoint;
 
 alias PID R7;
@@ -116,11 +118,34 @@ call MEMORY_MANAGER;
 
 cnt = 0;
 while(cnt <= ([INODE_TABLE + (inodeEntry * 16) + 2] / PAGE_SIZE) && (cnt < 4)) do 
-    R1 = [PTBR + (2 * cnt) + 8];
-    R2 = [INODE_TABLE + (inodeEntry * 16) + 8 + cnt];
-    loadi(R1, R2);
+    
+    // R1 = [PTBR + (2 * cnt) + 8];
+    // R2 = [INODE_TABLE + (inodeEntry * 16) + 8 + cnt];
+    // loadi(R1, R2);
+
+    // calling the DISK_LOAD function in device manager module --> mod4
+    multipush(R7, R8, R9, R10, R11, R12, R13, R14);
+    R1 = DISK_LOAD;
+    R2 = PID;
+    R3 = [INODE_TABLE + (inodeEntry * 16) + 8 + cnt];
+    call DEVICE_MANAGER;
+    multipop(R7, R8, R9, R10, R11, R12, R13, R14);
+      
     cnt = cnt + 1;
 endwhile;
+
+// initializing per process table 
+alias user_area_page_end R1;
+user_area_page_end = [PROCESS_TABLE + (PID * 16) + 11] * 512 + 512 - 16;
+cnt = 0;
+// setting last 8 entries (2 words per entry) to -1
+while(cnt < 16) do 
+    [user_area_page_end + cnt] = -1;
+    [user_area_page_end + cnt + 1] = -1;
+    cnt = cnt + 2;
+endwhile;
+
+
 
 // saving entry point to top of stack
 [[PTBR + 16] * 512] = [[PTBR + 8] * 512 + 1];
