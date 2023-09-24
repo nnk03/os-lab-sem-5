@@ -1,0 +1,29 @@
+int main(){
+decl
+     int a, b, c, temp;
+enddecl
+
+begin
+
+    temp = exposcall("Read", -1, a);
+    temp = exposcall("Read", -1, b);
+    if(b < a) then
+        temp = a;
+        a = b;
+        b = temp;
+    endif;
+    if(b == 0) then
+        temp = exposcall("Write", -1, a); 
+    else
+        while(b != 0) do 
+            temp = a; 
+            a = b % a;
+            b = temp;
+        endwhile;
+        temp = exposcall("Write", -2, a);
+    endif;
+    return 0;
+end
+
+
+}

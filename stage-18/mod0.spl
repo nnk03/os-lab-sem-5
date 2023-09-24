@@ -1,0 +1,60 @@
+// resource manager module
+alias functionNum R1;
+alias currentPID R2;
+
+if(functionNum == ACQUIRE_DISK) then
+
+    while([DISK_STATUS_TABLE + 0] == 1) do
+        [PROCESS_TABLE + (currentPID * 16) + 4] == WAIT_DISK;
+        multipush(R1, R2);
+        call CONTEXT_SWITCH;
+        multipop(R1, R2);
+    endwhile;
+    [DISK_STATUS_TABLE + 0] = 1; // state of the DISK
+    [DISK_STATUS_TABLE + 1] = currentPID; // PID of the process which acquired disk
+
+    
+
+endif;
+
+
+
+
+if(functionNum == ACQUIRE_TERMINAL) then
+    while([TERMINAL_STATUS_TABLE + 0] == 1) do 
+        [PROCESS_TABLE + (currentPID * 16) + 4] = WAIT_TERMINAL;
+        multipush(R1, R2);
+        call MOD_5;
+        multipop(R1, R2);
+    endwhile;
+    [TERMINAL_STATUS_TABLE + 0] = 1;
+    [TERMINAL_STATUS_TABLE + 1] = currentPID;
+    // print "ACQUIRED";
+    // breakpoint;
+    return;
+
+endif;
+
+if(functionNum == RELEASE_TERMINAL) then
+    if(currentPID != [TERMINAL_STATUS_TABLE + 1]) then
+        R0 = -1;
+        return;
+    endif;
+    [TERMINAL_STATUS_TABLE + 0] = 0;
+    alias cnt R1;
+    cnt = 1;
+    while(cnt < MAX_PROC_NUM) do 
+        if([PROCESS_TABLE + (cnt * 16) + 4] == WAIT_TERMINAL) then
+            [PROCESS_TABLE + (cnt * 16) + 4] = READY;
+        endif;
+        cnt = cnt + 1;
+    endwhile;
+    R0 = 0;
+    // print "RELEASED";
+    //breakpoint;
+    return;
+endif;
+return;
+
+
+
