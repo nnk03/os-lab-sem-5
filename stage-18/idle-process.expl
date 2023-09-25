@@ -5,7 +5,7 @@ int main(){
 	enddecl
 	begin
 		while(1 == 1) do 
-			breakpoint;
+			// breakpoint;
 			a = 1;
 		endwhile;
 		return 0;
