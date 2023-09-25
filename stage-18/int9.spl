@@ -127,7 +127,8 @@ while(cnt <= ([INODE_TABLE + (inodeEntry * 16) + 2] / PAGE_SIZE) && (cnt < 4)) d
     multipush(R7, R8, R9, R10, R11, R12, R13, R14);
     R1 = DISK_LOAD;
     R2 = PID;
-    R3 = [INODE_TABLE + (inodeEntry * 16) + 8 + cnt];
+    R3 = [PTBR + (2 * cnt) + 8];
+    R4 = [INODE_TABLE + (inodeEntry * 16) + 8 + cnt];
     call DEVICE_MANAGER;
     multipop(R7, R8, R9, R10, R11, R12, R13, R14);
       

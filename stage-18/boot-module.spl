@@ -51,6 +51,10 @@ loadi(45, 58); // for module 2 --> memory manager;
 loadi(59, 3);
 loadi(60, 4); // for loading memory copy of inode table
 
+loadi(6, 19);
+loadi(7, 20); // for interrupt 2 --> Disk interrupt handler 
+
+
 alias cnt R0;
 cnt = 0;
 while(cnt < MAX_PROC_NUM) do 
@@ -58,7 +62,25 @@ while(cnt < MAX_PROC_NUM) do
 	cnt = cnt + 1;
 endwhile;
 
-// for odd.xsm
+// initializing the STATE of the DISK_STATUS_TABLE to 0
+[DISK_STATUS_TABLE + 0] = 0;
+
+
+// initializing per process table of INIT process 
+alias user_area_page_end R1;
+user_area_page_end = [PROCESS_TABLE + (1 * 16) + 11] * 512 + 512 - 16;
+cnt = 0;
+// setting last 8 entries (2 words per entry) to -1
+while(cnt < 16) do 
+    [user_area_page_end + cnt] = -1;
+    [user_area_page_end + cnt + 1] = -1;
+    cnt = cnt + 2;
+endwhile;
+
+
+
+
+// for shell.xsm
 
 PTBR = PAGE_TABLE_BASE + 20;
 PTLR = 10;
