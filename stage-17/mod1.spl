@@ -10,12 +10,12 @@ alias user_area_page R8;
 
 if(functionNum == FREE_USER_AREA_PAGE) then
     user_area_page = [PROCESS_TABLE + (PID * 16) + 11];
-    multipush(R1, R2);
+    multipush(R1, R2, R8);
     // freeing user area page
     R1 = RELEASE_PAGE;
     R2 = user_area_page;
     call MEMORY_MANAGER;
-    multipop(R1, R2);
+    multipop(R1, R2, R8);
     return;
 endif;
 
