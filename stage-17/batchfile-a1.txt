@@ -2,7 +2,7 @@ load --os $HOME/myexpos/stage-17/os-startup.xsm
 load --module 7 $HOME/myexpos/stage-17/boot-module-a1.xsm
 load --library $HOME/myexpos/expl/library.lib
 load --idle $HOME/myexpos/stage-17/idle-process.xsm
-load --exec $HOME/myexpos/stage-17/gcd.xsm
+load --exec $HOME/myexpos/stage-17/sum.xsm
 load --init $HOME/myexpos/stage-17/shell.xsm
 load --int=timer $HOME/myexpos/stage-17/timer.xsm
 load --int=6 $HOME/myexpos/stage-17/int6.xsm
