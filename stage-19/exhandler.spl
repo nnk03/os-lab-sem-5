@@ -1,0 +1,123 @@
+// exception handler
+
+
+// setting the mode flag of the current process to -1 indicating
+// in exception handler
+[PROCESS_TABLE + ([SYSTEM_STATUS_TABLE + 1] * 16) + 9] = -1; 
+
+
+[PROCESS_TABLE + ([SYSTEM_STATUS_TABLE+ 1] * 16) + 13] = SP;
+SP = [PROCESS_TABLE + ([SYSTEM_STATUS_TABLE + 1] * 16) + 11] * 512 - 1;
+
+
+backup;
+multipush(EIP);
+
+alias userSP R6;
+userSP = [PROCESS_TABLE + ([SYSTEM_STATUS_TABLE+ 1] * 16) + 13];
+
+
+
+if((EC != 0) || (userSP == PTLR * 512 - 1)) then
+    print("ERROR");
+
+    multipush(R6);
+    R1 = EXIT_PROCESS;
+    R2 = [SYSTEM_STATUS_TABLE + 1];
+    call PROCESS_MANAGER;
+    multipop(R6);
+    call SCHEDULER;
+endif;
+
+
+alias PID R7;
+alias process_table_entry R8;
+alias disk_map_entry R9;
+alias page_table_entry R10;
+
+if(EC == 0) then
+
+
+    
+    PID = [SYSTEM_STATUS_TABLE + 1];
+    process_table_entry = PROCESS_TABLE + PID * 16;
+    disk_map_entry = DISK_MAP_TABLE + PID * 10;
+    page_table_entry = PAGE_TABLE_BASE + PID * 20;
+
+
+    // if its a code page
+    if((EPN >= 4) && (EPN <= 7)) then 
+        multipush(R6, R7, R8, R9, R10);
+        R1 = GET_CODE_PAGE;
+        R2 = [disk_map_entry + EPN];
+        call MEMORY_MANAGER;
+        multipop(R6, R7, R8, R9, R10);
+        
+        [page_table_entry + EPN * 2 + 0] = R0;
+        [page_table_entry + EPN * 2 + 1] = "1100";
+
+
+    endif;
+
+
+    // if it is a heap page
+    if((EPN >= 2) && (EPN <= 3)) then
+        multipush(R6, R7, R8, R9, R10);
+        R1 = GET_FREE_PAGE;
+        call MEMORY_MANAGER;
+        multipop(R6, R7, R8, R9, R10);
+
+        [page_table_entry + EPN * 2 + 0] = R0;
+        [page_table_entry + EPN * 2 + 1] = "1110";
+        
+
+        multipush(R6, R7, R8, R9, R10);
+        R1 = GET_FREE_PAGE;
+        call MEMORY_MANAGER;
+        multipop(R6, R7, R8, R9, R10);
+
+        [page_table_entry + EPN * 2 + 2] = R0;
+        [page_table_entry + EPN * 2 + 3] = "1110";
+
+    endif;
+endif;
+
+
+[process_table_entry + 9] = 0;
+    
+multipop(EIP);
+restore;
+
+
+SP = [PROCESS_TABLE + ([SYSTEM_STATUS_TABLE + 1] * 16) + 13];
+SP = SP + 1;
+
+
+// just to be safe
+PTBR = [PROCESS_TABLE + ([SYSTEM_STATUS_TABLE + 1] * 16) + 14];
+PTLR = [PROCESS_TABLE + ([SYSTEM_STATUS_TABLE + 1] * 16) + 15];
+
+
+// now we have to translate SP and store EIP in that physical address
+// not using registers to do address translation 
+[ [PTBR + ((SP / 512) * 2)] + (SP % 512) ] = EIP;
+
+
+// should we call halt prog
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,137 @@
+// memory manager module
+
+
+alias functionNum R1;
+// since function number is present in R1
+
+
+if(functionNum == RELEASE_BLOCK) then
+    // decrementing the count of disk block number in the memory copy of DISK_FREE_LIST
+    alias disk_block_num R2;
+    [DISK_FREE_LIST + disk_block_num] = [DISK_FREE_LIST + disk_block_num] - 1;
+    return;
+endif;
+
+
+
+if(functionNum == GET_CODE_PAGE) then
+    alias blockNumber R2;
+    alias page_table_address R6;
+    alias cnt R7;
+    alias code_index R8;
+    cnt = 0;
+    while(cnt < MAX_PROC_NUM) do
+        code_index = 4;
+        while(code_index < 8) do 
+            // code pages are stored in 4,5, 6, 7, in DISK_MAP_TABLE
+            if([DISK_MAP_TABLE + cnt * 10 + code_index] == blockNumber) then
+                page_table_address = [PAGE_TABLE_BASE + cnt * 20 + 2 * code_index];
+                if(page_table_address != -1) then 
+                    [MEMORY_FREE_LIST + page_table_address] = [MEMORY_FREE_LIST + page_table_address] - 1;
+                    R0 = page_table_address;
+                    return;
+
+
+                endif;
+
+                
+            endwhile;
+
+        endwhile;
+        cnt = cnt + 1;
+    endwhile;
+
+
+    // if required page is not in memory
+    multipush(R1, R2, R6, R7, R8);
+    R1 = GET_FREE_PAGE;
+    call MEMORY_MANAGER;
+    multipop(R1, R2, R6, R7, R8);
+    // R0 is the return value which contains free page
+    multipush(R0, R1, R2, R6, R7, R8);
+    R1 = DISK_LOAD;
+    R2 = [SYSTEM_STATUS_TABLE + 1];
+    R3 = R0;
+    R4 = blockNumber;
+    call DEVICE_MANAGER;
+    multipop(R0, R1, R2, R6, R7, R8);
+    // R0 will have to loaded page
+    return;
+
+    return;
+endif;
+
+if(functionNum == GET_FREE_PAGE) then
+    //breakpoint;
+    alias PID R8;
+    PID = [SYSTEM_STATUS_TABLE + 1];
+    
+    alias process_table_entry R9;
+    process_table_entry = PROCESS_TABLE + (PID * 16);
+
+    // incrementing WAIT_MEM_COUNT
+    [SYSTEM_STATUS_TABLE + 3] = [SYSTEM_STATUS_TABLE + 3] + 1;
+    
+    
+    while([SYSTEM_STATUS_TABLE + 2] == 0) do 
+        [process_table_entry + 4] = WAIT_MEM;
+        call CONTEXT_SWITCH;
+    endwhile;
+    // decrementing WAIT_MEM_COUNT
+    [SYSTEM_STATUS_TABLE + 3] = [SYSTEM_STATUS_TABLE + 3] - 1;
+
+    // decrementing MEM_FREE_COUNT
+    [SYSTEM_STATUS_TABLE + 2] = [SYSTEM_STATUS_TABLE + 2] - 1;
+
+    alias cnt R10;
+    cnt = 0;
+    while(cnt < NUM_MEM_PAGES) do 
+        if([MEMORY_FREE_LIST + cnt] == 0) then
+            [MEMORY_FREE_LIST + cnt] = 1;
+            R0 = cnt;
+            //breakpoint;
+            return;
+        endif;
+        cnt = cnt + 1;
+    endwhile;
+
+    // if no free page is found, then return value is -1
+    R0 = -1;
+    // breakpoint;
+    return;
+
+endif;
+
+
+if(functionNum == RELEASE_PAGE) then
+    // breakpoint;
+    alias page_num R2;
+    // page to be released is in R2
+
+    // decrementing the corresponding entry in memory free list
+    [MEMORY_FREE_LIST + page_num] = [MEMORY_FREE_LIST + page_num] - 1;
+    
+    // incrementing MEM_FREE_COUNT
+    [SYSTEM_STATUS_TABLE + 2] = [SYSTEM_STATUS_TABLE + 2] + 1;
+
+    alias cnt R10;
+    while( cnt < MAX_PROC_NUM ) do 
+        if([PROCESS_TABLE + (cnt * 16) + 4] == WAIT_MEM) then
+            // changing state from WAIT_MEM to READY
+            [PROCESS_TABLE + (cnt * 16) + 4] = READY; 
+        endif;
+        cnt = cnt + 1;
+    endwhile;
+    // breakpoint;
+    return;
+
+endif;
+
+
+
+return;
+
+
+
+
+
