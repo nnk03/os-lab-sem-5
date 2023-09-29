@@ -108,6 +108,7 @@ endwhile;
 
 // stack
 
+multipush(R7, R8, R9, R10, R11, R12, R13, R14);
 R1 = GET_FREE_PAGE;
 call MEMORY_MANAGER;
 [PTBR + 16] = R0;
@@ -116,6 +117,7 @@ R1 = GET_FREE_PAGE;
 call MEMORY_MANAGER;
 [PTBR + 18] = R0;
 [PTBR + 19] = "0110";
+multipush(R7, R8, R9, R10, R11, R12, R13, R14);
 
 
 // code
@@ -138,11 +140,12 @@ while(cnt < 10) do
     [DISK_MAP_TABLE + PID * 10 + cnt] = -1;
     cnt = cnt + 1;
 endwhile;
-
+print("INT9");
 // code pages, in DISK_MAP_TABLE, the code pages are in indices 4, 5, 6, 7
 cnt = 0;
-while((cnt <= [INODE_TABLE + inodeEntry * 16 + 2]) / PAGE_SIZE) && (cnt < 4)) do 
+while((cnt <= [INODE_TABLE + inodeEntry * 16 + 2] / PAGE_SIZE) && (cnt < 4)) do 
     [DISK_MAP_TABLE + PID * 10 + cnt + 4] = [INODE_TABLE + inodeEntry * 16 + 8 + cnt];
+    print([INODE_TABLE + inodeEntry * 16 + 8 + cnt]);
     cnt = cnt + 1;
 endwhile;
 
@@ -151,6 +154,7 @@ endwhile;
 multipush(R7, R8, R9, R10, R11, R12, R13, R14);
 R1 = GET_CODE_PAGE;
 R2 = [DISK_MAP_TABLE + PID * 10 + 4]; 
+print(R2);
 call MEMORY_MANAGER; 
 multipop(R7, R8, R9, R10, R11, R12, R13, R14);
 

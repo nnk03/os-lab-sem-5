@@ -1,5 +1,6 @@
 // exception handler
-
+print("exhandler");
+print(EC);
 
 // setting the mode flag of the current process to -1 indicating
 // in exception handler
@@ -34,9 +35,9 @@ alias PID R7;
 alias process_table_entry R8;
 alias disk_map_entry R9;
 alias page_table_entry R10;
+print(EPN);
 
 if(EC == 0) then
-
 
     
     PID = [SYSTEM_STATUS_TABLE + 1];
@@ -50,11 +51,16 @@ if(EC == 0) then
         multipush(R6, R7, R8, R9, R10);
         R1 = GET_CODE_PAGE;
         R2 = [disk_map_entry + EPN];
+        print(R2);
+        if(R2 != -1) then   
         call MEMORY_MANAGER;
+        endif;
         multipop(R6, R7, R8, R9, R10);
-        
+        print(R0); 
+        if(R2 != -1) then 
         [page_table_entry + EPN * 2 + 0] = R0;
         [page_table_entry + EPN * 2 + 1] = "1100";
+        endif;
 
 
     endif;

@@ -1,5 +1,8 @@
 // Process Manager Module
 
+
+print("processmanager");
+
 // function number is present in R1;
 alias functionNum R1;
 
@@ -9,6 +12,7 @@ alias PID R2;
 alias user_area_page R8;
 
 if(functionNum == FREE_USER_AREA_PAGE) then
+    print("freeuserarea");
     user_area_page = [PROCESS_TABLE + (PID * 16) + 11];
     multipush(R1, R2, R8);
     // freeing user area page
@@ -20,6 +24,7 @@ if(functionNum == FREE_USER_AREA_PAGE) then
 endif;
 
 if(functionNum == EXIT_PROCESS) then
+    print("exitprocess");
     PID = [SYSTEM_STATUS_TABLE + 1];
     multipush(R1, R2, R8);
     // deallocate page table entries
@@ -39,6 +44,7 @@ endif;
 
 
 if(functionNum == FREE_PAGE_TABLE) then
+    print("freepagetable");
     alias page_table R9;
     // every process has 10 pages, and PID starts from 0
     // hence the page table corresponding to the current PID will be
@@ -55,11 +61,11 @@ if(functionNum == FREE_PAGE_TABLE) then
     while(cnt < 20) do 
         // invalidating each valid entry in page table
         if([page_table + cnt] != -1) then 
-            multipush(R1, R2, R10);
+            multipush(R1, R2, R10, R9);
             R1 = RELEASE_PAGE;
             R2 = [page_table + cnt];
             call MEMORY_MANAGER;
-            multipop(R1, R2, R10);
+            multipop(R1, R2, R10, R9);
             [page_table + cnt] = -1;
             [page_table + cnt] = "0000";
         endif;
@@ -67,9 +73,9 @@ if(functionNum == FREE_PAGE_TABLE) then
         cnt = cnt + 2;
     endwhile;
     // invalidating the heap pages
-    alias index R2;
-    index = 2;
-    while(index < 4) do 
+    alias index R10;
+    index = 1;
+    while(index < 3) do 
         if([DISK_MAP_TABLE + PID * 10 + index] != -1) then
             multipush(R1, R2, R9, R10);
             R1 = RELEASE_BLOCK;
@@ -82,8 +88,8 @@ if(functionNum == FREE_PAGE_TABLE) then
     endwhile;
     
     // invalidating the stack pages
-    index = 8;
-    while(index < 10) do
+    index = 3;
+    while(index < 7) do
         if([DISK_MAP_TABLE + PID * 10 + index] != -1) then
             
             multipush(R1, R2, R9, R10);

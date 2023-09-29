@@ -22,8 +22,8 @@ loadi(16, 29);
 loadi(17, 30); // for int-7 handler
 
 
-// loadi(2, 15);
-// loadi(3, 16); // exception handler
+loadi(2, 15);
+loadi(3, 16); // exception handler
 
 
 loadi(83, 69); // for even.xsm
@@ -53,6 +53,9 @@ loadi(60, 4); // for loading memory copy of inode table
 
 loadi(6, 19);
 loadi(7, 20); // for interrupt 2 --> Disk interrupt handler 
+
+loadi(61, 2); // for loading disk free list 
+
 
 
 alias cnt R0;
@@ -145,6 +148,30 @@ while(cnt < MAX_MEM_PAGE) do
     [MEMORY_FREE_LIST + cnt] = 0;
     cnt = cnt + 1;
 endwhile;
+
+
+// disk map initialization for INIT process
+cnt = 0;
+while(cnt < 10) do
+    [DISK_MAP_TABLE + 1 * 10 + cnt] = -1;
+    cnt = cnt + 1;
+endwhile;
+
+
+//user area page num
+[DISK_MAP_TABLE + 0] = 80 * 512;
+
+
+// for code pages
+[DISK_MAP_TABLE + 1 * 10 + 3] = 7;
+[DISK_MAP_TABLE + 1 * 10 + 4] = 8;
+
+
+
+
+
+
+
 
 
 // initializing WAIT_MEM_COUNT to zero

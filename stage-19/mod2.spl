@@ -1,11 +1,14 @@
 // memory manager module
 
 
+
+print("MemManager");
 alias functionNum R1;
 // since function number is present in R1
 
 
 if(functionNum == RELEASE_BLOCK) then
+    print("ReleseBlock");
     // decrementing the count of disk block number in the memory copy of DISK_FREE_LIST
     alias disk_block_num R2;
     [DISK_FREE_LIST + disk_block_num] = [DISK_FREE_LIST + disk_block_num] - 1;
@@ -13,8 +16,9 @@ if(functionNum == RELEASE_BLOCK) then
 endif;
 
 
-
 if(functionNum == GET_CODE_PAGE) then
+    print("getcodepage");
+    //print(R2);
     alias blockNumber R2;
     alias page_table_address R6;
     alias cnt R7;
@@ -34,13 +38,14 @@ if(functionNum == GET_CODE_PAGE) then
 
                 endif;
 
-                
-            endwhile;
+            endif;                
+            code_index = code_index + 1;
 
         endwhile;
         cnt = cnt + 1;
     endwhile;
 
+    //print("code page not found");
 
     // if required page is not in memory
     multipush(R1, R2, R6, R7, R8);
@@ -48,20 +53,26 @@ if(functionNum == GET_CODE_PAGE) then
     call MEMORY_MANAGER;
     multipop(R1, R2, R6, R7, R8);
     // R0 is the return value which contains free page
+    //print("HELLO");
     multipush(R0, R1, R2, R6, R7, R8);
     R1 = DISK_LOAD;
+    R4 = blockNumber;
+    // we have to save blockNumber in R4 first, because its an alias for R2, which is updated in next line
     R2 = [SYSTEM_STATUS_TABLE + 1];
     R3 = R0;
-    R4 = blockNumber;
+    //print(R1);
+    //print(R2);
+    //print(R3);
+    //print(R4);
     call DEVICE_MANAGER;
     multipop(R0, R1, R2, R6, R7, R8);
     // R0 will have to loaded page
     return;
 
-    return;
 endif;
 
 if(functionNum == GET_FREE_PAGE) then
+    print("getfreepage");
     //breakpoint;
     alias PID R8;
     PID = [SYSTEM_STATUS_TABLE + 1];
@@ -104,6 +115,7 @@ endif;
 
 
 if(functionNum == RELEASE_PAGE) then
+    print("releasepage");
     // breakpoint;
     alias page_num R2;
     // page to be released is in R2
