@@ -51,16 +51,13 @@ if(EC == 0) then
         multipush(R6, R7, R8, R9, R10);
         R1 = GET_CODE_PAGE;
         R2 = [disk_map_entry + EPN];
+        print("calling");
         print(R2);
-        if(R2 != -1) then   
         call MEMORY_MANAGER;
-        endif;
         multipop(R6, R7, R8, R9, R10);
         print(R0); 
-        if(R2 != -1) then 
         [page_table_entry + EPN * 2 + 0] = R0;
         [page_table_entry + EPN * 2 + 1] = "1100";
-        endif;
 
 
     endif;
@@ -106,7 +103,7 @@ PTLR = [PROCESS_TABLE + ([SYSTEM_STATUS_TABLE + 1] * 16) + 15];
 
 // now we have to translate SP and store EIP in that physical address
 // not using registers to do address translation 
-[ [PTBR + ((SP / 512) * 2)] + (SP % 512) ] = EIP;
+[ [PTBR + ((SP / 512) * 2)] * 512 + (SP % 512) ] = EIP;
 
 
 // should we call halt prog

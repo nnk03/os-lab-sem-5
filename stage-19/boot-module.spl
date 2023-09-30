@@ -158,13 +158,11 @@ while(cnt < 10) do
 endwhile;
 
 
-//user area page num
-[DISK_MAP_TABLE + 0] = 80 * 512;
 
 
 // for code pages
-[DISK_MAP_TABLE + 1 * 10 + 3] = 7;
-[DISK_MAP_TABLE + 1 * 10 + 4] = 8;
+[DISK_MAP_TABLE + 1 * 10 + 4] = 7;
+[DISK_MAP_TABLE + 1 * 10 + 5] = 8;
 
 
 

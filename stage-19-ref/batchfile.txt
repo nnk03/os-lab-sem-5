@@ -1,0 +1,20 @@
+fdisk
+load --os $HOME/myexpos/stage-19-ref/os_startup_main.xsm
+load --module 7 $HOME/myexpos/stage-19-ref/module7_boot.xsm
+load --library $HOME/myexpos/expl/library.lib
+load --idle $HOME/myexpos/stage-19-ref/idle.xsm
+load --init $HOME/myexpos/stage-19-ref/shell.xsm
+load --exec $HOME/myexpos/stage-19-ref/linklist.xsm
+load --int=timer $HOME/myexpos/stage-19-ref/timer_round_robin.xsm
+load --int=6 $HOME/myexpos/stage-19-ref/interrupt6.xsm
+load --int=7 $HOME/myexpos/stage-19-ref/interrupt7.xsm
+load --int=9 $HOME/myexpos/stage-19-ref/interrupt9.xsm
+load --int=10 $HOME/myexpos/stage-19-ref/interrupt10.xsm
+load --module 0 $HOME/myexpos/stage-19-ref/module0_resourcemanager.xsm
+load --module 1 $HOME/myexpos/stage-19-ref/module1_processmanager.xsm
+load --module 2 $HOME/myexpos/stage-19-ref/module2_memorymanager.xsm
+load --module 4 $HOME/myexpos/stage-19-ref/module4_devicemanager.xsm
+load --module 5 $HOME/myexpos/stage-19-ref/module5_scheduler.xsm
+load --int=console $HOME/myexpos/stage-19-ref/console_interrupt.xsm
+load --int=disk $HOME/myexpos/stage-19-ref/disk_interrupt.xsm
+load --exhandler $HOME/myexpos/stage-19-ref/exhandler.xsm

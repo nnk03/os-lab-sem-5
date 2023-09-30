@@ -74,8 +74,8 @@ if(functionNum == FREE_PAGE_TABLE) then
     endwhile;
     // invalidating the heap pages
     alias index R10;
-    index = 1;
-    while(index < 3) do 
+    index = 2;
+    while(index < 4) do 
         if([DISK_MAP_TABLE + PID * 10 + index] != -1) then
             multipush(R1, R2, R9, R10);
             R1 = RELEASE_BLOCK;
@@ -88,8 +88,8 @@ if(functionNum == FREE_PAGE_TABLE) then
     endwhile;
     
     // invalidating the stack pages
-    index = 3;
-    while(index < 7) do
+    index = 8;
+    while(index < 10) do
         if([DISK_MAP_TABLE + PID * 10 + index] != -1) then
             
             multipush(R1, R2, R9, R10);
