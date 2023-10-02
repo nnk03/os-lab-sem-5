@@ -67,7 +67,7 @@ if(functionNum == FREE_PAGE_TABLE) then
             call MEMORY_MANAGER;
             multipop(R1, R2, R10, R9);
             [page_table + cnt] = -1;
-            [page_table + cnt] = "0000";
+            [page_table + cnt + 1] = "0000";
         endif;
         // 2 words has been changed, so advancing by two words
         cnt = cnt + 2;

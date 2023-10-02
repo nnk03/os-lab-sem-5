@@ -1,0 +1,130 @@
+// Process Manager Module
+
+// function number is present in R1;
+alias functionNum R1;
+
+
+alias PID R2;
+
+alias user_area_page R8;
+
+if(functionNum == FREE_USER_AREA_PAGE) then
+    user_area_page = [PROCESS_TABLE + (PID * 16) + 11];
+    multipush(R1, R2, R8);
+    // freeing user area page
+    R1 = RELEASE_PAGE;
+    R2 = user_area_page;
+    call MEMORY_MANAGER;
+    multipop(R1, R2, R8);
+    return;
+endif;
+
+if(functionNum == EXIT_PROCESS) then
+    PID = [SYSTEM_STATUS_TABLE + 1];
+    multipush(R1, R2, R8);
+    // deallocate page table entries
+    R1 = FREE_PAGE_TABLE;
+    R2 = PID;
+    call PROCESS_MANAGER;
+
+    // deallocating the user area page
+    R1 = FREE_USER_AREA_PAGE;
+    R2 = PID;
+    call PROCESS_MANAGER;
+    multipop(R1, R2, R8);
+    [PROCESS_TABLE + (PID * 16) + 4] = TERMINATED;
+    return;
+endif;
+
+
+
+if(functionNum == FREE_PAGE_TABLE) then
+    alias page_table R9;
+
+    // every process has 10 pages, and PID starts from 0
+    // hence the page table corresponding to the current PID will be
+    // PAGE_TABLE_BASE plus (PID * 10 * 2)
+    // since each page is 2 words
+
+    page_table = PAGE_TABLE_BASE + (PID * 20);
+    // invalidating the library pages
+    [page_table + 0] = -1;
+    [page_table + 1] = "0000";
+    [page_table + 2] = -1;
+    [page_table + 3] = "0000";
+
+    alias cnt R10;
+    cnt = 0;
+
+    while(cnt < 20) do 
+        // invalidating each valid entry in page table
+        if([page_table + cnt] != -1) then 
+            multipush(R1, R2, R9, R10);
+            R1 = RELEASE_PAGE;
+            R2 = [page_table + cnt];
+            call MEMORY_MANAGER;
+            multipop(R1, R2, R9, R10);
+            [page_table + cnt] = -1;
+            [page_table + cnt + 1] = "0000";
+        endif;
+        // 2 words has been changed, so advancing by two words
+        cnt = cnt + 2;
+    endwhile;
+    
+    // invalidating the heap pages;
+    cnt = 2;
+    while(cnt < 4) do
+        if([DISK_MAP_TABLE + PID * 10 + cnt] != -1) then
+
+            multipush(R1, R2, R9, R10);
+            R1 = RELEASE_BLOCK;
+            R2 = [DISK_MAP_TABLE + PID * 10 + cnt];
+            call MEMORY_MANAGER;
+            multipop(R1, R2, R9, R10);
+            
+        endif;
+        cnt = cnt + 1;
+    endwhile;
+
+    // invalidating the stack pages
+    cnt = 8;
+    while(cnt < 10) do 
+        if([DISK_MAP_TABLE + PID * 10 + i] != -1) then
+            
+            multipush(R1, R2, R9, R10);
+            R1 = RELEASE_BLOCK;
+            R2 = [DISK_MAP_TABLE + PID * 10 + cnt];
+            call MEMORY_MANAGER;
+
+            multipop(R1, R2, R9, R10);
+
+
+        endif;
+        cnt = cnt + 1;
+    endwhile;
+
+
+    // invalidating all DISK_MAP_TABLE entries 
+    
+    cnt = 0;
+    while(cnt < 10) do
+        [DISK_MAP_TABLE + PID * 10 + cnt] = -1;
+        cnt = cnt + 1;
+    endwhile;
+
+
+    return;
+endif;
+
+return;
+
+
+
+
+
+
+
+
+
+
+

@@ -94,7 +94,7 @@ if(functionNum==GET_CODE_PAGE)then
 endif;
 
 if(functionNum==RELEASE_BLOCK)then
-	alias diskBlockNum R1;
+	alias diskBlockNum R2;
 	[DISK_FREE_LIST+diskBlockNum]=[DISK_FREE_LIST+diskBlockNum]-1;
 	return;
 endif;
