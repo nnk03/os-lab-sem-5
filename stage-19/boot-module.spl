@@ -54,6 +54,7 @@ loadi(60, 4); // for loading memory copy of inode table
 loadi(6, 19);
 loadi(7, 20); // for interrupt 2 --> Disk interrupt handler 
 
+loadi(61, 2); // for loading DISK_FREE_LIST
 
 alias cnt R0;
 cnt = 0;
@@ -129,6 +130,18 @@ PTLR = 10;
 //KPTR 
 [PROCESS_TABLE + 16 + 12] = 0;
 
+// initializing the DISK_MAP_TABLE of init process
+
+cnt = 0;
+
+while(cnt < 10) do
+    [DISK_MAP_TABLE + 1 * 10 + cnt] = -1;
+    cnt = cnt + 1;
+endwhile;
+
+// code pages of INIT
+[DISK_MAP_TABLE + 1 * 10 + 4] = 7;
+[DISK_MAP_TABLE + 1 * 10 + 5] = 8; 
 
 
 [76 * 512] = [65 * 512 + 1];
@@ -152,6 +165,10 @@ endwhile;
 
 // initializing MEM_FREE_COUNT in system status table
 [SYSTEM_STATUS_TABLE + 2] = 128 - 83;
+
+
+print("ret boot");
+
 
 return;
 

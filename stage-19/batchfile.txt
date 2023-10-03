@@ -1,19 +1,19 @@
 fdisk
-load --os $HOME/myexpos/stage-18/os-startup.xsm
-load --module 7 $HOME/myexpos/stage-18/boot-module.xsm
+load --os $HOME/myexpos/stage-19/os-startup.xsm
+load --module 7 $HOME/myexpos/stage-19/boot-module.xsm
 load --library $HOME/myexpos/expl/library.lib
-load --idle $HOME/myexpos/stage-18/idle-process.xsm
-load --init $HOME/myexpos/stage-18/shell.xsm
-load --exec $HOME/myexpos/stage-18/sum.xsm
-load --int=timer $HOME/myexpos/stage-18/timer.xsm
-load --int=6 $HOME/myexpos/stage-18/int6.xsm
-load --int=7 $HOME/myexpos/stage-18/int7.xsm
-load --int=9 $HOME/myexpos/stage-18/int9.xsm
-load --int=10 $HOME/myexpos/stage-18/int10.xsm
-load --module 0 $HOME/myexpos/stage-18/mod0.xsm
-load --module 1 $HOME/myexpos/stage-18/mod1.xsm
-load --module 2 $HOME/myexpos/stage-18/mod2.xsm
-load --module 4 $HOME/myexpos/stage-18/mod4.xsm
-load --module 5 $HOME/myexpos/stage-18/scheduler.xsm
-load --int=console $HOME/myexpos/stage-18/console-int.xsm
-load --int=disk $HOME/myexpos/stage-18/disk-int.xsm
+load --idle $HOME/myexpos/stage-19/idle-process.xsm
+load --init $HOME/myexpos/stage-19/shell.xsm
+load --exec $HOME/myexpos/stage-19/linkList.xsm
+load --int=timer $HOME/myexpos/stage-19/timer.xsm
+load --int=6 $HOME/myexpos/stage-19/int6.xsm
+load --int=7 $HOME/myexpos/stage-19/int7.xsm
+load --int=9 $HOME/myexpos/stage-19/int9.xsm
+load --int=10 $HOME/myexpos/stage-19/int10.xsm
+load --module 0 $HOME/myexpos/stage-19/mod0.xsm
+load --module 1 $HOME/myexpos/stage-19/mod1.xsm
+load --module 2 $HOME/myexpos/stage-19/mod2.xsm
+load --module 4 $HOME/myexpos/stage-19/mod4.xsm
+load --module 5 $HOME/myexpos/stage-19/scheduler.xsm
+load --int=console $HOME/myexpos/stage-19/console-int.xsm
+load --int=disk $HOME/myexpos/stage-19/disk-int.xsm

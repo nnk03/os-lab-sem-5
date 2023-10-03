@@ -89,7 +89,7 @@ if(functionNum == FREE_PAGE_TABLE) then
     // invalidating the stack pages
     cnt = 8;
     while(cnt < 10) do 
-        if([DISK_MAP_TABLE + PID * 10 + i] != -1) then
+        if([DISK_MAP_TABLE + PID * 10 + cnt] != -1) then
             
             multipush(R1, R2, R9, R10);
             R1 = RELEASE_BLOCK;
