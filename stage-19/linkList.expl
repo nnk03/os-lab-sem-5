@@ -20,8 +20,8 @@ int main()
   enddecl
 
   begin
-    x = initialize();
     
+    x = initialize();
     head=null;
     
     temp=exposcall("Write",-2,"number");

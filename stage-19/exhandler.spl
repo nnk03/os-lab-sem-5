@@ -1,6 +1,7 @@
 // exhandler - exception handler
 
 print("exh entry");
+breakpoint;
 
 
 
@@ -37,6 +38,7 @@ endif;
 
 
 if(EC == 0) then
+    print(EPN);
     alias PID R6;
     alias process_table_entry R7;
     alias disk_map_table_entry R8;
@@ -62,15 +64,17 @@ if(EC == 0) then
         multipush(R5, R6, R7, R8, R9);
         R1 = GET_FREE_PAGE;
         call MEMORY_MANAGER;
+        print(R0);
         [page_table_entry + EPN * 2 + 0] = R0;
-        [page_table_entry + EPN * 2 + 1] = "1110";
+        [page_table_entry + EPN * 2 + 1] = "0110";
         multipop(R5, R6, R7, R8, R9);
 
         multipush(R5, R6, R7, R8, R9);
         R1 = GET_FREE_PAGE;
         call MEMORY_MANAGER;
+        print(R0);
         [page_table_entry + EPN * 2 + 2] = R0;
-        [page_table_entry + EPN * 2 + 3] = "1110";
+        [page_table_entry + EPN * 2 + 3] = "0110";
         multipop(R5, R6, R7, R8, R9);
 
 

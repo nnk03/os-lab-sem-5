@@ -22,8 +22,8 @@ loadi(16, 29);
 loadi(17, 30); // for int-7 handler
 
 
-// loadi(2, 15);
-// loadi(3, 16); // exception handler
+loadi(2, 15);
+loadi(3, 16); // exception handler
 
 
 loadi(83, 69); // for even.xsm
@@ -167,7 +167,7 @@ endwhile;
 [SYSTEM_STATUS_TABLE + 2] = 128 - 83;
 
 
-print("ret boot");
+//print("ret boot");
 
 
 return;

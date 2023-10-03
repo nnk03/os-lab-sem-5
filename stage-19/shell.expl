@@ -9,7 +9,7 @@ int main(){
 begin
     temp = exposcall("Read", -1, file);
     // for debugging
-    // temp = exposcall("Write", -2, file);
+    //temp = exposcall("Write", -2, file);
 
     // executing the file
     temp = exposcall("Exec", file);

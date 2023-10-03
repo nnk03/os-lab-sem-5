@@ -117,6 +117,7 @@ call MEMORY_MANAGER;
 [PTBR + 19] = "0110";
 multipop(R7, R8, R9, R10, R11, R12, R13, R14);
 
+//print("alloc stack");
 
 
 
@@ -149,7 +150,7 @@ call MEMORY_MANAGER;
 [PTBR + 9] = "0100";
 multipop(R7, R8, R9, R10, R11, R12, R13, R14);
 
-
+//print("alloc code");
 
 
 
@@ -200,7 +201,7 @@ multipop(R7, R8, R9, R10, R11, R12, R13, R14);
 SP = 8 * 512;
 // changing the mode flag
 [processTableEntry + 9] = 0;
-
+//breakpoint;
 ireturn;
 
 

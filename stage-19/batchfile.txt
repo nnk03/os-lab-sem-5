@@ -17,3 +17,4 @@ load --module 4 $HOME/myexpos/stage-19/mod4.xsm
 load --module 5 $HOME/myexpos/stage-19/scheduler.xsm
 load --int=console $HOME/myexpos/stage-19/console-int.xsm
 load --int=disk $HOME/myexpos/stage-19/disk-int.xsm
+load --exhandler $HOME/myexpos/stage-19/exhandler.xsm
