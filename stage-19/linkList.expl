@@ -1,59 +1,78 @@
-// linked list program
-
-type
-  List
-  {
-    int data;
-    List next;
-  }
+type LinkedList {
+    int val;
+    LinkedList next;
+}
 endtype
 
 decl
-    List head;
+    LinkedList head;
 enddecl
 
-int main()
-{
-  decl
-    int length, x, temp;
-    List p, q;
-  enddecl
 
-  begin
+int main(){
+    decl 
+        int n, len, temp, value;
+        LinkedList a, curr;
+    enddecl
+
+    begin
+        temp = initialize();
+        breakpoint;
+        head = null;
+        temp = exposcall("Write", -2, "length");
+        temp = exposcall("Read", -1, n);
+        len = n;
+
+        a = head;
+        while(len != 0) do 
+            temp = exposcall("Read", -1, value);
+            curr = alloc();
+            curr.val = value;
+            curr.next = null;
+            
+            if(head == null) then
+                head = curr;
+                a = curr;
+            else
+                a.next = curr;
+                a = a.next;
+            endif;
+            len = len - 1;
+        endwhile;
+
+        curr = head;
+
+        while(curr != null) do 
+            temp = exposcall("Write", -2, curr.val);
+            curr = curr.next;
+        endwhile;
+
+
+
+
+        return 0;
+
+    end
     
-    x = initialize();
-    head=null;
-    
-    temp=exposcall("Write",-2,"number");
-    temp=exposcall("Read",-1,length);
 
-    q=head;
-    while (length!=0)  do
-      read(x);
-      p=alloc();
-      p.data=x;
-      p.next=null;
 
-      if (head==null) then
-      head=p;
-      q=p;
-      else
-      q.next=p;
-      q=q.next;
-      endif;
-      
-      length=length-1;
-    endwhile;
 
-    p=head;
-    while(p!=null)  do
-      write(p.data);
-      p=p.next;
-    endwhile;
 
-    return 1;
-  end
+
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
