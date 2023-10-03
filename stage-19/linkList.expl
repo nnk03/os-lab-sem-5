@@ -17,7 +17,6 @@ int main(){
 
     begin
         temp = initialize();
-        breakpoint;
         head = null;
         temp = exposcall("Write", -2, "length");
         temp = exposcall("Read", -1, n);
