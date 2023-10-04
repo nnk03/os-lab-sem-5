@@ -1,0 +1,122 @@
+// exhandler - exception handler
+
+//print("exh entry");
+
+
+
+
+// setting the mode flag to -1 indicating exception
+[PROCESS_TABLE + ([SYSTEM_STATUS_TABLE + 1] * 16) + 9] = -1;
+
+// switching to kernel stack 
+[PROCESS_TABLE + ([SYSTEM_STATUS_TABLE + 1] * 16) + 13] = SP;
+SP = [PROCESS_TABLE + ([SYSTEM_STATUS_TABLE + 1] * 16) + 11] * 512 - 1;
+
+// backup the register context and pushing EIP to kernel stack
+backup;
+multipush(EIP);
+
+alias userSP R5;
+  
+userSP = [PROCESS_TABLE + ([SYSTEM_STATUS_TABLE + 1] * 16) + 13];
+
+
+if((EC != 0) || (userSP == PTLR * 512 - 1)) then
+    print("ERROR");
+    // calling the EXIT_PROCESS in PROCESS_MANAGER
+    multipush(R5);
+    R1 = EXIT_PROCESS;
+    R2 = [SYSTEM_STATUS_TABLE + 1];
+    call PROCESS_MANAGER;
+    multipop(R5);
+
+    // calling SCHEDULER
+    call SCHEDULER;
+endif;
+
+
+
+
+if(EC == 0) then
+    //print(EPN);
+    alias PID R6;
+    alias process_table_entry R7;
+    alias disk_map_table_entry R8;
+    alias page_table_entry R9;
+    PID = [SYSTEM_STATUS_TABLE + 1];
+    process_table_entry = PROCESS_TABLE + PID * 16;
+    disk_map_table_entry = DISK_MAP_TABLE + PID * 10;
+    page_table_entry = PAGE_TABLE_BASE + PID * 20;
+
+    
+    // if it is a code page
+    if((EPN >= 4) && (EPN <= 7)) then
+        multipush(R5, R6, R7, R8, R9);
+        R1 = GET_CODE_PAGE;
+        R2 = [disk_map_table_entry + EPN];
+        call MEMORY_MANAGER;
+        multipop(R5, R6, R7, R8, R9);
+        [disk_map_table_entry + EPN] = R0;        
+        [page_table_entry + EPN * 2 + 0] = R0;
+        [page_table_entry + EPN * 2 + 1] = "1100";
+
+    endif;
+
+    // if it is a heap page 
+    if((EPN >= 2) && (EPN <= 3)) then
+        multipush(R5, R6, R7, R8, R9);
+        R1 = GET_FREE_PAGE;
+        call MEMORY_MANAGER;
+        multipop(R5, R6, R7, R8, R9);
+        [disk_map_table_entry + EPN] = R0;        
+        [page_table_entry + EPN * 2 + 0] = R0;
+        [page_table_entry + EPN * 2 + 1] = "1110";
+
+        multipush(R5, R6, R7, R8, R9);
+        R1 = GET_FREE_PAGE;
+        call MEMORY_MANAGER;
+        multipop(R5, R6, R7, R8, R9);
+        [disk_map_table_entry + EPN + 1] = R0;        
+        [page_table_entry + EPN * 2 + 2] = R0;
+        [page_table_entry + EPN * 2 + 3] = "1110";
+
+
+    endif;
+
+    // changing the mode flag
+    [process_table_entry + 9] = 0;
+    multipop(EIP);
+    restore;
+
+
+    // safe not to use the alias name of userSP as it can have some other value from the restore instruction
+    SP = [PROCESS_TABLE + [SYSTEM_STATUS_TABLE + 1] * 16 + 13];
+    SP = SP + 1;
+    // storing EIP in the physical address of the top of stack 
+    [[PTBR + 2 * (SP / 512)] * 512 + (SP % 512)] = EIP;
+
+
+    ireturn;
+
+
+endif;
+
+
+
+halt;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

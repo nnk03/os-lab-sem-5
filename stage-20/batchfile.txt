@@ -1,0 +1,20 @@
+fdisk
+load --os $HOME/myexpos/stage-20/os-startup.xsm
+load --module 7 $HOME/myexpos/stage-20/boot-module.xsm
+load --library $HOME/myexpos/expl/library.lib
+load --idle $HOME/myexpos/stage-20/idle-process.xsm
+load --init $HOME/myexpos/stage-20/shell.xsm
+load --exec $HOME/myexpos/stage-20/linkList.xsm
+load --int=timer $HOME/myexpos/stage-20/timer.xsm
+load --int=6 $HOME/myexpos/stage-20/int6.xsm
+load --int=7 $HOME/myexpos/stage-20/int7.xsm
+load --int=9 $HOME/myexpos/stage-20/int9.xsm
+load --int=10 $HOME/myexpos/stage-20/int10.xsm
+load --module 0 $HOME/myexpos/stage-20/mod0.xsm
+load --module 1 $HOME/myexpos/stage-20/mod1.xsm
+load --module 2 $HOME/myexpos/stage-20/mod2.xsm
+load --module 4 $HOME/myexpos/stage-20/mod4.xsm
+load --module 5 $HOME/myexpos/stage-20/scheduler.xsm
+load --int=console $HOME/myexpos/stage-20/console-int.xsm
+load --int=disk $HOME/myexpos/stage-20/disk-int.xsm
+load --exhandler $HOME/myexpos/stage-20/exhandler.xsm

@@ -1,6 +1,5 @@
 # Names
 
-
 `int7 --> Console output`
 
 `int10 --> halt`
@@ -24,3 +23,5 @@ In device manager, function 8 is Terminal Acquire, function 9 is Terminal Releas
 `module 2 --> Memory manager module`
 
 `int 9 --> Exec system call`
+
+`int 8 --> Fork system call`
