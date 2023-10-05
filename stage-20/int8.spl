@@ -143,11 +143,13 @@ endwhile;
 
 
 
-cnt = 4;
+cnt = 0;
 while(cnt < 16) do
+    // cnt = 0 to 3 -----> library
     // cnt = 4 to 7 ----> heap 
     // cnt = 8 to 15 --> code 
     [PAGE_TABLE_BASE + child_PID * 20 + cnt] = [PAGE_TABLE_BASE + parent_PID * 20 + cnt];
+    [MEMORY_FREE_LIST + [PAGE_TABLE_BASE + parent_PID * 20 + cnt]] = [MEMORY_FREE_LIST + [PAGE_TABLE_BASE + parent_PID * 20 + cnt]] + 1;
     cnt = cnt + 1;
 endwhile;
 
@@ -155,6 +157,70 @@ endwhile;
 // did not increase MEMORY FREE LIST YET *****************************************
 // did not allocate stack yet ********************************************************
 // ***********************************
+
+// we need to copy content of the user stack of the parent process to the user stack of the child process 
+// word by word
+
+// storing the return values in the user stacks of child and parent process
+alias virt_address R8;
+
+alias parent_stack R9;
+alias child_stack R10;
+
+virt_address = [PAGE_TABLE_BASE + parent_PID * 20 + 16];
+parent_stack = [PAGE_TABLE_BASE + parent_PID * 20 + 2 * (virt_address / 512)] * 512 + (virt_address % 512);
+
+virt_address = [PAGE_TABLE_BASE + child_PID * 20 + 16];
+child_stack = [PAGE_TABLE_BASE + child_PID * 20 + 2 * (virt_address / 512)] * 512 + (virt_address % 512);
+
+cnt = 0;
+while(cnt < 512) do
+    [child_stack + cnt] = [parent_stack + cnt];
+    cnt = cnt + 1;
+endwhile;
+
+
+virt_address = [PAGE_TABLE_BASE + parent_PID * 20 + 18];
+parent_stack = [PAGE_TABLE_BASE + parent_PID * 20 + 2 * (virt_address / 512)] * 512 + (virt_address % 512);
+
+virt_address = [PAGE_TABLE_BASE + child_PID * 20 + 18];
+child_stack = [PAGE_TABLE_BASE + child_PID * 20 + 2 * (virt_address / 512)] * 512 + (virt_address % 512);
+
+cnt = 0;
+while(cnt < 512) do
+    [child_stack + cnt] = [parent_stack + cnt];
+    cnt = cnt + 1;
+endwhile;
+
+
+// Store the value in the BP register on top of the kernel stack of child process. 
+
+[PROCESS_TABLE + child_PID * 16 + 12] = 1; // offset of KPTR of child_PID is 1 since we are saving BP to the kernel stack
+[[PROCESS_TABLE + child_PID * 16 + 11] * 512] = BP;
+
+// storing 0 as return value to child
+virt_address = [PROCESS_TABLE + child_PID * 16 + 13] - 1;
+[[PAGE_TABLE_BASE + child_PID * 20 + 2 * (virt_address / 512)] * 512 + (virt_address % 512)] = 0;
+
+// storing child_PID as return value to parent process 
+virt_address = [PROCESS_TABLE + parent_PID * 16 + 13] - 1;
+[[PAGE_TABLE_BASE + parent_PID * 20 + 2 * (virt_address / 512)] * 512 + (virt_address % 512)] = child_PID;
+
+
+
+// resetting the mode flag of parent process
+[PROCESS_TABLE + parent_PID * 16 + 9] = 0;
+
+// switching to user stack of the parent process
+SP = [PROCESS_TABLE + parent_PID * 16 + 13];
+ireturn;
+
+
+
+
+
+
+
 
 
 
