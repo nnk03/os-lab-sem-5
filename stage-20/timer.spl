@@ -8,7 +8,9 @@ alias num R3;
 num = 0;
 [PROCESS_TABLE + ([SYSTEM_STATUS_TABLE + 1] * 16) + 4] = READY;
 while(num < MAX_PROC_NUM) do 
-		[PROCESS_TABLE + num * 16 + 0] = [PROCESS_TABLE + num * 16 + 0] + 1;
+        if(PROCESS_TABLE + num * 16 + 4] != TERMINATED) then
+		    [PROCESS_TABLE + num * 16 + 0] = [PROCESS_TABLE + num * 16 + 0] + 1;
+        endif;
 	num = num + 1;
 endwhile;
 call MOD_5;

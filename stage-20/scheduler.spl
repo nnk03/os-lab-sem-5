@@ -73,6 +73,14 @@ if([process_table_entry+4]==CREATED)then
 	SP=[process_table_entry+13];
 	[process_table_entry+4]=RUNNING;
 	[process_table_entry+9]=0;
+
+    // storing the value in the first word of kernel stack to the BP register
+    BP = [[process_table_entry + 11] * 512];
+    
+    // because first word of the user area page number is the beginning of kernel stack ??
+
+
+
 	ireturn;
 endif;
 
@@ -83,4 +91,11 @@ endif;
 multipop(BP);
 //breakpoint;
 return;
+
+
+
+
+
+
+
 

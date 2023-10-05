@@ -8,6 +8,42 @@ alias PID R2;
 
 alias user_area_page R8;
 
+if(functionNum == GET_PCB_ENTRY) then
+    // no arguments for GET_PCB_ENTRY
+
+    alias process_table_index R5;
+    process_table_index = 0;
+    while(process_table_index < MAX_PROC_NUM) do
+        if([PROCESS_TABLE + process_table_index * 16 + 4] == TERMINATED) then
+            [PROCESS_TABLE + process_table_index * 16 + 0] = 0;
+            [PROCESS_TABLE + process_table_index * 16 + 1] = process_table_index;
+            [PROCESS_TABLE + process_table_index * 16 + 4] = ALLOCATED;
+            [PROCESS_TABLE + process_table_index * 16 + 14] = PAGE_TABLE_BASE + process_table_index * 20;
+            [PROCESS_TABLE + process_table_index * 16 + 15] = 10;
+
+            // return value
+            R0 = process_table_index
+            return;
+
+
+        endif;
+        process_table_index = process_table_index + 1;
+
+    endwhile;
+    
+
+    // if no process is found
+    R0 = -1;
+    return;
+
+
+
+
+
+endif;
+
+
+
 if(functionNum == FREE_USER_AREA_PAGE) then
     user_area_page = [PROCESS_TABLE + (PID * 16) + 11];
     multipush(R1, R2, R8);

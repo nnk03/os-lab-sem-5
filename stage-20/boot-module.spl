@@ -1,5 +1,8 @@
 // mod-7 --> boot module
 
+
+// loadi (memory block, disk block);
+
 loadi(4, 17);
 loadi(5, 18); // for timer interrupt handler
 
@@ -55,6 +58,11 @@ loadi(6, 19);
 loadi(7, 20); // for interrupt 2 --> Disk interrupt handler 
 
 loadi(61, 2); // for loading DISK_FREE_LIST
+
+loadi(18, 31);
+loadi(19, 32); // for loading interrupt 8 --> fork
+
+
 
 alias cnt R0;
 cnt = 0;
