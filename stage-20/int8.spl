@@ -110,11 +110,26 @@ parent_PID = [SYSTEM_STATUS_TABLE + 1];
 [PROCESS_TABLE + child_PID * 16 + 4] = CREATED;
 
 // user area page number is already stored
+
 // PID, PTBR and PTLR fields of the child process are 
 // already initialized in the Get Pcb Entry function. 
 // It is not required to initialize INPUT BUFFER.
 
 
+alias cnt R7;
+cnt = 0;
+// setting last 8 entries (2 words per entry) of child_PID to that of parent_PID
+while(cnt < 16) do 
+    [[PROCESS_TABLE+(child_PID*16)+11]*512+512-16+cnt] = [[PROCESS_TABLE + (parent_PID * 16) + 11] * 512 + 512 - 16 + cnt + 1];
+    [[PROCESS_TABLE+(child_PID*16)+11]*512+512-16+cnt+1] = [[PROCESS_TABLE + (parent_PID * 16) + 11] * 512 + 512 - 16 + cnt + 1];
+    cnt = cnt + 2;
+endwhile;
+
+cnt = 0;
+while(cnt < 10) do
+    [DISK_MAP_TABLE + child_PID * 10 + cnt] = [DISK_MAP_TABLE + parent_PID * 10 + cnt];
+    cnt = cnt + 1;
+endwhile;
 
 
 
