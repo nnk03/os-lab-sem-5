@@ -132,12 +132,29 @@ while(cnt < 10) do
 endwhile;
 
 
+// heap, code and library are same as that of the parent process
+
+// Library
+[PAGE_TABLE_BASE + child_PID * 20 + 0] = 63;
+[PAGE_TABLE_BASE + child_PID * 20 + 1] = "0100";
+[PAGE_TABLE_BASE + child_PID * 20 + 2] = 63;
+[PAGE_TABLE_BASE + child_PID * 20 + 3] = "0100";
 
 
 
 
+cnt = 4;
+while(cnt < 16) do
+    // cnt = 4 to 7 ----> heap 
+    // cnt = 8 to 15 --> code 
+    [PAGE_TABLE_BASE + child_PID * 20 + cnt] = [PAGE_TABLE_BASE + parent_PID * 20 + cnt];
+    cnt = cnt + 1;
+endwhile;
 
-
+// *************************************
+// did not increase MEMORY FREE LIST YET *****************************************
+// did not allocate stack yet ********************************************************
+// ***********************************
 
 
 
