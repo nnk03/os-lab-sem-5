@@ -1,0 +1,140 @@
+// fork system call 
+
+[PROCESS_TABLE + [SYSTEM_STATUS_TABLE + 1] * 16 + 9] = 8; // mode set to system call number of fork 
+
+// switching to the kernel stack 
+[PROCESS_TABLE + [SYSTEM_STATUS_TABLE + 1] * 16 + 13] = SP;
+SP = [PROCESS_TABLE + [SYSTEM_STATUS_TABLE + 1] * 16 + 11] * 512 - 1;
+
+R1 = GET_PCB_ENTRY;
+call PROCESS_MANAGER;
+
+// now, R0 contains the process_table_entry of the child process
+// in other words, it is the child PID
+
+
+
+
+if(R0 == -1) then
+    [PROCESS_TABLE + [SYSTEM_STATUS_TABLE + 1] * 16 + 9] = 0;
+    SP = [PROCESS_TABLE + [SYSTEM_STATUS_TABLE + 1] * 16 + 13];
+    // storing -1 as the return value in stack
+    // why SP - 1 ???????
+    [PTBR + 2 * ((SP - 1) / 512)] * 512 + (SP - 1) % 512] = -1;
+    // using PTBR instead of " [PAGE_TABLE_BASE + [SYSTEM_STATUS_TABLE + 1] * 20 "
+
+
+    ireturn;
+
+endif;
+
+// we need to save the child PID
+
+alias child_PID R5;
+child_PID = R0;
+
+
+// if heap pages are not allocated for parent
+// heap is in PTBR + 4 and PTBR + 6
+
+if([PTBR + 4] == -1) then 
+    multipush(R5);
+    R1 = GET_FREE_PAGE;
+    call MEMORY_MANAGER;
+    // R0 contains the return value;
+    multipop(R5);
+    [PTBR + 4] = R0;
+    [PTBR + 5] = "0110";
+    
+    multipush(R5);
+    R1 = GET_FREE_PAGE;
+    call MEMORY_MANAGER;
+    // R0 contains the return value;
+    multipop(R5);
+    [PTBR + 6] = R0;
+    [PTBR + 7] = "0110";
+    
+endif;
+
+
+
+// allocating 2 stack pages for child_PID
+multipush(R5);
+R1 = GET_FREE_PAGE;
+call MEMORY_MANAGER;
+multipop(R5);
+[PAGE_TABLE_BASE + child_PID * 20 + 16 + 0] = R0;
+[PAGE_TABLE_BASE + child_PID * 20 + 16 + 1] = "0110";
+
+
+multipush(R5);
+R1 = GET_FREE_PAGE;
+call MEMORY_MANAGER;
+multipop(R5);
+[PAGE_TABLE_BASE + child_PID * 20 + 18 + 0] = R0;
+[PAGE_TABLE_BASE + child_PID * 20 + 18 + 1] = "0110";
+
+
+// allocating a user area page for child_PID
+multipush(R5);
+R1 = GET_FREE_PAGE;
+call MEMORY_MANAGER;
+multipop(R5);
+
+[PROCESS_TABLE + child_PID * 16 + 11] = R0;
+
+// initialization of process table of child_PID
+alias parent_PID R6;
+parent_PID = [SYSTEM_STATUS_TABLE + 1];
+
+// copying the userID field from parent to child process
+[PROCESS_TABLE + child_PID * 16 + 3] = [PROCESS_TABLE + parent_PID * 16 + 3];
+
+// copying the SWAP FLAG and USER AREA SWAP STATUS, INODE_INDEX, UPTR
+[PROCESS_TABLE + child_PID * 16 + 6] = [PROCESS_TABLE + parent_PID * 16 + 6];
+[PROCESS_TABLE + child_PID * 16 + 10] = [PROCESS_TABLE + parent_PID * 16 + 10];
+[PROCESS_TABLE + child_PID * 16 + 7] = [PROCESS_TABLE + parent_PID * 16 + 7];
+[PROCESS_TABLE + child_PID * 16 + 13] = [PROCESS_TABLE + parent_PID * 16 + 13];
+
+
+// setting the MODE FLAG, KPTR and TICK fields of the child process to 0
+
+[PROCESS_TABLE + child_PID * 16 + 9] = 0; 
+[PROCESS_TABLE + child_PID * 16 + 12] = ;
+[PROCESS_TABLE + child_PID * 16 + 0] = ;
+
+// pid of parent is stored in ppid field of child
+[PROCESS_TABLE + child_PID * 16 + 2] = parent_PID;
+
+// setting the state of child process to CREATED
+[PROCESS_TABLE + child_PID * 16 + 4] = CREATED;
+
+// user area page number is already stored
+// PID, PTBR and PTLR fields of the child process are 
+// already initialized in the Get Pcb Entry function. 
+// It is not required to initialize INPUT BUFFER.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
