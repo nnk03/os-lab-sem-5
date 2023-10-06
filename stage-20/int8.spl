@@ -16,6 +16,7 @@ call PROCESS_MANAGER;
 
 
 if(R0 == -1) then
+    // resetting the mode flag
     [PROCESS_TABLE + [SYSTEM_STATUS_TABLE + 1] * 16 + 9] = 0;
     SP = [PROCESS_TABLE + [SYSTEM_STATUS_TABLE + 1] * 16 + 13];
     // storing -1 as the return value in stack
@@ -36,7 +37,7 @@ child_PID = R0;
 
 // if heap pages are not allocated for parent
 // heap is in PTBR + 4 and PTBR + 6
-
+PTBR = PAGE_TABLE_BASE + [SYSTEM_STATUS_TABLE + 1] * 20 + 14] 
 if([PTBR + 4] == -1) then 
     multipush(R5);
     R1 = GET_FREE_PAGE;
