@@ -22,7 +22,7 @@ if(functionNum == GET_PCB_ENTRY) then
             [PROCESS_TABLE + process_table_index * 16 + 15] = 10;
 
             // return value
-            R0 = process_table_index
+            R0 = process_table_index;
             return;
 
 

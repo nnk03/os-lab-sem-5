@@ -21,7 +21,7 @@ if(R0 == -1) then
     SP = [PROCESS_TABLE + [SYSTEM_STATUS_TABLE + 1] * 16 + 13];
     // storing -1 as the return value in stack
     // why SP - 1 ???????
-    [PTBR + 2 * ((SP - 1) / 512)] * 512 + (SP - 1) % 512] = -1;
+    [[PTBR + 2 * ((SP - 1) / 512)] * 512 + (SP - 1) % 512] = -1;
     // using PTBR instead of " [PAGE_TABLE_BASE + [SYSTEM_STATUS_TABLE + 1] * 20 "
 
 
@@ -37,7 +37,7 @@ child_PID = R0;
 
 // if heap pages are not allocated for parent
 // heap is in PTBR + 4 and PTBR + 6
-PTBR = PAGE_TABLE_BASE + [SYSTEM_STATUS_TABLE + 1] * 20 + 14] 
+//PTBR = [PAGE_TABLE_BASE + [SYSTEM_STATUS_TABLE + 1] * 20 + 14];
 if([PTBR + 4] == -1) then 
     multipush(R5);
     R1 = GET_FREE_PAGE;
@@ -64,16 +64,16 @@ multipush(R5);
 R1 = GET_FREE_PAGE;
 call MEMORY_MANAGER;
 multipop(R5);
-[PAGE_TABLE_BASE + child_PID * 20 + 16 + 0] = R0;
-[PAGE_TABLE_BASE + child_PID * 20 + 16 + 1] = "0110";
+[PAGE_TABLE_BASE + child_PID * 20 + 16] = R0;
+[PAGE_TABLE_BASE + child_PID * 20 + 17] = "0110";
 
 
 multipush(R5);
 R1 = GET_FREE_PAGE;
 call MEMORY_MANAGER;
 multipop(R5);
-[PAGE_TABLE_BASE + child_PID * 20 + 18 + 0] = R0;
-[PAGE_TABLE_BASE + child_PID * 20 + 18 + 1] = "0110";
+[PAGE_TABLE_BASE + child_PID * 20 + 18] = R0;
+[PAGE_TABLE_BASE + child_PID * 20 + 18] = "0110";
 
 
 // allocating a user area page for child_PID
@@ -87,28 +87,41 @@ multipop(R5);
 // initialization of process table of child_PID
 alias parent_PID R6;
 parent_PID = [SYSTEM_STATUS_TABLE + 1];
+alias parent_process_table R11;
+alias child_process_table R12;
+parent_process_table = PROCESS_TABLE + parent_PID * 16;
+child_process_table = PROCESS_TABLE + child_PID * 16;
+
+alias parent_page_table R13;
+alias child_page_table R14;
+
+parent_page_table = PAGE_TABLE_BASE + parent_PID * 20;
+child_page_table = PAGE_TABLE_BASE + child_PID * 20;
+
+
+
 
 // copying the userID field from parent to child process
-[PROCESS_TABLE + child_PID * 16 + 3] = [PROCESS_TABLE + parent_PID * 16 + 3];
+[child_process_table + 3] = [parent_process_table + 3];
 
 // copying the SWAP FLAG and USER AREA SWAP STATUS, INODE_INDEX, UPTR
-[PROCESS_TABLE + child_PID * 16 + 6] = [PROCESS_TABLE + parent_PID * 16 + 6];
-[PROCESS_TABLE + child_PID * 16 + 10] = [PROCESS_TABLE + parent_PID * 16 + 10];
-[PROCESS_TABLE + child_PID * 16 + 7] = [PROCESS_TABLE + parent_PID * 16 + 7];
-[PROCESS_TABLE + child_PID * 16 + 13] = [PROCESS_TABLE + parent_PID * 16 + 13];
+[child_process_table+ 6] = [ parent_process_table+ 6];
+[child_process_table+ 10] = [parent_process_table+ 10];
+[child_process_table + 7] = [parent_process_table + 7];
+[child_process_table + 13] = [parent_process_table + 13];
 
 
 // setting the MODE FLAG, KPTR and TICK fields of the child process to 0
 
-[PROCESS_TABLE + child_PID * 16 + 9] = 0; 
-[PROCESS_TABLE + child_PID * 16 + 12] = ;
-[PROCESS_TABLE + child_PID * 16 + 0] = ;
+[child_process_table + 9] = 0; 
+[child_process_table + 12] = 0;
+[child_process_table + 0] = 0;
 
 // pid of parent is stored in ppid field of child
-[PROCESS_TABLE + child_PID * 16 + 2] = parent_PID;
+[child_process_table + 2] = parent_PID;
 
 // setting the state of child process to CREATED
-[PROCESS_TABLE + child_PID * 16 + 4] = CREATED;
+[child_process_table+ 4] = CREATED;
 
 // user area page number is already stored
 
@@ -136,10 +149,10 @@ endwhile;
 // heap, code and library are same as that of the parent process
 
 // Library
-[PAGE_TABLE_BASE + child_PID * 20 + 0] = 63;
-[PAGE_TABLE_BASE + child_PID * 20 + 1] = "0100";
-[PAGE_TABLE_BASE + child_PID * 20 + 2] = 63;
-[PAGE_TABLE_BASE + child_PID * 20 + 3] = "0100";
+// [PAGE_TABLE_BASE + child_PID * 20 + 0] = 63;
+// [PAGE_TABLE_BASE + child_PID * 20 + 1] = "0100";
+// [PAGE_TABLE_BASE + child_PID * 20 + 2] = 63;
+// [PAGE_TABLE_BASE + child_PID * 20 + 3] = "0100";
 
 
 
@@ -149,8 +162,8 @@ while(cnt < 8) do
     // cnt = 0 to 3 -----> library
     // cnt = 4 to 7 ----> heap 
     // cnt = 8 to 15 --> code 
-    [PAGE_TABLE_BASE + child_PID * 20 + 2 * cnt] = [PAGE_TABLE_BASE + parent_PID * 20 + 2 * 2 * cnt];
-    [PAGE_TABLE_BASE + child_PID * 20 + 2 * cnt + 1] = [PAGE_TABLE_BASE + parent_PID * 20 + 2 * 2 * cnt + 1];
+    [child_page_table + 2 * cnt] = [parent_page_table + 2 * 2 * cnt];
+    [child_page_table + 2 * cnt + 1] = [parent_page_table + 2 * 2 * cnt + 1];
 
     // incrementing MEMORY_FREE_LIST of the corresponding page
     [MEMORY_FREE_LIST + [PAGE_TABLE_BASE + parent_PID * 20 + 2 * cnt]] = [MEMORY_FREE_LIST + [PAGE_TABLE_BASE + parent_PID * 20 + 2 * cnt]] + 1;
@@ -177,11 +190,11 @@ alias virt_address R8;
 alias parent_stack R9;
 alias child_stack R10;
 
-virt_address = [PAGE_TABLE_BASE + parent_PID * 20 + 16];
-parent_stack = [PAGE_TABLE_BASE + parent_PID * 20 + 2 * (virt_address / 512)] * 512 + (virt_address % 512);
+virt_address = [parent_page_table + 16];
+parent_stack = [parent_page_table + 2 * (virt_address / 512)] * 512 + (virt_address % 512);
 
-virt_address = [PAGE_TABLE_BASE + child_PID * 20 + 16];
-child_stack = [PAGE_TABLE_BASE + child_PID * 20 + 2 * (virt_address / 512)] * 512 + (virt_address % 512);
+virt_address = [child_page_table + 16];
+child_stack = [child_page_table + 2 * (virt_address / 512)] * 512 + (virt_address % 512);
 
 cnt = 0;
 while(cnt < 512) do
@@ -190,11 +203,11 @@ while(cnt < 512) do
 endwhile;
 
 
-virt_address = [PAGE_TABLE_BASE + parent_PID * 20 + 18];
-parent_stack = [PAGE_TABLE_BASE + parent_PID * 20 + 2 * (virt_address / 512)] * 512 + (virt_address % 512);
+virt_address = [parent_page_table + 18];
+parent_stack = [parent_page_table + 2 * (virt_address / 512)] * 512 + (virt_address % 512);
 
-virt_address = [PAGE_TABLE_BASE + child_PID * 20 + 18];
-child_stack = [PAGE_TABLE_BASE + child_PID * 20 + 2 * (virt_address / 512)] * 512 + (virt_address % 512);
+virt_address = [child_page_table + 18];
+child_stack = [child_page_table + 2 * (virt_address / 512)] * 512 + (virt_address % 512);
 
 cnt = 0;
 while(cnt < 512) do
@@ -205,18 +218,18 @@ endwhile;
 
 // Store the value in the BP register on top of the kernel stack of child process. 
 
-[PROCESS_TABLE + child_PID * 16 + 12] = 1; // offset of KPTR of child_PID is 1 since we are saving BP to the kernel stack
-[[PROCESS_TABLE + child_PID * 16 + 11] * 512] = BP;
+[child_process_table + 12] = 1; // offset of KPTR of child_PID is 1 since we are saving BP to the kernel stack
+[[child_process_table + 11] * 512] = BP;
 
 // storing the return values in the user stacks of child and parent process
 
 // storing 0 as return value to child
 virt_address = [PROCESS_TABLE + child_PID * 16 + 13] - 1;
-[[PAGE_TABLE_BASE + child_PID * 20 + 2 * (virt_address / 512)] * 512 + (virt_address % 512)] = 0;
+[[child_page_table + 2 * (virt_address / 512)] * 512 + (virt_address % 512)] = 0;
 
 // storing child_PID as return value to parent process 
 virt_address = [PROCESS_TABLE + parent_PID * 16 + 13] - 1;
-[[PAGE_TABLE_BASE + parent_PID * 20 + 2 * (virt_address / 512)] * 512 + (virt_address % 512)] = child_PID;
+[[parent_page_table + 2 * (virt_address / 512)] * 512 + (virt_address % 512)] = child_PID;
 
 
 
