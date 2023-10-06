@@ -120,10 +120,10 @@ parent_PID = [SYSTEM_STATUS_TABLE + 1];
 alias cnt R7;
 cnt = 0;
 // setting last 8 entries (2 words per entry) of child_PID to that of parent_PID
-while(cnt < 16) do 
-    [[PROCESS_TABLE+(child_PID*16)+11]*512+512-16+cnt] = [[PROCESS_TABLE + (parent_PID * 16) + 11] * 512 + 512 - 16 + cnt + 1];
-    [[PROCESS_TABLE+(child_PID*16)+11]*512+512-16+cnt+1] = [[PROCESS_TABLE + (parent_PID * 16) + 11] * 512 + 512 - 16 + cnt + 1];
-    cnt = cnt + 2;
+while(cnt < 8) do 
+    [[PROCESS_TABLE+(child_PID*16)+11]*512+512-16+2*cnt] = [[PROCESS_TABLE + (parent_PID * 16) + 11] * 512 + 512 - 16 + 2*cnt + 1];
+    [[PROCESS_TABLE+(child_PID*16)+11]*512+512-16+2*cnt+1] = [[PROCESS_TABLE + (parent_PID * 16) + 11] * 512 + 512 - 16 + 2*cnt + 1];
+    cnt = cnt + 1;
 endwhile;
 
 cnt = 0;
@@ -145,14 +145,24 @@ endwhile;
 
 
 cnt = 0;
-while(cnt < 16) do
+while(cnt < 8) do
     // cnt = 0 to 3 -----> library
     // cnt = 4 to 7 ----> heap 
     // cnt = 8 to 15 --> code 
-    [PAGE_TABLE_BASE + child_PID * 20 + cnt] = [PAGE_TABLE_BASE + parent_PID * 20 + cnt];
-    [MEMORY_FREE_LIST + [PAGE_TABLE_BASE + parent_PID * 20 + cnt]] = [MEMORY_FREE_LIST + [PAGE_TABLE_BASE + parent_PID * 20 + cnt]] + 1;
+    [PAGE_TABLE_BASE + child_PID * 20 + 2 * cnt] = [PAGE_TABLE_BASE + parent_PID * 20 + 2 * 2 * cnt];
+    [PAGE_TABLE_BASE + child_PID * 20 + 2 * cnt + 1] = [PAGE_TABLE_BASE + parent_PID * 20 + 2 * 2 * cnt + 1];
+
+    // incrementing MEMORY_FREE_LIST of the corresponding page
+    [MEMORY_FREE_LIST + [PAGE_TABLE_BASE + parent_PID * 20 + 2 * cnt]] = [MEMORY_FREE_LIST + [PAGE_TABLE_BASE + parent_PID * 20 + 2 * cnt]] + 1;
     cnt = cnt + 1;
 endwhile;
+
+
+// stack already allocated
+// but did not increment MEMORY_FREE_LIST for the stack pages
+// is it necessary ?? 
+
+
 
 // *************************************
 // did not increase MEMORY FREE LIST YET *****************************************
@@ -162,7 +172,6 @@ endwhile;
 // we need to copy content of the user stack of the parent process to the user stack of the child process 
 // word by word
 
-// storing the return values in the user stacks of child and parent process
 alias virt_address R8;
 
 alias parent_stack R9;
@@ -198,6 +207,8 @@ endwhile;
 
 [PROCESS_TABLE + child_PID * 16 + 12] = 1; // offset of KPTR of child_PID is 1 since we are saving BP to the kernel stack
 [[PROCESS_TABLE + child_PID * 16 + 11] * 512] = BP;
+
+// storing the return values in the user stacks of child and parent process
 
 // storing 0 as return value to child
 virt_address = [PROCESS_TABLE + child_PID * 16 + 13] - 1;
