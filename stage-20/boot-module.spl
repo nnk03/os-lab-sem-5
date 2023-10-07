@@ -1,6 +1,10 @@
 // mod-7 --> boot module
 
 
+loadi(63,13);
+loadi(64,14); //library
+
+
 // loadi (memory block, disk block);
 
 loadi(4, 17);
@@ -18,8 +22,6 @@ loadi(66,8); // init
 loadi(22,35);
 loadi(23,36); // int 10 module
 
-loadi(63,13);
-loadi(64,14); //library
 
 loadi(16, 29);
 loadi(17, 30); // for int-7 handler

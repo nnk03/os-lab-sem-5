@@ -61,7 +61,7 @@ PTLR = 10;
 PTBR = PAGE_TABLE_BASE;  //as PID of idle process is 0
 
 [81 * 512] = [69 * 512 + 1];
-[SYSTEM_STATUS_TABLE + 1] = 0;
+[SYSTEM_STATUS_TABLE + 1] = 1;
 
 SP = 8 * 512;
 ireturn;
