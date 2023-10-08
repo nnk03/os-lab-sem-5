@@ -1,0 +1,20 @@
+fdisk
+load --os $HOME/myexpos/ref-stage-20/os_startup_main.xsm
+load --init $HOME/myexpos/ref-stage-20/init_fork.xsm
+load --int=console $HOME/myexpos/ref-stage-20/console_interrupt.xsm
+load --int=disk $HOME/myexpos/ref-stage-20/disk_interrupt.xsm
+load --exhandler $HOME/myexpos/ref-stage-20/exhandler.xsm
+load --int=10 $HOME/myexpos/ref-stage-20/interrupt10.xsm
+load --int=6 $HOME/myexpos/ref-stage-20/interrupt6.xsm
+load --int=7 $HOME/myexpos/ref-stage-20/interrupt7.xsm
+load --int=8 $HOME/myexpos/ref-stage-20/interrupt8.xsm
+load --int=9 $HOME/myexpos/ref-stage-20/interrupt9.xsm
+load --module 0 $HOME/myexpos/ref-stage-20/module0_resourcemanager.xsm
+load --module 1 $HOME/myexpos/ref-stage-20/module1_processmanager.xsm
+load --module 2 $HOME/myexpos/ref-stage-20/module2_memorymanager.xsm
+load --module 4 $HOME/myexpos/ref-stage-20/module4_devicemanager.xsm
+load --module 5 $HOME/myexpos/ref-stage-20/module5_scheduler.xsm
+load --module 7 $HOME/myexpos/ref-stage-20/module7_boot.xsm
+load --exec $HOME/myexpos/ref-stage-20/even.xsm
+load --exec $HOME/myexpos/ref-stage-20/odd.xsm
+
