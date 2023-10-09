@@ -3,11 +3,15 @@ print("FORKENT");
 [PROCESS_TABLE + [SYSTEM_STATUS_TABLE + 1] * 16 + 9] = 8; // mode set to system call number of fork 
 
 // switching to the kernel stack 
+alias userSP R4;
 [PROCESS_TABLE + [SYSTEM_STATUS_TABLE + 1] * 16 + 13] = SP;
+userSP = SP;
 SP = [PROCESS_TABLE + [SYSTEM_STATUS_TABLE + 1] * 16 + 11] * 512 - 1;
 
+multipush(R4);
 R1 = GET_PCB_ENTRY;
 call PROCESS_MANAGER;
+multipop(R4);
 
 // now, R0 contains the process_table_entry of the child process
 // in other words, it is the child PID
@@ -39,19 +43,19 @@ child_PID = R0;
 // heap is in PTBR + 4 and PTBR + 6
 //PTBR = [PAGE_TABLE_BASE + [SYSTEM_STATUS_TABLE + 1] * 20 + 14];
 if([PTBR + 4] == -1) then 
-    multipush(R5);
+    multipush(R5, R4);
     R1 = GET_FREE_PAGE;
     call MEMORY_MANAGER;
     // R0 contains the return value;
-    multipop(R5);
+    multipop(R5, R4);
     [PTBR + 4] = R0;
     [PTBR + 5] = "0110";
     
-    multipush(R5);
+    multipush(R5, R4);
     R1 = GET_FREE_PAGE;
     call MEMORY_MANAGER;
     // R0 contains the return value;
-    multipop(R5);
+    multipop(R5, R4);
     [PTBR + 6] = R0;
     [PTBR + 7] = "0110";
     
@@ -60,27 +64,27 @@ endif;
 
 
 // allocating 2 stack pages for child_PID
-multipush(R5);
+multipush(R5, R4);
 R1 = GET_FREE_PAGE;
 call MEMORY_MANAGER;
-multipop(R5);
+multipop(R5, R4);
 [PAGE_TABLE_BASE + child_PID * 20 + 16] = R0;
 [PAGE_TABLE_BASE + child_PID * 20 + 17] = "0110";
 
 
-multipush(R5);
+multipush(R5, R4);
 R1 = GET_FREE_PAGE;
 call MEMORY_MANAGER;
-multipop(R5);
+multipop(R5, R4);
 [PAGE_TABLE_BASE + child_PID * 20 + 18] = R0;
-[PAGE_TABLE_BASE + child_PID * 20 + 18] = "0110";
+[PAGE_TABLE_BASE + child_PID * 20 + 19] = "0110";
 
 
 // allocating a user area page for child_PID
-multipush(R5);
+multipush(R5, R4);
 R1 = GET_FREE_PAGE;
 call MEMORY_MANAGER;
-multipop(R5);
+multipop(R5, R4);
 
 [PROCESS_TABLE + child_PID * 16 + 11] = R0;
 
@@ -117,6 +121,8 @@ child_page_table = PAGE_TABLE_BASE + child_PID * 20;
 [child_process_table + 12] = 0;
 [child_process_table + 0] = 0;
 
+
+
 // pid of parent is stored in ppid field of child
 [child_process_table + 2] = parent_PID;
 
@@ -134,7 +140,7 @@ alias cnt R7;
 cnt = 0;
 // setting last 8 entries (2 words per entry) of child_PID to that of parent_PID
 while(cnt < 8) do 
-    [[PROCESS_TABLE+(child_PID*16)+11]*512+512-16+2*cnt] = [[PROCESS_TABLE + (parent_PID * 16) + 11] * 512 + 512 - 16 + 2*cnt + 1];
+    [[PROCESS_TABLE+(child_PID*16)+11]*512+512-16+2*cnt] = [[PROCESS_TABLE + (parent_PID * 16) + 11] * 512 + 512 - 16 + 2*cnt];
     [[PROCESS_TABLE+(child_PID*16)+11]*512+512-16+2*cnt+1] = [[PROCESS_TABLE + (parent_PID * 16) + 11] * 512 + 512 - 16 + 2*cnt + 1];
     cnt = cnt + 1;
 endwhile;
@@ -148,16 +154,11 @@ endwhile;
 
 // heap, code and library are same as that of the parent process
 
-// Library
-// [PAGE_TABLE_BASE + child_PID * 20 + 0] = 63;
-// [PAGE_TABLE_BASE + child_PID * 20 + 1] = "0100";
-// [PAGE_TABLE_BASE + child_PID * 20 + 2] = 63;
-// [PAGE_TABLE_BASE + child_PID * 20 + 3] = "0100";
 
 
 
 
-cnt = 0;
+cnt = 4;
 while(cnt < 8) do
     // cnt = 0 to 3 -----> library
     // cnt = 4 to 7 ----> heap 
@@ -169,6 +170,11 @@ while(cnt < 8) do
     [MEMORY_FREE_LIST + [PAGE_TABLE_BASE + parent_PID * 20 + 2 * cnt]] = [MEMORY_FREE_LIST + [PAGE_TABLE_BASE + parent_PID * 20 + 2 * cnt]] + 1;
     cnt = cnt + 1;
 endwhile;
+// Library
+[child_page_table + 0] = 63;
+[child_page_table + 1] = "0100";
+[child_page_table + 2] = 64;
+[child_page_table + 3] = "0100";
 
 
 // stack already allocated
@@ -190,10 +196,10 @@ alias virt_address R8;
 alias parent_stack R9;
 alias child_stack R10;
 
-virt_address = [parent_page_table + 16];
+virt_address = [parent_page_table + 16] * 512;
 parent_stack = [parent_page_table + 2 * (virt_address / 512)] * 512 + (virt_address % 512);
 
-virt_address = [child_page_table + 16];
+virt_address = [child_page_table + 16] * 512;
 child_stack = [child_page_table + 2 * (virt_address / 512)] * 512 + (virt_address % 512);
 
 cnt = 0;
@@ -203,10 +209,10 @@ while(cnt < 512) do
 endwhile;
 
 
-virt_address = [parent_page_table + 18];
+virt_address = [parent_page_table + 18] * 512;
 parent_stack = [parent_page_table + 2 * (virt_address / 512)] * 512 + (virt_address % 512);
 
-virt_address = [child_page_table + 18];
+virt_address = [child_page_table + 18] * 512;
 child_stack = [child_page_table + 2 * (virt_address / 512)] * 512 + (virt_address % 512);
 
 cnt = 0;
@@ -224,11 +230,11 @@ endwhile;
 // storing the return values in the user stacks of child and parent process
 
 // storing 0 as return value to child
-virt_address = [PROCESS_TABLE + child_PID * 16 + 13] - 1;
+virt_address = [child_page_table + 13] - 1;
 [[child_page_table + 2 * (virt_address / 512)] * 512 + (virt_address % 512)] = 0;
 
 // storing child_PID as return value to parent process 
-virt_address = [PROCESS_TABLE + parent_PID * 16 + 13] - 1;
+virt_address = [parent_page_table + 13] - 1;
 [[parent_page_table + 2 * (virt_address / 512)] * 512 + (virt_address % 512)] = child_PID;
 
 
@@ -237,9 +243,9 @@ virt_address = [PROCESS_TABLE + parent_PID * 16 + 13] - 1;
 [PROCESS_TABLE + parent_PID * 16 + 9] = 0;
 
 // switching to user stack of the parent process
-SP = [PROCESS_TABLE + parent_PID * 16 + 13];
+SP = [parent_page_table + 13]; 
 
-print("asdfasdf");
+// print("FORKEXIT");
 breakpoint;
 ireturn;
 

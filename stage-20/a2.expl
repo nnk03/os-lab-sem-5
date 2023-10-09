@@ -1,0 +1,78 @@
+type LL {
+    int val;
+    LL next;
+}
+endtype
+
+decl
+    LL head;
+enddecl
+
+
+int main(){
+decl
+    int n, len, temp, value, pid;
+    LL x, y;
+enddecl
+
+begin
+    temp = initialize();
+    head = null;
+    len = 100;
+    x = head;
+    value = 1;
+    while(value != 101) do
+        y = alloc();
+        y.val = value;
+        y.next = null;
+        if(head == null) then
+            head = y;
+            x = y;
+        else
+            x.next = y;
+            x = x.next;
+        endif;
+        value = value + 1;
+    endwhile;
+    x = head;
+    y = head;
+
+    while(head != null) do
+        temp = exposcall("Write", -2, head.val);
+        head = head.next;
+    endwhile;
+    pid = exposcall("Fork");
+    if(pid == 0) then
+        
+        while(x != null) do
+            temp = exposcall("Write", -2, x.val);
+            x = x.next;
+            if(x == null) then
+                break;
+            else
+                x = x.next;
+            endif;
+        endwhile;
+
+
+    else
+        while(y != null) do
+            temp = exposcall("Write", -2, y.val);
+            y = y.next;
+            if(y == null) then
+                break;
+            else
+                y = y.next;
+            endif;
+        endwhile;
+
+
+    endif;
+    return 0;
+
+end
+
+
+
+
+}
