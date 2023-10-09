@@ -11,6 +11,7 @@ begin
     pid = exposcall("Fork");
     breakpoint;
     temp = exposcall("Write", -2, "forkEnd");
+    temp = exposcall("Write", -2, pid);
     if(pid == -1) then
         temp = exposcall("Write", -2, "Fork error");
     else
