@@ -36,7 +36,7 @@ multipop(R4, R6, R7, R9);
 
 child_PID = R0;
 if(child_PID == -1) then
-    [[parent_page_table + 2 * (userSP - 1) / 512] * 512 + (userSP - 1) % 512] = -1;
+    [[parent_page_table + 2 * (userSP - 1) / 512] * 512 + ((userSP - 1) % 512)] = -1;
     [parent_page_table + 9] = 0;
     SP = userSP;
     ireturn;
@@ -47,22 +47,22 @@ child_page_table = PAGE_TABLE_BASE + child_page_table * 20;
 
 
 // check if heap is allocated for parent
-if([PTBR + 4] == -1) then
+if([parent_page_table + 4] == -1) then
     multipush(R4, R5, R6, R7, R8, R9, R10);
     R1 = GET_FREE_PAGE;
     call MEMORY_MANAGER;
     multipop(R4, R5, R6, R7, R8, R9, R10);
-    [PTBR + 4] = R0;
-    [PTBR + 5] = "0110";
+    [parent_page_table + 4] = R0;
+    [parent_page_table + 5] = "0110";
 endif;
 
-if([PTBR + 6] == -1) then
+if([parent_page_table + 6] == -1) then
     multipush(R4, R5, R6, R7, R8, R9, R10);
     R1 = GET_FREE_PAGE;
     call MEMORY_MANAGER;
     multipop(R4, R5, R6, R7, R8, R9, R10);
-    [PTBR + 6] = R0;
-    [PTBR + 7] = "0110";
+    [parent_page_table + 6] = R0;
+    [parent_page_table + 7] = "0110";
 endif;
 
 
@@ -120,6 +120,11 @@ multipop(R4, R5, R6, R7, R8, R9, R10);
     
 // per process not yet done *********************************************
 
+cnt = 0;
+while(cnt < 10) do
+    [DISK_MAP_TABLE + child_PID * 10 + cnt] = [DISK_MAP_TABLE + parent_PID * 10 + cnt];
+    cnt = cnt + 1;
+endwhile;
 
 // page table initialization
 
@@ -127,18 +132,19 @@ cnt = 0;
 while(cnt < 8) do
     [child_page_table + 2 * cnt] = [parent_page_table + 2 * cnt];
     [child_page_table + 2 * cnt + 1] = [parent_page_table + 2 * cnt + 1];
-
-    [MEMORY_FREE_LIST + [child_page_table + 2 * cnt]] = [MEMORY_FREE_LIST + [child_page_table + 2 * cnt]] + 1;
+    if([child_page_table + 2 * cnt] != -1) then 
+        [MEMORY_FREE_LIST + [child_page_table + 2 * cnt]] = [MEMORY_FREE_LIST + [child_page_table + 2 * cnt]] + 1;
+    endif;
     cnt = cnt + 1;
 endwhile;
 
 // copying the contents of stack of parent to stack of child
 
 virt_address = [parent_page_table + 16] * 512;
-parent_stack = [parent_page_table + 2 * (virt_address / 512)] * 512 + (virt_address % 512);
+parent_stack = virt_address;
 
 virt_address = [child_page_table + 16] * 512;
-child_stack = [child_page_table + 2 * (virt_address / 512)] * 512 + (virt_address % 512);
+child_stack = virt_address; 
 
 cnt = 0;
 while(cnt < 512) do
@@ -148,10 +154,10 @@ endwhile;
 
 
 virt_address = [parent_page_table + 18] * 512;
-parent_stack = [parent_page_table + 2 * (virt_address / 512)] * 512 + (virt_address % 512);
+parent_stack = virt_address;
 
 virt_address = [child_page_table + 18] * 512;
-child_stack = [child_page_table + 2 * (virt_address / 512)] * 512 + (virt_address % 512);
+child_stack = virt_address;
 
 cnt = 0;
 while(cnt < 512) do
@@ -169,14 +175,25 @@ endwhile;
 // return value of child is 0
 [[PAGE_TABLE_BASE + child_PID*20 + 2*(([PROCESS_TABLE + child_PID*16 + 13]-1)/512)]*512 + (([PROCESS_TABLE + child_PID*16 + 13]-1)%512)] = 0;
 
-
+print("CHILD");
+cnt = 0;
+while(cnt < 10) do
+    print([child_page_table + 2 * cnt]);
+    cnt = cnt + 1;
+endwhile;
+print("PARENT");
+cnt = 0;
+while(cnt < 10) do
+    print([parent_page_table + 2 * cnt]);
+    cnt = cnt + 1;
+endwhile;
 
 
 
 [parent_process_table + 9] = 0;
 SP = userSP;
 print("FORKEND");
-
+breakpoint;
 ireturn;
 
 

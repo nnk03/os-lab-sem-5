@@ -27,6 +27,7 @@ if((EC != 0) || (userSP == PTLR * 512 - 1)) then
     print("ERROR");
     print(EC);
     print(EIP);
+    print([EIP]);
     
     breakpoint;
 
