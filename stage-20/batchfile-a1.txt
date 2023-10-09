@@ -18,3 +18,5 @@ load --module 5 $HOME/myexpos/stage-20/scheduler.xsm
 load --int=console $HOME/myexpos/stage-20/console-int.xsm
 load --int=disk $HOME/myexpos/stage-20/disk-int.xsm
 load --exhandler $HOME/myexpos/stage-20/exhandler-a2.xsm
+load --exec $HOME/myexpos/stage-20/odd.xsm
+load --exec $HOME/myexpos/stage-20/even.xsm

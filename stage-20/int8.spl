@@ -1,5 +1,5 @@
 // fork system call 
-
+print("FORKENT");
 [PROCESS_TABLE + [SYSTEM_STATUS_TABLE + 1] * 16 + 9] = 8; // mode set to system call number of fork 
 
 // switching to the kernel stack 
@@ -238,6 +238,9 @@ virt_address = [PROCESS_TABLE + parent_PID * 16 + 13] - 1;
 
 // switching to user stack of the parent process
 SP = [PROCESS_TABLE + parent_PID * 16 + 13];
+
+print("asdfasdf");
+breakpoint;
 ireturn;
 
 
