@@ -53,7 +53,7 @@ if([parent_page_table + 4] == -1) then
     call MEMORY_MANAGER;
     multipop(R4, R5, R6, R7, R8, R9, R10);
     [parent_page_table + 4] = R0;
-    [parent_page_table + 5] = "0110";
+    [parent_page_table + 5] = "1110";
 endif;
 
 if([parent_page_table + 6] == -1) then
@@ -62,7 +62,7 @@ if([parent_page_table + 6] == -1) then
     call MEMORY_MANAGER;
     multipop(R4, R5, R6, R7, R8, R9, R10);
     [parent_page_table + 6] = R0;
-    [parent_page_table + 7] = "0110";
+    [parent_page_table + 7] = "1110";
 endif;
 
 
@@ -73,7 +73,7 @@ R1 = GET_FREE_PAGE;
 call MEMORY_MANAGER;
 multipop(R4, R5, R6, R7, R8, R9, R10);
 [child_page_table + 16] = R0;
-[child_page_table + 17] = "0110";
+[child_page_table + 17] = "1110";
 
 
 multipush(R4, R5, R6, R7, R8, R9, R10);
