@@ -8,7 +8,7 @@ load --int=timer $HOME/myexpos/stage-20/timer.xsm
 load --int=6 $HOME/myexpos/stage-20/int6.xsm
 load --int=7 $HOME/myexpos/stage-20/int7.xsm
 load --int=9 $HOME/myexpos/stage-20/int9.xsm
-load --int=8 $HOME/myexpos/stage-20/int8-check.xsm
+load --int=8 $HOME/myexpos/stage-20/int8.xsm
 load --int=10 $HOME/myexpos/stage-20/int10.xsm
 load --module 0 $HOME/myexpos/stage-20/mod0.xsm
 load --module 1 $HOME/myexpos/stage-20/mod1.xsm

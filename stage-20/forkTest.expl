@@ -5,29 +5,18 @@ decl
 enddecl
 
 begin
-    // breakpoint;
-    temp = exposcall("Write", -2, "forkStart");
-    breakpoint;
     pid = exposcall("Fork");
-    breakpoint;
-    temp = exposcall("Write", -2, "forkEnd");
-    temp = exposcall("Write", -2, pid);
     if(pid == -1) then
         temp = exposcall("Write", -2, "Fork error");
     else
 
         if(pid == 0) then
             // means its child process
-            temp = exposcall("Write", -2, "CHILD");
-            breakpoint;
             temp = exposcall("Exec", "odd.xsm");
         else
             // parent process
-            temp = exposcall("Write", -2, "PARENT");
-            breakpoint;
             temp = exposcall("Exec", "even.xsm");
         endif;
-
     endif;
     
 
