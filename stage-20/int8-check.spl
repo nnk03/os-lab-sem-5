@@ -43,7 +43,7 @@ if(child_PID == -1) then
 endif;
 
 child_process_table = PROCESS_TABLE + child_PID * 16;
-child_page_table = PAGE_TABLE_BASE + child_page_table * 20;
+child_page_table = PAGE_TABLE_BASE + child_PID * 20;
 
 
 // check if heap is allocated for parent
