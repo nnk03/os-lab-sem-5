@@ -14,7 +14,7 @@ userSP = SP;
 
 [processTableEntry + 13] = SP;
 SP = [processTableEntry + 11] * 512 - 1;
-[processTableEntry + 9] = 9;
+[processTableEntry + 9] = INT_EXEC;
 
 alias virt_address R10;
 alias phy_address R11;

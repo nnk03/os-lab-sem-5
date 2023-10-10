@@ -56,7 +56,37 @@ if(functionNum == FREE_USER_AREA_PAGE) then
 endif;
 
 if(functionNum == EXIT_PROCESS) then
+    alias process_table_entry R10;
     PID = [SYSTEM_STATUS_TABLE + 1];
+    process_table_entry = PROCESS_TABLE + PID * 16;
+    if([process_table_entry + 9] != INT_EXEC) then
+        alias index R11;
+        index = 0;
+        while(index < MAX_PROC_NUM) do
+            // change the state to READY for the processes whose 
+            // state is tuple (WAIT_PROCESS, current PID).
+            if(([PROCESS_TABLE + index * 16 + 4] == WAIT_PROCESS) && ([PROCESS_TABLE + index * 16 + 5] == PID)) then
+                [PROCESS_TABLE + index * 16 + 4] = READY;
+            endif;
+
+            // if the PPID of a process is PID of current process, then invalidate PPID field to -1
+            if([PROCESS_TABLE + index * 16 + 2] == PID) then
+                [PROCESS_TABLE + index * 16 + 2] = -1;
+            endif;
+
+            index = index + 1;
+        endwhile;
+
+
+
+
+
+    endif;
+
+
+    // process_table_entry is not used from here on ,
+    // so no need to push R10 (since process_table_entry 
+    // was the alias for R10)
     multipush(R1, R2, R8);
     // deallocate page table entries
     R1 = FREE_PAGE_TABLE;

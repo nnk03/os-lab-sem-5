@@ -3,7 +3,7 @@ load --os $HOME/myexpos/stage-21/os-startup.xsm
 load --module 7 $HOME/myexpos/stage-21/boot-module.xsm
 load --library $HOME/myexpos/expl/library.lib
 load --idle $HOME/myexpos/stage-21/idle-process.xsm
-load --init $HOME/myexpos/stage-21/shell2.xsm
+load --init $HOME/myexpos/stage-21/shell.xsm
 load --int=timer $HOME/myexpos/stage-21/timer.xsm
 load --int=6 $HOME/myexpos/stage-21/int6.xsm
 load --int=7 $HOME/myexpos/stage-21/int7.xsm
@@ -21,3 +21,4 @@ load --int=console $HOME/myexpos/stage-21/console-int.xsm
 load --int=disk $HOME/myexpos/stage-21/disk-int.xsm
 load --exhandler $HOME/myexpos/stage-21/exhandler.xsm
 load --exec $HOME/myexpos/stage-21/even.xsm
+load --exec $HOME/myexpos/stage-21/odd.xsm
