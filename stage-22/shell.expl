@@ -1,0 +1,65 @@
+decl
+    str inp;
+    int temp, pid;
+
+
+enddecl
+
+int main(){
+begin
+    while(1 == 1) do
+        temp = exposcall("Read", -1, inp);
+        if(inp == "shutdown") then
+            temp = exposcall("Shutdown");
+            break;
+        else
+            pid = exposcall("Fork");
+            if(pid == 0) then
+                // child process
+                temp = exposcall("Exec", inp);
+                if(temp == -1) then
+                    temp = exposcall("Write", -2, "BAD COMMAND");
+                endif;
+
+            else
+                if(pid < 0) then
+                    temp = exposcall("Write", -2, "SHELLFORKFAIL");
+                    temp = exposcall("Write", -2, "forkFailure");
+                else
+                    // parent process
+                    // pid contains child_pid
+                    temp = exposcall("Wait", pid);
+                endif;
+            endif;
+        endif;
+
+
+
+
+    endwhile;
+
+
+    // temp = exposcall("Read", -1, file);
+    // // for debugging
+    // //temp = exposcall("Write", -2, file);
+
+    // // executing the file
+    // temp = exposcall("Exec", file);
+    // 
+    // // the below for debugging process;
+    // // temp = exposcall("Write", -2, temp);
+    // // temp = exposcall("Write", -2, "hello");
+    // // we might have to check if the return value is -1, but now not necessary
+    // 
+    // temp = exposcall("Write", -2, "fileNotFound");
+    // // the above line won't be printed if Exec command worked properly
+
+    return 0;
+    
+
+
+
+end
+
+
+}
