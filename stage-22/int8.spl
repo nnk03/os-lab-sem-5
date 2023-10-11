@@ -124,6 +124,25 @@ cnt = 0;
 while(cnt < 8) do
     [[child_process_table + 11] * 512 + 512 - 16 + 2 * cnt] = [[parent_process_table + 11] * 512 + 512 - 16 + 2 * cnt];
     [[child_process_table + 11] * 512 + 512 - 16 + 2 * cnt + 1] = [[parent_process_table + 11] * 512 + 512 - 16 + 2 * cnt + 1];
+
+    multipush(R5, R6);
+
+        // child process has to share the semaphores of the parent process
+        R5 = [child_process_table + 11] * 512 + 512 - 16 + 2 * cnt;
+        // R5 is address of resource identifier
+        // to avoid repeated calculation of user area page end
+        if([R5] == SEMAPHORE) then
+            R6 = [R5 + 1];
+            // R6 is semaphore table index
+            [SEMAPHORE_TABLE + 4 * R6 + 1] = [SEMAPHORE_TABLE + 4 * R6 + 1] + 1;
+            // incrementing the process count in the semaphore table
+
+
+        endif;
+    multipop(R5, R6);
+
+
+
     cnt = cnt + 1;
 endwhile;
 
