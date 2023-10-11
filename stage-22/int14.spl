@@ -22,7 +22,7 @@ if(system_call_number == INT_SEMUNLOCK) then
     [process_table_entry + 9] = INT_SEMUNLOCK;
     
     alias sem_id R9;
-    sem_id = [[PTBR + 2 * (userSP - 5) / 512] * 512 + (userSP - 5) % 512];
+    sem_id = [[PTBR + 2 * (userSP - 4) / 512] * 512 + (userSP - 4) % 512];
 
     alias user_area_page_end R10;
     user_area_page_end = [process_table_entry + 11] * 512 + 512 - 16;
@@ -106,7 +106,7 @@ if(system_call_number == INT_SEMLOCK) then
     [process_table_entry + 9] = INT_SEMLOCK;
 
     alias sem_id R9;
-    sem_id = [[PTBR + 2 * (userSP - 5) / 512] * 512 + (userSP - 5) % 512];
+    sem_id = [[PTBR + 2 * (userSP - 4) / 512] * 512 + (userSP - 4) % 512];
 
     alias user_area_page_end R10;
     user_area_page_end = [process_table_entry + 11] * 512 + 512 - 16;
@@ -125,9 +125,10 @@ if(system_call_number == INT_SEMLOCK) then
     alias semaphore_table_index R11;
     semaphore_table_index = [user_area_page_end + 2 * sem_id + 1];
 
-
+    print("whileENT");
+    breakpoint;
     // while semaphore is locked by some other process
-    while([SEMAPHORE_TABLE + 4 * semaphore_table_index + 0] != current_PID) do
+    while([SEMAPHORE_TABLE + 4 * semaphore_table_index + 0] != -1 && [SEMAPHORE_TABLE + 4 * semaphore_table_index + 0] != current_PID) do
         [process_table_entry + 4] = WAIT_SEMAPHORE;
         [process_table_entry + 5] = semaphore_table_index;
         multipush(R5, R6, R7, R8, R9, R10, R11);
@@ -135,6 +136,8 @@ if(system_call_number == INT_SEMLOCK) then
         multipop(R5, R6, R7, R8, R9, R10, R11);
 
     endwhile;
+    print("whileEND");
+    breakpoint;
 
     // reaches here when semaphore becomes free for locking 
 
@@ -171,7 +174,7 @@ endif;
 
 
 
-
+[process_table_entry + 9] = 0;
 // changing back to user stack and returning to user mode
 SP = userSP;
 

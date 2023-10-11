@@ -22,4 +22,4 @@ load --module 5 $HOME/myexpos/stage-22/scheduler.xsm
 load --int=console $HOME/myexpos/stage-22/console-int.xsm
 load --int=disk $HOME/myexpos/stage-22/disk-int.xsm
 load --exhandler $HOME/myexpos/stage-22/exhandler.xsm
-load --exec $HOME/myexpos/stage-22/a1.xsm
+load --exec $HOME/myexpos/stage-22/a1-22.xsm
