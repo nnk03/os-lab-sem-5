@@ -12,6 +12,19 @@ begin
 
     if(pid == 0) then
         temp = exposcall("Exec", "pid.xsm");
+    else
+        temp = exposcall("Wait", pid);
+    endif;
+    
+    pid = exposcall("Fork");
+    if(pid == -1) then
+        temp = exposcall("Write", -2, "forkFailure");
+    endif;
+
+    if(pid == 0) then
+        temp = exposcall("Exec", "pid.xsm");
+    else
+        temp = exposcall("Wait", pid);
     endif;
 
     pid = exposcall("Fork");
@@ -21,15 +34,8 @@ begin
 
     if(pid == 0) then
         temp = exposcall("Exec", "pid.xsm");
-    endif;
-
-    pid = exposcall("Fork");
-    if(pid == -1) then
-        temp = exposcall("Write", -2, "forkFailure");
-    endif;
-
-    if(pid == 0) then
-        temp = exposcall("Exec", "pid.xsm");
+    else
+        temp = exposcall("Wait", pid);
     endif;
 
     // cnt = 0;
