@@ -23,6 +23,7 @@ begin
 
             else
                 if(pid < 0) then
+                    temp = exposcall("Write", -2, "SHELLFORKFAIL");
                     temp = exposcall("Write", -2, "forkFailure");
                 else
                     // parent process

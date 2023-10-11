@@ -1,0 +1,58 @@
+int main(){
+decl 
+    int temp, pid, cnt;
+enddecl
+
+begin
+
+    pid = exposcall("Fork");
+    if(pid == -1) then
+        temp = exposcall("Write", -2, "forkFailure");
+    endif;
+
+    if(pid == 0) then
+        temp = exposcall("Exec", "pid.xsm");
+    endif;
+
+    pid = exposcall("Fork");
+    if(pid == -1) then
+        temp = exposcall("Write", -2, "forkFailure");
+    endif;
+
+    if(pid == 0) then
+        temp = exposcall("Exec", "pid.xsm");
+    endif;
+
+    pid = exposcall("Fork");
+    if(pid == -1) then
+        temp = exposcall("Write", -2, "forkFailure");
+    endif;
+
+    if(pid == 0) then
+        temp = exposcall("Exec", "pid.xsm");
+    endif;
+
+    // cnt = 0;
+    // while(cnt < 3) do
+    //     pid = exposcall("Fork");
+    //     
+    //     if(pid == -1) then
+    //         break;
+    //     endif;
+    //     if(pid == 0) then
+    //         temp = exposcall("Exec", "pid.xsm");
+    //     else
+    //         continue;
+    //     endif;
+
+    //     
+
+    //     cnt = cnt + 1;
+    // endwhile;
+    
+    return 0;
+
+
+end
+
+}
