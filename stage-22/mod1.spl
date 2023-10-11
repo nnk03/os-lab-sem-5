@@ -53,7 +53,7 @@ if(functionNum == FREE_USER_AREA_PAGE) then
     cnt = 0;
 
     while(cnt < 8) do 
-        if(([user_area_page_end + 2 * cnt] == SEMAPHORE) && ([user_area_page_end + 2 * cnt + 1] >= 0) && ([user_area_page_end + 2 * cnt + 1] <= MAX_SEM_COUNT)) then
+        if(([user_area_page_end + 2 * cnt] == SEMAPHORE) && ([user_area_page_end + 2 * cnt + 1] >= 0) && ([user_area_page_end + 2 * cnt + 1] < MAX_SEM_COUNT)) then
             multipush(R1, R2, R8, R9, R10);
             R1 = RELEASE_SEMAPHORE; 
             R2 = [user_area_page_end + 2 * cnt + 1];
