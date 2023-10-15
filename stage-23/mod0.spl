@@ -1,0 +1,191 @@
+// resource manager module
+// be careful about the order of arguments
+// in some functions R2 is currentPID, whereas in others R3 ???????
+alias functionNum R1;
+alias currentPID R2;
+
+
+if(functionNum == ACQUIRE_INODE) then
+    // inode index and pid are the arguments
+    alias inode_index R2;
+    alias current_PID R3;
+
+    alias process_table_entry R5;
+    process_table_entry = PROCESS_TABLE + current_PID * 16;
+
+    while([FILE_STATUS_TABLE + 4 * inode_index + 0] != -1) do
+        // set state of the process as (WAIT_PROCESS, inode_index)
+        [process_table_entry + 4] = WAIT_PROCESS;
+        [process_table_entry + 5] = current_PID;
+        multipush(R1, R2, R3, R5);
+        call SCHEDULER;
+        multipop(R1, R2, R3, R5);
+
+
+    endwhile;
+
+    if([INODE_TABLE + inode_index * inode_index * 16 + 1] == -1) then
+        // if inode index becomes invalid
+        // i.e file was deleted by the time inode was acquired
+        // return -1
+        R0 = -1;
+        return;
+    endif;
+    // locking the inode by setting the Lock field in the 
+    // file status table to the PID of the current process
+    [FILE_STATUS_TABLE + 4 * inode_index + 0] = current_PID;
+    
+    // return 0
+    R0 = 0;
+    return;
+
+
+endif;
+
+
+if(functionNum == RELEASE_INODE) then
+    // inode index and PID are arguments
+    alias inode_index R2;
+    alias current_PID R3;
+    [FILE_STATUS_TABLE + inode_index * 4 + 0] = -1;
+    alias cnt R5;
+    cnt = 0;
+    while(cnt < MAX_PROC_NUM) do
+        if([PROCESS_TABLE + cnt * 16 + 4] == WAIT_PROCESS && [PROCESS_TABLE + cnt * 16 + 5] == inode_index) then
+            [PROCESS_TABLE + cnt * 16 + 4] = current_PID;
+        endif;
+
+        cnt = cnt + 1;
+    endwhile;
+
+    R0 = 0;
+    return;
+
+
+
+endif;
+
+
+
+if(functionNum == ACQUIRE_SEMAPHORE) then
+    // acquire semaphore takes PID as argument
+    alias cnt R5;
+    cnt = 0;
+    // each entry in semaphore table is 4 words
+
+    while(cnt < MAX_SEM_COUNT) do
+        // free entry is indicated by a process count of 0
+        if([SEMAPHORE_TABLE + cnt * 4 + 1] == 0) then
+            [SEMAPHORE_TABLE + cnt * 4 + 1] = 1; // PROCESS COUNT TO 1
+            [SEMAPHORE_TABLE + cnt * 4 + 0] = -1; // LOCKING PID TO -1
+            
+            // return semaphore table index
+            R0 = cnt;
+            return;
+
+
+
+        endif;
+
+
+        cnt = cnt + 1;
+    endwhile;
+    
+
+    // if no free entry is found
+
+    R0 = -1;
+    return;
+
+endif;
+
+if(functionNum == RELEASE_SEMAPHORE) then
+    // in this function, R2 is semaphore table index and R3 is currentPID
+    alias sem_table_index R3;
+    alias current_PID R2;
+    // assumes a valid PID and semaphore table index are given
+    if([SEMAPHORE_TABLE + 4 * sem_table_index + 0] == current_PID) then
+        // if semaphore is locked by current process, unlock the semaphore before release
+        [SEMAPHORE_TABLE + 4 * sem_table_index + 0] = -1;
+        alias cnt R5;
+        cnt = 0;
+        // loop through the process table
+
+        while(cnt < MAX_PROC_NUM) do
+            if(([PROCESS_TABLE + cnt * 16 + 4] == WAIT_SEMAPHORE) && ([PROCESS_TABLE + cnt * 16 + 5] == sem_table_index)) then
+                [PROCESS_TABLE + cnt * 16 + 4] = READY;
+            endif;
+            cnt = cnt + 1;
+        endwhile;
+    endif;
+
+    // decrement the process count of the semaphore in semaphore table
+    [SEMAPHORE_TABLE + sem_table_index * 4 + 1] = [SEMAPHORE_TABLE + sem_table_index * 4 + 1] - 1;
+
+    // return value ?????????
+
+    R0 = 0;
+    return;
+
+
+
+endif;
+
+
+
+if(functionNum == ACQUIRE_DISK) then
+
+    while([DISK_STATUS_TABLE + 0] == 1) do
+        [PROCESS_TABLE + (currentPID * 16) + 4] = WAIT_DISK;
+        multipush(R1, R2);
+        call CONTEXT_SWITCH;
+        multipop(R1, R2);
+    endwhile;
+    [DISK_STATUS_TABLE + 0] = 1; // state of the DISK
+    [DISK_STATUS_TABLE + 4] = currentPID; // PID of the process which acquired disk
+    return;
+    
+
+endif;
+
+
+
+
+if(functionNum == ACQUIRE_TERMINAL) then
+    while([TERMINAL_STATUS_TABLE + 0] == 1) do 
+        [PROCESS_TABLE + (currentPID * 16) + 4] = WAIT_TERMINAL;
+        multipush(R1, R2);
+        call MOD_5;
+        multipop(R1, R2);
+    endwhile;
+    [TERMINAL_STATUS_TABLE + 0] = 1;
+    [TERMINAL_STATUS_TABLE + 1] = currentPID;
+    // print "ACQUIRED";
+    // breakpoint;
+    return;
+
+endif;
+
+if(functionNum == RELEASE_TERMINAL) then
+    if(currentPID != [TERMINAL_STATUS_TABLE + 1]) then
+        R0 = -1;
+        return;
+    endif;
+    [TERMINAL_STATUS_TABLE + 0] = 0;
+    alias cnt R1;
+    cnt = 1;
+    while(cnt < MAX_PROC_NUM) do 
+        if([PROCESS_TABLE + (cnt * 16) + 4] == WAIT_TERMINAL) then
+            [PROCESS_TABLE + (cnt * 16) + 4] = READY;
+        endif;
+        cnt = cnt + 1;
+    endwhile;
+    R0 = 0;
+    // print "RELEASED";
+    //breakpoint;
+    return;
+endif;
+return;
+
+
+

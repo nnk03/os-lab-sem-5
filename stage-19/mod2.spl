@@ -23,7 +23,7 @@ if(functionNum == GET_CODE_PAGE) then
                 page_table_addr = [PAGE_TABLE_BASE + cnt * 20 + 2 * index];
                 
                 if(page_table_addr != -1) then
-                    [MEMORY_FREE_LIST + page_table_addr] = [MEMORY_FREE_LIST + page_table_addr] - 1;
+                    [MEMORY_FREE_LIST + page_table_addr] = [MEMORY_FREE_LIST + page_table_addr] + 1;
                     R0 = page_table_addr;
                     return;
                 endif;

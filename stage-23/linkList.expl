@@ -1,0 +1,78 @@
+type LinkedList {
+    int val;
+    LinkedList next;
+}
+endtype
+
+decl
+    LinkedList head;
+enddecl
+
+
+int main(){
+    decl 
+        int n, len, temp, value;
+        LinkedList a, curr;
+    enddecl
+
+    begin
+        temp = initialize();
+        head = null;
+        temp = exposcall("Write", -2, "length");
+        temp = exposcall("Read", -1, n);
+        len = n;
+
+        a = head;
+        while(len != 0) do 
+            temp = exposcall("Read", -1, value);
+            curr = alloc();
+            curr.val = value;
+            curr.next = null;
+            
+            if(head == null) then
+                head = curr;
+                a = curr;
+            else
+                a.next = curr;
+                a = a.next;
+            endif;
+            len = len - 1;
+        endwhile;
+
+        curr = head;
+
+        while(curr != null) do 
+            temp = exposcall("Write", -2, curr.val);
+            curr = curr.next;
+        endwhile;
+
+
+
+
+        return 0;
+
+    end
+    
+
+
+
+
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

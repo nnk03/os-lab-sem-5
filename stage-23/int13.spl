@@ -1,0 +1,165 @@
+// interrupt 13 ---> SEMGET ansd SEMRELEASE
+
+// storing userSP 
+alias userSP R5;
+userSP = SP;
+
+// extracting sytem call number from user stack 
+alias system_call_number R6;
+system_call_number = [[PTBR + 2 * (userSP - 5) / 512] * 512 + (userSP - 5) % 512];
+
+// switching to kernel stack
+alias current_PID R7;
+alias process_table_entry R8;
+current_PID = [SYSTEM_STATUS_TABLE + 1];
+process_table_entry = PROCESS_TABLE + current_PID * 16;
+
+[process_table_entry + 13] = SP;
+SP = [process_table_entry + 11] * 512 - 1;
+
+
+
+
+if(system_call_number == INT_SEMGET) then
+    // setting the mode flag to system call number;
+    [process_table_entry + 9] = INT_SEMGET;
+
+    alias free_entry_resource_table R9;
+    free_entry_resource_table = 0;
+
+    alias user_area_page_end R10;
+    user_area_page_end = [process_table_entry + 11] * 512 + 512 - 16;
+
+    while(free_entry_resource_table < 8) do
+        if([user_area_page_end + 2 * free_entry_resource_table] == -1) then
+            // found a free entry in per process resource table
+            break;
+        endif;
+
+        free_entry_resource_table = free_entry_resource_table + 1;
+
+    endwhile;
+    // if no free entry then return -1
+    if(free_entry_resource_table == 8) then
+        [process_table_entry + 9] = 0;
+        [[PTBR + 2 * (userSP - 1) / 512] * 512 + (userSP - 1) % 512] = -1;
+        SP = userSP;
+        ireturn;
+    endif;
+
+    
+    
+    // acquiring a semaphore
+    multipush(R5, R6, R7, R8, R9, R10);
+    R2 = current_PID;
+    R1 = ACQUIRE_SEMAPHORE;
+    call RESOURCE_MANAGER;
+    multipop(R5, R6, R7, R8, R9, R10);
+
+    // if there are no free semaphores, then return value is -1 from RESOURCE_MANAGER
+    // return value from the system call is -2
+    if(R0 == -1) then
+        [process_table_entry + 9] = 0;
+        [[PTBR + 2 * (userSP - 1) / 512] * 512 + (userSP - 1) % 512] = -2;
+        SP = userSP;
+        ireturn;
+    endif;
+
+    // Resource Identifier field of the per-process resource table entry 
+    // is set to 1 to indicate that the resource is a semaphore.
+    [user_area_page_end + 2 * free_entry_resource_table] = SEMAPHORE; // pre defined constant
+
+
+    // Store the index of the Semaphore table entry in the Per Process Resource Table entry.
+    [user_area_page_end + 2 * free_entry_resource_table + 1] = R0;
+    
+    // Switch back to the user stack by resoring the USER SP from the process table.
+
+    // Set the MODE_FLAG in the process table entry of the parent process to 0.
+    
+    // Return the Per-process Resource Table entry index.   
+
+    SP = userSP;
+    [process_table_entry + 9] = 0;
+    [[PTBR + 2 * (userSP - 1) / 512] * 512 + (userSP - 1) % 512] = free_entry_resource_table;
+
+    ireturn;
+endif;
+
+if(system_call_number == INT_SEMRELEASE) then
+    // setting the mode flag
+    [process_table_entry + 9] = INT_SEMRELEASE;
+
+    alias sem_id R9;
+    sem_id = [[PTBR + 2 * (userSP - 4) / 512] * 512 + (userSP - 4) % 512];
+
+    alias user_area_page_end R10;
+    user_area_page_end = [process_table_entry + 11] * 512 + 512 - 16;
+
+    if((sem_id < 0) || (sem_id >= 8) || ([user_area_page_end + 2 * sem_id] != SEMAPHORE)) then
+        // storing -1 as return value;
+        [[PTBR + 2 * (userSP - 1) / 512] * 512 + (userSP - 1) % 512] = -1;
+
+        [process_table_entry + 9] = 0;
+        SP = userSP;
+        ireturn;
+    endif;
+
+    // if its valid then releasing the semaphore
+    multipush(R5, R6, R7, R8, R9, R10);
+    R1 = RELEASE_SEMAPHORE;
+    R3 = [user_area_page_end + 2 * sem_id + 1];
+    R2 = current_PID;
+    call RESOURCE_MANAGER;
+    multipop(R5, R6, R7, R8, R9, R10);
+
+    // invalidating the per process resource table entry
+    [user_area_page_end + 2 * sem_id] = -1;
+    [user_area_page_end + 2 * sem_id + 1] = -1;
+
+    // resetting the mode flag
+    [process_table_entry + 9] = 0;
+
+    // return value is zero
+    [[PTBR + 2 * (userSP - 1) / 512] * 512 + (userSP - 1) % 512] = 0;
+
+    SP = userSP;
+    ireturn;
+
+
+
+endif;
+
+[process_table_entry + 9] = 0;
+
+// changing back to user stack and returning to user mode
+SP = userSP;
+
+ireturn;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

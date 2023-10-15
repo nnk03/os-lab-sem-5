@@ -1,0 +1,301 @@
+// inerrupt 4 --> CREATE and DELETE
+
+// storing userSP
+alias userSP R5;
+userSP = SP;
+
+// extracting system call number from user stack
+alias system_call_number R6;
+system_call_number = [[PTBR + 2 * (userSP - 5) / 512] * 512 + (userSP - 5) % 512];
+
+
+
+// switching to kernel stack
+alias current_PID R7;
+alias process_table_entry R8;
+current_PID = [SYSTEM_STATUS_TABLE + 1];
+process_table_entry = PROCESS_TABLE + current_PID * 16;
+
+[process_table_entry + 13] = SP;
+SP = [process_table_entry + 11] * 512 - 1;
+
+if(system_call_number == INT_CREATE) then
+    // arguments are file name (string) and permission (0 - exclusive / 1 - open-access)
+
+
+    // setting mode flag to INT_CREATE
+    [process_table_entry + 9] = INT_CREATE;
+    alias cnt R9;
+    cnt = 0;
+    while(cnt < MAX_FILE_NUM) do
+        // finding a free entry in INODE_TABLE
+        // indicated by -1 in the field FILE_NAME
+        if([INODE_TABLE + cnt * 16 + 1] == -1) then
+            // found a free entry
+            break;
+        endif;
+
+
+        cnt = cnt + 1;
+    endwhile;
+
+    if(cnt == MAX_FILE_NUM) then
+        // max files reached, hence return -1;
+        [[PTBR + 2 * (userSP -1) / 512] * 512 + (userSP - 1) % 512] = -1;
+
+        // reset mode flag to 0
+        [process_table_entry + 9] = 0;
+
+        SP = userSP;
+        ireturn;
+    endif;
+    
+    // free entry index is cnt
+
+    // In the Inode Table entry found above, set FILE NAME to the given file name, 
+    // FILE SIZE to 0 and FILE TYPE to DATA.
+    // In the Inode Table entry, set the block numbers to -1.  /* No disk blocks are allocated to the file */
+    alias file_name R10;
+    file_name = [[PTBR + 2 * (userSP - 5)/ 512] * 512 + (userSP - 5) % 512];
+
+    alias permission R11;
+    permission = [[PTBR + 2 * (userSP - 4) / 512] * 512 + (userSP - 4) % 512];
+
+    alias inode_table_entry R12;
+    inode_table_entry = INODE_TABLE + cnt * 16;
+    // setting file name
+    [inode_table_entry + 1] = file_name;
+    // setting file size to 0
+    [inode_table_entry + 2] = 0;
+    // setting file type to DATA
+    [inode_table_entry + 0] = DATA;
+
+    // setting block numbers to -1
+    [inode_table_entry + 8] = -1;
+    [inode_table_entry + 9] = -1;
+    [inode_table_entry + 10] = -1;
+    [inode_table_entry + 11] = -1;
+
+    // setting userID to userID of process from process_table_entry
+    [inode_table_entry + 3] = [process_table_entry + 3];
+    // setting the permission as the permission given as input 
+    [inode_table_entry + 4] = permission;
+
+
+    // In the Root file entry corresponding to the Inode Table index, 
+    // set the FILE NAME, FILE SIZE, FILE TYPE, USERNAME and PERMISSION fields.
+
+    alias root_file_entry R13;
+    root_file_entry = ROOT_FILE + cnt * 8;
+
+    // file name
+    [root_file_entry + 0] = file_name;
+    // file size
+    [root_file_entry + 1] = 0;
+    // file type 
+    [root_file_entry + 2] = DATA;
+
+    // username
+    [root_file_entry + 3] = [inode_table_entry + 3];
+    // permission 
+    [root_file_entry + 4] = permission;
+
+    // reset the mode flag to 0
+    [process_table_entry + 9] = 0;
+    
+    // return value of 0 -- success
+    [[PTBR + 2 * (userSP - 1) / 512] * 512 + (userSP - 1) % 512] = 0;
+
+    SP = userSP;
+    ireturn;
+
+
+
+
+endif;
+
+if(system_call_number == INT_DELETE) then
+    // setting the mode flag
+    [process_table_entry + 9] = INT_DELETE;
+    alias file_name R9;
+    file_name = [[PTBR + 2 * (userSP - 5)/ 512] * 512 + (userSP - 5) % 512];
+
+    alias index_of_file R10;
+    index_of_file = 0;
+
+    alias inode_table_entry R11;
+    inode_table_entry = INODE_TABLE + index_of_file * 16;
+
+    while(index_of_file < MAX_FILE_NUM) do
+        if([inode_table_entry + 1] == file_name) then
+            // file found
+            break;
+        endif;
+
+        index_of_file = index_of_file + 1;
+    endwhile;
+
+    if(index_of_file == MAX_FILE_NUM) then
+        // reset the mode flag to 0
+        [process_table_entry + 9] = 0;
+        
+        // file name not found, hence return 0
+        [[PTBR + 2 * (userSP - 1) / 512] * 512 + (userSP - 1) % 512] = 0;
+
+        SP = userSP;
+        ireturn;
+
+
+    endif;
+
+    if([inode_table_entry + 0] != DATA) then
+        // if file is not a data file, return -1;
+        [[PTBR + 2 * (userSP - 1) / 512] * 512 + (userSP - 1) % 512] = -1;
+
+        // reset the mode flag to 0
+        [process_table_entry + 9] = 0;
+
+        SP = userSP;
+        ireturn;
+
+
+    endif;
+
+    // If the exclusive permission is set
+	//      if the current user is not root and the current user does not own the file
+	//          return -1. 
+
+    if([inode_table_entry + 4] == EXCLUSIVE) then
+        if([SYSTEM_STATUS_TABLE + 0] != ROOT && [SYSTEM_STATUS_TABLE + 0] != [inode_table_entry + 3]) then
+            // reset mode flag to zero
+            [process_table_entry + 9] = 0;
+            // return -1
+            [[PTBR + 2 * (userSP - 1) / 512] * 512 + (userSP - 1) % 512] = -1;
+        endif;
+
+    endif;
+
+    // acquiring a lock
+    multipush(R5, R6, R7, R8, R9, R10, R11);
+    R1 = ACQUIRE_INODE;
+    R2 = index_of_file;
+    R3 = current_PID;
+    call RESOURCE_MANAGER;
+    multipop(R5, R6, R7, R8, R9, R10, R11);
+
+    if([FILE_STATUS_TABLE + index_of_file * 4 + 1] != -1) then
+        // file is open, cannot be deleted 
+        // therefore, release the lock and return -2
+        multipush(R5, R6, R7, R8, R9, R10, R11);
+        R1 = RELEASE_INODE;
+        R2 = index_of_file;
+        R3 = current_PID;
+        call RESOURCE_MANAGER;
+        multipop(R5, R6, R7, R8, R9, R10, R11);
+        [[PTBR + 2 * (userSP - 1) / 512] * 512 + (userSP - 1) % 512] = -2;
+
+        // reset mode flag to 0
+        [process_table_entry + 9] = 0;
+        SP = userSP;
+        ireturn;
+    endif;
+
+    // For each disk block allocated to the file, do { 	/* Check Inode Table */
+    // 	If the disk block is loaded into a buffer, and the DIRTY BIT is set, reset the dirty bit. 
+	//     /* Check the Buffer Table */ 
+
+	//     Call the release_block() function in the Memory Manager module to free the disk block.        
+    // }
+
+    alias cnt R12;
+    alias buffer_table_index R13;
+    alias block_number R14;
+    cnt = 8;
+    while(cnt < 12) do
+        block_number = [inode_table_entry + cnt];
+        // When a disk block is required to be brought into the buffer,
+        // the buffer to which it must be loaded is identifed by the formula :
+
+        // Buffer_number = Disk_block_number % MAX_BUFFER
+
+
+        block_number = (block_number % 512);
+        buffer_table_index = 0;
+        while(buffer_table_index < MAX_BUFFER) do
+            if([BUFFER_TABLE + buffer_table_index * 4 + 0] == block_number && [BUFFER_TABLE + buffer_table_index * 4] == 1) then
+                multipush(R5, R6, R7, R8, R9, R10, R11, R12, R13, R14);
+                R1 = RELEASE_BLOCK;
+                R2 = block_number;
+                call MEMORY_MANAGER;
+                multipop(R5, R6, R7, R8, R9, R10, R11, R12, R13, R14);
+            endif;
+
+            buffer_table_index = buffer_table_index + 1;
+        endwhile;
+        
+
+        cnt = cnt + 1;
+    endwhile;
+
+    cnt = 0;
+    while(cnt < 16) do
+        [inode_table_entry + cnt] = -1;
+        cnt = cnt + 1;
+    endwhile;
+
+    cnt = 0;
+    while(cnt < 8) do
+        [ROOT_FILE + index_of_file * 8 + cnt] = -1;
+        cnt = cnt + 1;
+    endwhile;
+
+    // resetting the mode flag to 0;
+    [process_table_entry + 9] = 0;
+
+    // return value of 0
+    [[PTBR + 2 * (userSP - 1) / 512] * 512 + (userSP - 1) % 512] = 0;
+
+    // switching to user stack
+    SP = userSP;
+
+    ireturn;
+
+
+
+
+
+
+endif;
+
+
+
+
+
+
+
+
+
+
+
+SP = userSP;
+ireturn;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
