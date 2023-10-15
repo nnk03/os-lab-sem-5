@@ -12,9 +12,11 @@ begin
 
         if(pid == 0) then
             // means its child process
+            temp = exposcall("Write", -2, "CHILD");
             temp = exposcall("Exec", "odd.xsm");
         else
             // parent process
+            temp = exposcall("Write", -2, "PARENT");
             temp = exposcall("Exec", "even.xsm");
         endif;
     endif;

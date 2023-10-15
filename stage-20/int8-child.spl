@@ -1,0 +1,278 @@
+// fork system call
+
+alias parent_PID R4;
+parent_PID = [SYSTEM_STATUS_TABLE + 1];
+alias child_PID R5;
+
+alias userSP R6;
+userSP = SP;
+
+alias parent_process_table R7;
+parent_process_table = PROCESS_TABLE + parent_PID * 16;
+
+alias child_process_table R8;
+
+alias parent_page_table R9;
+parent_page_table = PAGE_TABLE_BASE + parent_PID * 20;
+
+alias child_page_table R10;
+
+
+
+[parent_process_table + 13] = SP;
+SP = [parent_process_table + 11] * 512 - 1;
+[parent_process_table + 9] = INT_FORK;
+
+multipush(R4, R6, R7, R9);
+R1 = GET_PCB_ENTRY;
+call PROCESS_MANAGER;
+multipop(R4, R6, R7, R9);
+
+child_PID = R0;
+// if return value is -1
+if(child_PID == -1) then
+    [[parent_page_table + 2 * (userSP - 1) / 512] * 512 + ((userSP - 1) % 512)] = -1;
+    [parent_page_table + 9] = 0;
+    SP = userSP;
+    ireturn;
+endif;
+
+child_process_table = PROCESS_TABLE + child_PID * 16;
+child_page_table = PAGE_TABLE_BASE + child_PID * 20;
+
+
+// check if heap is allocated for parent
+if([parent_page_table + 4] == -1) then
+    multipush(R4, R5, R6, R7, R8, R9, R10);
+    R1 = GET_FREE_PAGE;
+    call MEMORY_MANAGER;
+    multipop(R4, R5, R6, R7, R8, R9, R10);
+    [parent_page_table + 4] = R0;
+    [parent_page_table + 5] = "0110";
+endif;
+
+if([parent_page_table + 6] == -1) then
+    multipush(R4, R5, R6, R7, R8, R9, R10);
+    R1 = GET_FREE_PAGE;
+    call MEMORY_MANAGER;
+    multipop(R4, R5, R6, R7, R8, R9, R10);
+    [parent_page_table + 6] = R0;
+    [parent_page_table + 7] = "0110";
+endif;
+
+
+// stack pages for child process
+
+multipush(R4, R5, R6, R7, R8, R9, R10);
+R1 = GET_FREE_PAGE;
+call MEMORY_MANAGER;
+multipop(R4, R5, R6, R7, R8, R9, R10);
+[child_page_table + 16] = R0;
+[child_page_table + 17] = "0110";
+
+
+multipush(R4, R5, R6, R7, R8, R9, R10);
+R1 = GET_FREE_PAGE;
+call MEMORY_MANAGER;
+multipop(R4, R5, R6, R7, R8, R9, R10);
+[child_page_table + 18] = R0;
+[child_page_table + 19] = "0110";
+
+
+// user area page number
+multipush(R4, R5, R6, R7, R8, R9, R10);
+R1 = GET_FREE_PAGE;
+call MEMORY_MANAGER;
+multipop(R4, R5, R6, R7, R8, R9, R10);
+[child_process_table + 11] = R0;
+
+
+// userID
+[child_process_table + 3] = [parent_process_table + 3];
+
+// swap flag
+[child_process_table + 6] = [parent_process_table + 6];
+
+// user area swap status
+[child_process_table + 10 ] = [parent_process_table + 10];
+
+// inode index
+[child_process_table + 7] = [parent_process_table + 7];
+
+// uptr
+[child_process_table + 13] = [parent_process_table + 13];
+
+// mode
+[child_process_table + 9] = 0;
+// kptr
+[child_process_table + 12] = 0;
+// tick
+[child_process_table + 0] = 0;
+// parent PID
+[child_process_table + 2] = parent_PID;
+// state
+[child_process_table + 4] = CREATED;
+
+
+// PID, PTBR and PTLR fields of the child process are 
+// already initialized in the Get Pcb Entry function. 
+// It is not required to initialize INPUT BUFFER.
+
+alias cnt R11;
+    
+// per process resource table 
+cnt = 0;
+while(cnt < 8) do
+    [[child_process_table + 11] * 512 + 512 - 16 + 2 * cnt] = [[parent_process_table + 11] * 512 + 512 - 16 + 2 * cnt];
+    [[child_process_table + 11] * 512 + 512 - 16 + 2 * cnt + 1] = [[parent_process_table + 11] * 512 + 512 - 16 + 2 * cnt + 1];
+    cnt = cnt + 1;
+endwhile;
+
+// per process disk map table
+cnt = 0;
+while(cnt < 10) do
+    [DISK_MAP_TABLE + child_PID * 10 + cnt] = [DISK_MAP_TABLE + parent_PID * 10 + cnt];
+    cnt = cnt + 1;
+endwhile;
+
+// page table initialization
+
+cnt = 0;
+while(cnt < 8) do
+    // cnt = 0 to 3 -----> library
+    // cnt = 4 to 7 ----> heap 
+    // cnt = 8 to 15 --> code 
+    [child_page_table + 2 * cnt] = [parent_page_table + 2 * cnt];
+    [child_page_table + 2 * cnt + 1] = [parent_page_table + 2 * cnt + 1];
+
+    // incrementing MEMORY_FREE_LIST of the corresponding page
+    if([child_page_table + 2 * cnt] != -1) then 
+        [MEMORY_FREE_LIST + [child_page_table + 2 * cnt]] = [MEMORY_FREE_LIST + [child_page_table + 2 * cnt]] + 1;
+    endif;
+    cnt = cnt + 1;
+endwhile;
+
+
+
+// stack already allocated
+// but did not increment MEMORY_FREE_LIST for the stack pages
+// is it necessary ?? 
+
+
+
+// copying the contents of stack of parent to stack of child
+
+alias phy_address R12;
+// alias phy_address R13;
+
+alias parent_stack R14;
+alias child_stack R15;
+
+phy_address = [parent_page_table + 16] * 512;
+parent_stack = phy_address;
+
+phy_address = [child_page_table + 16] * 512;
+child_stack = phy_address; 
+
+cnt = 0;
+while(cnt < 512) do
+    [child_stack + cnt] = [parent_stack + cnt];
+    cnt = cnt + 1;
+endwhile;
+
+
+phy_address = [parent_page_table + 18] * 512;
+parent_stack = phy_address;
+
+phy_address = [child_page_table + 18] * 512;
+child_stack = phy_address;
+
+cnt = 0;
+while(cnt < 512) do
+    [child_stack + cnt] = [parent_stack + cnt];
+    cnt = cnt + 1;
+endwhile;
+
+// Store the value in the BP register on top of the kernel stack of child process. 
+[[child_process_table + 11] * 512] = BP;
+[child_process_table + 12] = 1;
+
+
+// return value of parent is child_PID
+[[parent_page_table + 2 * (userSP - 1) / 512] * 512 + ((userSP - 1) % 512)] = child_PID;
+
+// return value of child is 0
+[[PAGE_TABLE_BASE + child_PID*20 + 2*(([PROCESS_TABLE + child_PID*16 + 13]-1)/512)]*512 + (([PROCESS_TABLE + child_PID*16 + 13]-1)%512)] = 0;
+
+// print("CHILD");
+// cnt = 0;
+// while(cnt < 10) do
+//     print([child_page_table + 2 * cnt]);
+//     cnt = cnt + 1;
+// endwhile;
+// print("PARENT");
+// cnt = 0;
+// while(cnt < 10) do
+//     print([parent_page_table + 2 * cnt]);
+//     cnt = cnt + 1;
+// endwhile;
+
+
+
+// resetting the mode flag of parent process
+[parent_process_table + 9] = 0;
+
+
+[parent_process_table + 12] = SP % 512;
+[parent_process_table + 13] = userSP;
+[parent_process_table + 14] = PTBR;
+multipush(BP);
+
+[SYSTEM_STATUS_TABLE + 1] = child_PID;
+
+SP = [child_process_table + 11] * 512 + [child_process_table + 12];
+PTBR = [child_process_table + 14];
+PTLR = [child_process_table + 15];
+SP = [child_process_table + 13];
+[child_process_table + 4] = RUNNING;
+
+BP = [[child_process_table + 11] * 512];
+
+
+
+
+// [parent_process_table + 12] = SP % 512;
+// [parent_process_table + 15] = PTLR;
+// 
+// 
+// [child_process_table + 12] = 0;
+// 
+// // switching to user stack of the parent process
+// [SYSTEM_STATUS_TABLE + 1] = child_PID;
+// 
+// [parent_process_table + 4] = READY;
+// [child_process_table + 4] = RUNNING;
+// [parent_process_table + 14] = parent_page_table ;
+// BP = [[child_process_table + 11] * 512];
+// 
+// SP = [child_process_table + 13];
+// print("FORKEND");
+
+
+ireturn;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

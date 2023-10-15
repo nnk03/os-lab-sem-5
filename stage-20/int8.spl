@@ -21,6 +21,7 @@ alias child_page_table R10;
 
 [parent_process_table + 13] = SP;
 SP = [parent_process_table + 11] * 512 - 1;
+[parent_process_table + 9] = INT_FORK;
 
 multipush(R4, R6, R7, R9);
 R1 = GET_PCB_ENTRY;
