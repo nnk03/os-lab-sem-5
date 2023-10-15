@@ -5,6 +5,7 @@ int main(){
 	enddecl
 	begin
 		while(1 == 1) do 
+            a = exposcall("Write", -2, "idle");
 			// breakpoint;
 			a = 1;
 		endwhile;

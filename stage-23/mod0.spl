@@ -13,28 +13,34 @@ if(functionNum == ACQUIRE_INODE) then
     alias process_table_entry R5;
     process_table_entry = PROCESS_TABLE + current_PID * 16;
 
-    while([FILE_STATUS_TABLE + 4 * inode_index + 0] != -1) do
+    while([FILE_STATUS_TABLE + 4 * inode_index + 0] != -1 && [FILE_STATUS_TABLE + 4 * inode_index + 0] != current_PID) do
+        print([FILE_STATUS_TABLE + 4 * inode_index + 0]);
         // set state of the process as (WAIT_PROCESS, inode_index)
         [process_table_entry + 4] = WAIT_PROCESS;
-        [process_table_entry + 5] = current_PID;
+        [process_table_entry + 5] = inode_index;
+        print("INWHILE");
         multipush(R1, R2, R3, R5);
         call SCHEDULER;
         multipop(R1, R2, R3, R5);
 
 
     endwhile;
+    print("whileexit");
 
-    if([INODE_TABLE + inode_index * inode_index * 16 + 1] == -1) then
+    if([INODE_TABLE + inode_index * 16 + 1] == -1) then
         // if inode index becomes invalid
         // i.e file was deleted by the time inode was acquired
         // return -1
+        print("invalid");
         R0 = -1;
         return;
     endif;
     // locking the inode by setting the Lock field in the 
     // file status table to the PID of the current process
     [FILE_STATUS_TABLE + 4 * inode_index + 0] = current_PID;
+
     
+    print("acquired");
     // return 0
     R0 = 0;
     return;
@@ -47,12 +53,19 @@ if(functionNum == RELEASE_INODE) then
     // inode index and PID are arguments
     alias inode_index R2;
     alias current_PID R3;
+
+    if(current_PID != [FILE_STATUS_TABLE + inode_index * 4 + 0]) then
+        R0 = -1;
+        return;
+
+    endif;
+
     [FILE_STATUS_TABLE + inode_index * 4 + 0] = -1;
     alias cnt R5;
     cnt = 0;
     while(cnt < MAX_PROC_NUM) do
         if([PROCESS_TABLE + cnt * 16 + 4] == WAIT_PROCESS && [PROCESS_TABLE + cnt * 16 + 5] == inode_index) then
-            [PROCESS_TABLE + cnt * 16 + 4] = current_PID;
+            [PROCESS_TABLE + cnt * 16 + 4] = READY;
         endif;
 
         cnt = cnt + 1;

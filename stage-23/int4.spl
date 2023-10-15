@@ -8,7 +8,8 @@ userSP = SP;
 alias system_call_number R6;
 system_call_number = [[PTBR + 2 * (userSP - 5) / 512] * 512 + (userSP - 5) % 512];
 
-
+alias return_address R15;
+return_address = [PTBR + 2 * (userSP - 1) / 512] * 512 + (userSP - 1) % 512;
 
 // switching to kernel stack
 alias current_PID R7;
@@ -41,7 +42,7 @@ if(system_call_number == INT_CREATE) then
 
     if(cnt == MAX_FILE_NUM) then
         // max files reached, hence return -1;
-        [[PTBR + 2 * (userSP -1) / 512] * 512 + (userSP - 1) % 512] = -1;
+        [return_address] = -1;
 
         // reset mode flag to 0
         [process_table_entry + 9] = 0;
@@ -56,10 +57,10 @@ if(system_call_number == INT_CREATE) then
     // FILE SIZE to 0 and FILE TYPE to DATA.
     // In the Inode Table entry, set the block numbers to -1.  /* No disk blocks are allocated to the file */
     alias file_name R10;
-    file_name = [[PTBR + 2 * (userSP - 5)/ 512] * 512 + (userSP - 5) % 512];
+    file_name = [[PTBR + 2 * (userSP - 4)/ 512] * 512 + (userSP - 4) % 512];
 
     alias permission R11;
-    permission = [[PTBR + 2 * (userSP - 4) / 512] * 512 + (userSP - 4) % 512];
+    permission = [[PTBR + 2 * (userSP - 3) / 512] * 512 + (userSP - 3) % 512];
 
     alias inode_table_entry R12;
     inode_table_entry = INODE_TABLE + cnt * 16;
@@ -104,7 +105,7 @@ if(system_call_number == INT_CREATE) then
     [process_table_entry + 9] = 0;
     
     // return value of 0 -- success
-    [[PTBR + 2 * (userSP - 1) / 512] * 512 + (userSP - 1) % 512] = 0;
+    [return_address] = 0;
 
     SP = userSP;
     ireturn;
@@ -118,16 +119,16 @@ if(system_call_number == INT_DELETE) then
     // setting the mode flag
     [process_table_entry + 9] = INT_DELETE;
     alias file_name R9;
-    file_name = [[PTBR + 2 * (userSP - 5)/ 512] * 512 + (userSP - 5) % 512];
+    file_name = [[PTBR + 2 * (userSP - 4)/ 512] * 512 + (userSP - 4) % 512];
+    print(file_name);
 
     alias index_of_file R10;
     index_of_file = 0;
 
-    alias inode_table_entry R11;
-    inode_table_entry = INODE_TABLE + index_of_file * 16;
 
     while(index_of_file < MAX_FILE_NUM) do
-        if([inode_table_entry + 1] == file_name) then
+        if([INODE_TABLE + index_of_file * 16 + 1] == file_name) then
+            print([INODE_TABLE + index_of_file * 16 + 1]);
             // file found
             break;
         endif;
@@ -140,17 +141,22 @@ if(system_call_number == INT_DELETE) then
         [process_table_entry + 9] = 0;
         
         // file name not found, hence return 0
-        [[PTBR + 2 * (userSP - 1) / 512] * 512 + (userSP - 1) % 512] = 0;
+        [return_address] = 0;
 
         SP = userSP;
         ireturn;
 
 
     endif;
+    alias inode_table_entry R11;
+    inode_table_entry = INODE_TABLE + index_of_file * 16;
+    print("fileFOUND");
+    print(index_of_file);
 
     if([inode_table_entry + 0] != DATA) then
         // if file is not a data file, return -1;
-        [[PTBR + 2 * (userSP - 1) / 512] * 512 + (userSP - 1) % 512] = -1;
+        print("notDATA");
+        [return_address] = -1;
 
         // reset the mode flag to 0
         [process_table_entry + 9] = 0;
@@ -160,39 +166,42 @@ if(system_call_number == INT_DELETE) then
 
 
     endif;
-
     // If the exclusive permission is set
 	//      if the current user is not root and the current user does not own the file
 	//          return -1. 
 
     if([inode_table_entry + 4] == EXCLUSIVE) then
-        if([SYSTEM_STATUS_TABLE + 0] != ROOT && [SYSTEM_STATUS_TABLE + 0] != [inode_table_entry + 3]) then
+        if([SYSTEM_STATUS_TABLE + 0] != ROOT && [process_table_entry + 3] != [inode_table_entry + 3]) then
+            print("unAUTHORISED");
             // reset mode flag to zero
             [process_table_entry + 9] = 0;
             // return -1
-            [[PTBR + 2 * (userSP - 1) / 512] * 512 + (userSP - 1) % 512] = -1;
+            [return_address] = -1;
         endif;
 
     endif;
 
+
     // acquiring a lock
-    multipush(R5, R6, R7, R8, R9, R10, R11);
+    multipush(R5, R6, R7, R8, R9, R10, R11, R15);
     R1 = ACQUIRE_INODE;
     R2 = index_of_file;
     R3 = current_PID;
     call RESOURCE_MANAGER;
-    multipop(R5, R6, R7, R8, R9, R10, R11);
+    multipop(R5, R6, R7, R8, R9, R10, R11, R15);
+
 
     if([FILE_STATUS_TABLE + index_of_file * 4 + 1] != -1) then
         // file is open, cannot be deleted 
         // therefore, release the lock and return -2
-        multipush(R5, R6, R7, R8, R9, R10, R11);
+        print("FILEOPEN");
+        multipush(R5, R6, R7, R8, R9, R10, R11, R15);
         R1 = RELEASE_INODE;
         R2 = index_of_file;
         R3 = current_PID;
         call RESOURCE_MANAGER;
-        multipop(R5, R6, R7, R8, R9, R10, R11);
-        [[PTBR + 2 * (userSP - 1) / 512] * 512 + (userSP - 1) % 512] = -2;
+        multipop(R5, R6, R7, R8, R9, R10, R11, R15);
+        [return_address] = -2;
 
         // reset mode flag to 0
         [process_table_entry + 9] = 0;
@@ -216,19 +225,21 @@ if(system_call_number == INT_DELETE) then
         // When a disk block is required to be brought into the buffer,
         // the buffer to which it must be loaded is identifed by the formula :
 
-        // Buffer_number = Disk_block_number % MAX_BUFFER
+        // Buffer_number = Disk_block_number % MAX_BUFFER ??
 
 
-        block_number = (block_number % 512);
+        // block_number = (block_number % MAX_BUFFER);
         buffer_table_index = 0;
         while(buffer_table_index < MAX_BUFFER) do
-            if([BUFFER_TABLE + buffer_table_index * 4 + 0] == block_number && [BUFFER_TABLE + buffer_table_index * 4] == 1) then
-                multipush(R5, R6, R7, R8, R9, R10, R11, R12, R13, R14);
-                R1 = RELEASE_BLOCK;
-                R2 = block_number;
-                call MEMORY_MANAGER;
-                multipop(R5, R6, R7, R8, R9, R10, R11, R12, R13, R14);
+            if([BUFFER_TABLE + buffer_table_index * 4 + 0] == block_number && [BUFFER_TABLE + buffer_table_index * 4 + 1] == 1) then
+                // reset the dirty bit
+                [BUFFER_TABLE + buffer_table_index * 4 + 1] = 0;
             endif;
+            multipush(R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R15);
+            R1 = RELEASE_BLOCK;
+            R2 = block_number;
+            call MEMORY_MANAGER;
+            multipop(R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R15);
 
             buffer_table_index = buffer_table_index + 1;
         endwhile;
@@ -236,6 +247,9 @@ if(system_call_number == INT_DELETE) then
 
         cnt = cnt + 1;
     endwhile;
+
+
+    // invalidate inode table and root file
 
     cnt = 0;
     while(cnt < 16) do
@@ -249,12 +263,22 @@ if(system_call_number == INT_DELETE) then
         cnt = cnt + 1;
     endwhile;
 
+    // release the lock on the file
+    multipush(R5, R6, R7, R8, R9, R10, R11, R12, R15);
+    R1 = RELEASE_INODE;
+    R2 = index_of_file;
+    R3 = current_PID;
+    call RESOURCE_MANAGER;
+    multipop(R5, R6, R7, R8, R9, R10, R11, R12, R15);
+
+
     // resetting the mode flag to 0;
     [process_table_entry + 9] = 0;
 
     // return value of 0
-    [[PTBR + 2 * (userSP - 1) / 512] * 512 + (userSP - 1) % 512] = 0;
+    [return_address] = 0;
 
+    print("returning");
     // switching to user stack
     SP = userSP;
 
