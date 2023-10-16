@@ -92,16 +92,12 @@ endwhile;
 [DISK_STATUS_TABLE + 0] = 0;
 
 
-// initializing per process table of INIT process 
-alias user_area_page_end R1;
-user_area_page_end = [PROCESS_TABLE + (1 * 16) + 11] * 512 + 512 - 16;
-cnt = 0;
 // setting last 8 entries (2 words per entry) to -1
-while(cnt < 16) do 
-    [user_area_page_end + cnt] = -1;
-    [user_area_page_end + cnt + 1] = -1;
-    cnt = cnt + 2;
-endwhile;
+// while(cnt < 16) do 
+//     [user_area_page_end + cnt] = -1;
+//     [user_area_page_end + cnt + 1] = -1;
+//     cnt = cnt + 2;
+// endwhile;
 
 // initializing the semaphore table 
 cnt = 0;
@@ -198,6 +194,18 @@ endwhile;
 
 // initializing MEM_FREE_COUNT in system status table
 [SYSTEM_STATUS_TABLE + 2] = 128 - 83;
+
+// initializing per process table of INIT process 
+alias user_area_page_end R1;
+
+user_area_page_end = [PROCESS_TABLE + (1 * 16) + 11] * 512 + RESOURCE_TABLE_OFFSET;
+cnt = 0;
+// setting last 8 entries (2 words per entry) to -1
+while(cnt < 16) do 
+    [user_area_page_end + cnt] = -1;
+    [user_area_page_end + cnt + 1] = -1;
+    cnt = cnt + 2;
+endwhile;
 
 
 print("ret boot");

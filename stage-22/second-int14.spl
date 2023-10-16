@@ -1,6 +1,6 @@
 // interrupt 14
 // SEMLOCK and SEMUNLOCK
-
+breakpoint;
 
 // storing userSP
 alias userSP R5;
@@ -32,7 +32,7 @@ if(system_call_number == INT_SEMLOCK) then
     sem_id = [[PTBR + 2 * (userSP - 4) / 512] * 512 + (userSP - 4) % 512];
 
     alias user_area_page_end R10;
-    user_area_page_end = [process_table_entry + 11] * 512 + 512 - 16;
+    user_area_page_end = [process_table_entry + 11] * 512 + RESOURCE_TABLE_OFFSET;
 
     if(sem_id < 0 || sem_id >= 8 || [user_area_page_end + 2 * sem_id + 0] != SEMAPHORE) then
         [return_address] = -1;
@@ -59,6 +59,7 @@ if(system_call_number == INT_SEMLOCK) then
     [return_address] = 0;
 
     SP = userSP;
+    breakpoint;
     ireturn;
 
 

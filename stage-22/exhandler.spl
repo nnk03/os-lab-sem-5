@@ -23,6 +23,7 @@ userSP = [PROCESS_TABLE + ([SYSTEM_STATUS_TABLE + 1] * 16) + 13];
 
 if((EC != 0) || (userSP == PTLR * 512 - 1)) then
     // calling the EXIT_PROCESS in PROCESS_MANAGER
+    print(EPN);
     multipush(R5);
     R1 = EXIT_PROCESS;
     R2 = [SYSTEM_STATUS_TABLE + 1];
