@@ -31,7 +31,6 @@ loadi(2, 15);
 loadi(3, 16); // exception handler
 
 
-loadi(83, 69); // for even.xsm
 
 loadi(50, 63);
 loadi(51, 64); // for module - 5  --> scheduler

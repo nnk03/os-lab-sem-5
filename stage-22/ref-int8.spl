@@ -1,0 +1,152 @@
+print "int8beg";
+[PROCESS_TABLE + ([SYSTEM_STATUS_TABLE + 1]*16) + 9] = 8;
+
+alias userSP R0;
+userSP = SP;
+
+alias parentID R1;
+parentID = [SYSTEM_STATUS_TABLE + 1];
+
+alias childID R2;
+childID = 0;
+
+alias child_proc R7;
+alias parent_proc R8;
+parent_proc = PROCESS_TABLE + parentID*16;
+alias child_page R9;
+alias parent_page R10;
+parent_page = PAGE_TABLE_BASE + parentID*20; 
+alias child_res R11;
+alias parent_res R12;
+
+[parent_proc + 13] = SP;
+
+SP = [parent_proc + 11]*512 - 1;
+
+multipush(R0,R1,R7,R8,R9,R10,R11,R12);
+R1 = 1;
+call MOD_1;
+childID = R0;
+multipop(R0,R1,R7,R8,R9,R10,R11,R12);
+
+if(childID == -1) then 
+	[[parent_page + 2*((userSP-1)/512)]*512 + ((userSP-1)%512)] = -1;
+	[parent_proc + 9] = 0;
+	SP = userSP;
+	ireturn;
+endif;
+
+child_proc = PROCESS_TABLE + childID*16;
+child_page = PAGE_TABLE_BASE + childID*20;
+
+alias counter R3;
+counter = 0;
+//checking and heap allocation if not done before calling fork
+while(counter <= 1) do
+	if([parent_page + 4 + 2*counter] == -1) then
+		multipush(R0,R1,R2,R3,R7,R8,R9,R11,R12);
+		R1 = 1;
+		call MOD_2;
+		[parent_page + 4 + 2*counter] = R0;
+		[parent_page + 4 + 2*counter + 1] = "1110";
+		multipop(R0,R1,R2,R3,R7,R8,R9,R11,R12);
+	endif;
+	counter = counter + 1;
+endwhile;
+
+//getting stack page and user area page for child
+counter = 0;
+while(counter <= 2) do
+	multipush(R0,R1,R2,R3,R8,R10,R11,R12);
+	R1 = 1;
+	call MOD_2;
+	if(counter == 2) then
+		[child_proc + 11] = R0;  //user area page number
+		//print R0;
+		//print [child_proc + 11];	
+	else
+		[child_page + 16 + 2*counter] = R0;
+		[child_page + 16 + 2*counter + 1] = [parent_page + 16 + 2*counter + 1];
+	endif;
+	multipop(R0,R1,R2,R3,R8,R10,R11,R12);
+	//print [child_proc + 11];
+	counter = counter + 1;
+endwhile;
+
+[child_proc + 3] = [parent_proc + 3]; //user-id
+[child_proc + 6] = [parent_proc + 6]; //swap flag
+[child_proc + 10] = [parent_proc + 10]; //user area swap status
+[child_proc + 7] = [parent_proc + 7]; //inode-index
+[child_proc + 13] = [parent_proc + 13];  //uptr
+
+[child_proc + 9] = 0; //mode
+[child_proc + 12] = 0;  //kptr
+[child_proc + 0] = 0;  //tick
+[child_proc + 2] = parentID; //ppid
+[child_proc + 4] = CREATED; //state
+
+//print "childuser";
+//print [child_proc + 11];
+
+//per-process resource table copying
+
+child_res = [child_proc + 11]*512 + 512 - 16;
+parent_res = [parent_proc + 11]*512 + 512 - 16;
+
+counter = 0;
+while(counter <= 7) do
+	[child_res + 2*counter] = [parent_res + 2*counter];
+	[child_res + 2*counter + 1] = [parent_res + 2*counter + 1];
+		if([child_res + 2*counter] == SEMAPHORE) then
+		[SEMAPHORE_TABLE + 4*[child_res + 2*counter] + 1] = [SEMAPHORE_TABLE + 4*[child_res + 2*counter] + 1] + 1;
+	endif;
+	counter = counter + 1;
+endwhile;
+
+//per-process disk map table for child
+counter = 0;
+while(counter <= 9) do
+	[DISK_MAP_TABLE + childID*10 + counter] = [DISK_MAP_TABLE + parentID*10 + counter];
+	counter = counter + 1;
+endwhile;
+
+//page table initialisation of child process
+counter = 0;
+while(counter <= 7) do
+	[child_page + 2*counter] = [parent_page + 2*counter];
+	[MEMORY_FREE_LIST + [child_page + 2*counter]] = [MEMORY_FREE_LIST + [child_page + 2*counter]] + 1;
+	[child_page + 2*counter + 1] = [parent_page + 2*counter + 1];
+	counter = counter + 1;
+endwhile;
+
+alias parent_word_address R4;
+alias child_word_address R5;
+alias word_count R6;
+word_count = 0;
+counter = 8;
+while(counter <= 9) do
+	
+	parent_word_address = [parent_page + 2*counter]*512;
+	child_word_address = [child_page + 2*counter]*512;
+
+	while(word_count < 512) do
+		[child_word_address + word_count] = [parent_word_address + word_count];
+		word_count = word_count + 1;
+	endwhile;
+	word_count = 0;
+	counter = counter + 1;
+endwhile;
+
+//Set BP value to top of kernel stack of child
+[[child_proc + 11]*512] = BP;
+[child_proc + 12] = 1;
+
+
+//Set return values in user stacks for parent and child
+[[parent_page + 2*((userSP-1)/512)]*512 + ((userSP-1)%512)] = childID;
+[[child_page + 2*(([child_proc + 13]-1)/512)]*512 + (([child_proc + 13]-1)%512)] = 0;
+
+print "retint8";
+[parent_proc + 9] = 0;
+SP = userSP;
+ireturn;

@@ -122,9 +122,24 @@ alias cnt R11;
     
 // per process resource table 
 cnt = 0;
+
+alias child_user_area_page_end R14;
+alias parent_user_area_page_end R15;
+
+child_user_area_page_end = [child_process_table + 11] * 512 + RESOURCE_TABLE_OFFSET;
+parent_user_area_page_end =[parent_process_table + 11] * 512 + RESOURCE_TABLE_OFFSET ;
+
 while(cnt < 8) do
-    [[child_process_table + 11] * 512 + 512 - 16 + 2 * cnt] = [[parent_process_table + 11] * 512 + 512 - 16 + 2 * cnt];
-    [[child_process_table + 11] * 512 + 512 - 16 + 2 * cnt + 1] = [[parent_process_table + 11] * 512 + 512 - 16 + 2 * cnt + 1];
+
+    [child_user_area_page_end + 2 * cnt] = [parent_user_area_page_end + 2 * cnt];
+    [child_user_area_page_end + 2 * cnt + 1] = [parent_user_area_page_end + 2 * cnt + 1];
+    
+    if([child_user_area_page_end + 2 * cnt + 0] == SEMAPHORE) then
+        [SEMAPHORE_TABLE + 4 * [child_user_area_page_end + 2 * cnt + 1] + 1] = [SEMAPHORE_TABLE + 4 * [child_user_area_page_end + 2 * cnt + 1] + 1] + 1;
+    endif;
+
+    
+
     cnt = cnt + 1;
 endwhile;
 

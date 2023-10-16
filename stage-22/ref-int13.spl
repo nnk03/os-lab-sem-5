@@ -1,109 +1,86 @@
-breakpoint;
-//interrupt 13 semget 17 and semrelease 18
+//print "int13beg";
+[PROCESS_TABLE + ([SYSTEM_STATUS_TABLE + 1]*16) + 13] = SP;
 
-alias userSP R5;
-alias virtAddr R6;
-alias phyAddr R7;
-alias sysCallNum R8;
-alias PID R9;
-alias resourceTableEntry R10;
-alias semaphoreIndex R11;
+alias userSP R0;
+userSP = SP;
 
-//switching to kernel stack
-userSP=SP;
-[PROCESS_TABLE+[SYSTEM_STATUS_TABLE+1]*16+13]=SP;
-SP=[PROCESS_TABLE+[SYSTEM_STATUS_TABLE+1]*16+11]*512-1;
+SP = [PROCESS_TABLE + ([SYSTEM_STATUS_TABLE + 1]*16) + 11]*512 - 1;
 
-virtAddr=userSP-5;
-PID=[SYSTEM_STATUS_TABLE+1];
-call AddrTranslation;
-sysCallNum=[phyAddr];
+alias sys_num R1;
+sys_num = [[PAGE_TABLE_BASE + ([SYSTEM_STATUS_TABLE + 1]*20) + 2*((userSP-5)/512)]*512 + ((userSP-5)%512)];
 
-//SEMGET
-if(sysCallNum==17)then
-	[PROCESS_TABLE+[SYSTEM_STATUS_TABLE+1]*16+9]=17; //mode
-	resourceTableEntry=[PROCESS_TABLE+[SYSTEM_STATUS_TABLE+1]*16+11]*512+RESOURCE_TABLE_OFFSET;
-	R0=0;
-	//going through per process resource table
-	while(R0<8)do
-		if([resourceTableEntry+R0]==-1)then
+alias count R12;
+count = 0;
+
+alias semID R4;
+
+if(sys_num == 17) then
+	//print "semget";
+	[PROCESS_TABLE + ([SYSTEM_STATUS_TABLE + 1]*16) + 9] = 17;
+
+	while(count <= 7) do
+		if([[PROCESS_TABLE + ([SYSTEM_STATUS_TABLE + 1]*16) + 11]*512 + 512 - 16 + 2*count] == -1) then
 			break;
 		endif;
-		R0=R0+2;
+		count = count + 1;
 	endwhile;
-	//if maximum semaphores or files already in process
-	if(R0==8)then
-		virtAddr=userSP-1;
-		PID=[SYSTEM_STATUS_TABLE+1];
-		call AddrTranslation;
-		[phyAddr]=-1;
-		[PROCESS_TABLE+[SYSTEM_STATUS_TABLE+1]*16+9]=10;
-		SP=[PROCESS_TABLE+[SYSTEM_STATUS_TABLE+1]*16+13];
+	
+	if(count == 16) then
+		[[PAGE_TABLE_BASE + ([SYSTEM_STATUS_TABLE + 1]*20) + 2*((userSP-1)/512)]*512 + ((userSP-1)%512)] = -1;
+		[PROCESS_TABLE + ([SYSTEM_STATUS_TABLE + 1]*16) + 9] = 0; //changed to 10 as this process is doomed to fail at this point
+		SP = [PROCESS_TABLE + ([SYSTEM_STATUS_TABLE + 1]*16) + 13];
 		ireturn;
+	endif;	
+	//print ("before");
+	//print count;
+	multipush(R0,R1,R12,R4);
+	R1 = 6;
+	R2 = [SYSTEM_STATUS_TABLE + 1];
+
+	call MOD_0;
+	
+	if(R0 == -1) then
+		[[PAGE_TABLE_BASE + ([SYSTEM_STATUS_TABLE + 1]*20) + 2*((userSP-1)/512)]*512 + ((userSP-1)%512)] = -2; //check high level library interface for underst
+                [PROCESS_TABLE + ([SYSTEM_STATUS_TABLE + 1]*16) + 9] = 0;
+                SP = [PROCESS_TABLE + ([SYSTEM_STATUS_TABLE + 1]*16) + 13];
+                ireturn;
 	endif;
-	
-	multipush(R0,R5,R6,R7,R8,R9,R10);
-	R1=ACQUIRE_SEMAPHORE;
-	call RESOURCE_MANAGER;
-	semaphoreIndex=R0;
-	multipop(R0,R5,R6,R7,R8,R9,R10);
-	
-	//if maximum number of semaphores in system
-	if(semaphoreIndex==-1)then
-		virtAddr=userSP-1;
-		PID=[SYSTEM_STATUS_TABLE+1];
-		call AddrTranslation;
-		[phyAddr]=-2;
-		[PROCESS_TABLE+[SYSTEM_STATUS_TABLE+1]*16+9]=10;
-		SP=[PROCESS_TABLE+[SYSTEM_STATUS_TABLE+1]*16+13];
-		ireturn;
-	endif;
-	//resource identifier
-	[resourceTableEntry+R0]=SEMAPHORE;
-	//index of semaphore table
-	[resourceTableEntry+R0+1]=semaphoreIndex;
-	
-	virtAddr=userSP-1;
-	PID=[SYSTEM_STATUS_TABLE+1];
-	call AddrTranslation;
-	[phyAddr]=R0;
-	[PROCESS_TABLE+[SYSTEM_STATUS_TABLE+1]*16+9]=10;
-	SP=[PROCESS_TABLE+[SYSTEM_STATUS_TABLE+1]*16+13];
+	//print ("count");
+	//print count;
+	[[PROCESS_TABLE + ([SYSTEM_STATUS_TABLE + 1]*16) + 11]*512 + 512 - 16 + 2*count] = SEMAPHORE;
+	[[PROCESS_TABLE + ([SYSTEM_STATUS_TABLE + 1]*16) + 11]*512 + 512 - 16 + 2*count + 1] = R0;
+	multipop(R0,R1,R12,R4);
+
+	[[PAGE_TABLE_BASE + ([SYSTEM_STATUS_TABLE + 1]*20) + 2*((userSP-1)/512)]*512 + ((userSP-1)%512)] = count;//semID sending
+	[PROCESS_TABLE + ([SYSTEM_STATUS_TABLE + 1]*16) + 9] = 0;
+        SP = [PROCESS_TABLE + ([SYSTEM_STATUS_TABLE + 1]*16) + 13];
+	//print "retsemget";
 	ireturn;
 endif;
 
-//semrelease
-if(sysCallNum==18)then
-	[PROCESS_TABLE+[SYSTEM_STATUS_TABLE+1]*16+9]=18;
-	virtAddr=userSP-4;
-	PID=[SYSTEM_STATUS_TABLE+1];
-	call AddrTranslation;
-	R0=[phyAddr]; //resource table index
-	resourceTableEntry=[PROCESS_TABLE+[SYSTEM_STATUS_TABLE+1]*16+11]*512+RESOURCE_TABLE_OFFSET;
-	if( (R0>=8) || (R0<0) || ([resourceTableEntry+R0*2]!=SEMAPHORE) )then
-		virtAddr=userSP-1;
-		PID=[SYSTEM_STATUS_TABLE+1];
-		call AddrTranslation;
-		[phyAddr]=-1;
-		[PROCESS_TABLE+[SYSTEM_STATUS_TABLE+1]*16+9]=10;
-		SP=[PROCESS_TABLE+[SYSTEM_STATUS_TABLE+1]*16+13];
-		ireturn;
+if(sys_num == 18) then
+	//print "semrel";
+	[PROCESS_TABLE + ([SYSTEM_STATUS_TABLE + 1]*16) + 9] = 18;
+	semID = [[PAGE_TABLE_BASE + ([SYSTEM_STATUS_TABLE + 1]*20) + 2*((userSP-4)/512)]*512 + ((userSP-4)%512)]; 	
+	
+	if(semID<0 || semID>7 || [[PROCESS_TABLE + ([SYSTEM_STATUS_TABLE + 1]*16) + 11]*512 + 512 - 16 + 2*semID] != 1) then
+		[[PAGE_TABLE_BASE + ([SYSTEM_STATUS_TABLE + 1]*20) + 2*((userSP-1)/512)]*512 + ((userSP-1)%512)] = -1;
+                [PROCESS_TABLE + ([SYSTEM_STATUS_TABLE + 1]*16) + 9] = 0;
+                SP = [PROCESS_TABLE + ([SYSTEM_STATUS_TABLE + 1]*16) + 13];
+                ireturn;
 	endif;
-	semaphoreIndex=[resourceTableEntry+R0*2+1];
-	multipush(R0,R5,R6,R7,R8,R9,R10);
-	R1=RELEASE_SEMAPHORE;
-	R2=semaphoreIndex;
-	call RESOURCE_MANAGER;
-	multipop(R0,R5,R6,R7,R8,R9,R10);
-	[resourceTableEntry+R0*2]=-1;
-	virtAddr=userSP-1;
-	PID=[SYSTEM_STATUS_TABLE+1];
-	call AddrTranslation;
-	[phyAddr]=0;
-	[PROCESS_TABLE+[SYSTEM_STATUS_TABLE+1]*16+9]=10;
-	SP=[PROCESS_TABLE+[SYSTEM_STATUS_TABLE+1]*16+13];
+	
+	multipush(R0,R1,R3,R4);
+	R1 = 7;
+	R2 = [SYSTEM_STATUS_TABLE + 1];
+	R3 = semID;
+	call MOD_0;
+	multipop(R0,R1,R3,R4);
+
+	[[PROCESS_TABLE + ([SYSTEM_STATUS_TABLE + 1]*16) + 11]*512 + 512 - 16 + 2*semID] = -1;
+	SP = [PROCESS_TABLE + ([SYSTEM_STATUS_TABLE + 1]*16) + 13];
+	[PROCESS_TABLE + ([SYSTEM_STATUS_TABLE + 1]*16) + 9] = 0;
+	[[PAGE_TABLE_BASE + ([SYSTEM_STATUS_TABLE + 1]*20) + 2*((userSP-1)/512)]*512 + ((userSP-1)%512)] = 0;
+	//print "retsemrel";
 	ireturn;
 endif;
-AddrTranslation:
-	phyAddr=[PAGE_TABLE_BASE+PID*2+2*(virtAddr/512)]*512+(virtAddr%512);
-	return;

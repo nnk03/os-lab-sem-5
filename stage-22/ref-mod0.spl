@@ -1,0 +1,113 @@
+//print "resource";
+alias functionNum R1;
+alias currentPID R2;
+
+if(functionNum == 3) then
+	while([DISK_STATUS_TABLE + 0] == 1) do
+		//print "before";
+		//print [SYSTEM_STATUS_TABLE + 1];
+		//print [PROCESS_TABLE + ([SYSTEM_STATUS_TABLE + 1]*16) + 4];
+		[PROCESS_TABLE + currentPID*16 + 4] = WAIT_DISK;
+		multipush(R1,R2);
+
+		call MOD_5;
+		//print "After";
+		//print [SYSTEM_STATUS_TABLE + 1];
+                //print [PROCESS_TABLE + ([SYSTEM_STATUS_TABLE + 1]*16) + 4];
+		multipop(R1,R2);
+	endwhile;
+	//print "inres";
+	//print [PROCESS_TABLE + currentPID*16 + 4];
+	[DISK_STATUS_TABLE + 0] = 1;
+	[DISK_STATUS_TABLE + 4] = currentPID;
+	//print "retres";
+	return;
+endif;
+
+if(functionNum == 6) then
+	//print "aqsem";
+	alias count R3;
+	count = 0;
+	while(count <= 31) do
+		if([SEMAPHORE_TABLE + 4*count + 1] == 0) then
+			break;
+		endif;
+		count = count + 1;
+	endwhile;
+	
+	if(count == 32) then
+		R0 = -1;
+		return;
+	 endif;
+	
+	[SEMAPHORE_TABLE + 4*count + 1] = 1;
+	R0 = count;
+	//print "retaqsem";
+	return;
+endif;
+
+if(functionNum == 7) then
+	//print "relsem";
+	alias semID R3;
+	alias ssemID R5;
+	ssemID = [[PROCESS_TABLE + currentPID*16 + 11]*512 + 512 - 16 + 2*semID + 1];
+	alias count R4;
+	count = 0;
+	if([SEMAPHORE_TABLE + 4*ssemID + 0] == currentPID) then
+		[SEMAPHORE_TABLE + 4*ssemID + 0] = -1;
+		while(count <= 15) do
+			if(([PROCESS_TABLE + (count*16) + 4] == WAIT_SEMAPHORE) && ([PROCESS_TABLE + (count*16) + 5] == ssemID)) then
+				[PROCESS_TABLE + count*16 + 4] = READY;
+				[PROCESS_TABLE + count*16 + 5] = 0; //possiblly error point maybe
+			endif;
+			count = count + 1;
+		endwhile;
+	endif;
+	[SEMAPHORE_TABLE + 4*ssemID + 1] = [SEMAPHORE_TABLE + 4*ssemID + 1] - 1;
+	R0 = 0;
+	//print "retrelsem";
+	return;
+endif;
+
+if(functionNum == 8) then
+	//print "accessrsc";
+	while([TERMINAL_STATUS_TABLE + 0] == 1) do
+		[PROCESS_TABLE + (currentPID*16) + 4] = WAIT_TERMINAL;
+		multipush(R1,R2);
+		//print "resmod5";
+		call MOD_5;
+		//print "restmod5";
+		multipop(R1,R2);
+	endwhile;
+	[TERMINAL_STATUS_TABLE + 0] = 1;
+	[TERMINAL_STATUS_TABLE + 1] = currentPID;
+	//breakpoint;
+	//print "endaccess";
+	return;
+endif;
+
+if(functionNum == 9) then
+	//print "releasersc";
+	if(currentPID != [TERMINAL_STATUS_TABLE + 1]) then
+		R0 = -1;
+		print "ok";
+		return;
+	else
+		[TERMINAL_STATUS_TABLE + 0] = 0;
+		alias counter R5;
+		counter = 1;
+		while(counter < 16) do
+			if([PROCESS_TABLE + (counter*16) + 4] == WAIT_TERMINAL) then
+				[PROCESS_TABLE + (counter*16) + 4] = READY;
+			endif;
+			counter = counter + 1;
+		endwhile;
+		R0 = 0;
+		//breakpoint;
+		//print "endrelease";
+		return;
+	endif;
+endif;
+
+print "really here";
+return;	
