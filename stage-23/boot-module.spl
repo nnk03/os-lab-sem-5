@@ -118,6 +118,7 @@ endwhile;
 
 // Initialize the file status table by setting LOCKING PID and FILE OPEN COUNT fields of all entries to -1.
 cnt = 0;
+breakpoint;
 while(cnt < MAX_FILE_NUM) do
     [FILE_STATUS_TABLE + cnt * 4 + 0] = -1;
     [FILE_STATUS_TABLE + cnt * 4 + 1] = -1;
@@ -229,7 +230,30 @@ endwhile;
 
 
 //print("ret boot");
+// Initialize the file status table by setting LOCKING PID and FILE OPEN COUNT fields of all entries to -1.
+print("initFST");
+breakpoint;
+cnt = 0;
+breakpoint;
+while(cnt < MAX_FILE_NUM) do
+    print(cnt);
+    [FILE_STATUS_TABLE + cnt * 4 + 0] = -1;
+    [FILE_STATUS_TABLE + cnt * 4 + 1] = -1;
+    cnt = cnt + 1;
+endwhile;
 
+// Initialize the buffer table by setting BLOCK NUMBER and LOCKING PID fields to -1 and DIRTY BIT to 0 in all entries.
+cnt = 0;
+while(cnt < MAX_BUFFER) do
+    [BUFFER_TABLE + cnt * 4 + 0] = -1;
+    [BUFFER_TABLE + cnt * 4 + 2] = -1;
+
+    [BUFFER_TABLE + cnt * 4 + 1] = 0;
+
+    cnt = cnt + 1;
+endwhile;
+
+breakpoint;
 
 return;
 

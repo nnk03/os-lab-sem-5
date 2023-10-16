@@ -15,9 +15,10 @@ if(functionNum == ACQUIRE_INODE) then
 
     while([FILE_STATUS_TABLE + 4 * inode_index + 0] != -1 && [FILE_STATUS_TABLE + 4 * inode_index + 0] != current_PID) do
         print([FILE_STATUS_TABLE + 4 * inode_index + 0]);
-        // set state of the process as (WAIT_PROCESS, inode_index)
-        [process_table_entry + 4] = WAIT_PROCESS;
+        // set state of the process as (WAIT_FILE, inode_index)
+        [process_table_entry + 4] = WAIT_FILE;
         [process_table_entry + 5] = inode_index;
+        breakpoint;
         print("INWHILE");
         multipush(R1, R2, R3, R5);
         call SCHEDULER;
@@ -64,7 +65,7 @@ if(functionNum == RELEASE_INODE) then
     alias cnt R5;
     cnt = 0;
     while(cnt < MAX_PROC_NUM) do
-        if([PROCESS_TABLE + cnt * 16 + 4] == WAIT_PROCESS && [PROCESS_TABLE + cnt * 16 + 5] == inode_index) then
+        if([PROCESS_TABLE + cnt * 16 + 4] == WAIT_FILE && [PROCESS_TABLE + cnt * 16 + 5] == inode_index) then
             [PROCESS_TABLE + cnt * 16 + 4] = READY;
         endif;
 

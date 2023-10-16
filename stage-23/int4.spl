@@ -186,6 +186,7 @@ if(system_call_number == INT_DELETE) then
     multipush(R5, R6, R7, R8, R9, R10, R11, R15);
     R1 = ACQUIRE_INODE;
     R2 = index_of_file;
+    print("indexOFFILE");
     R3 = current_PID;
     call RESOURCE_MANAGER;
     multipop(R5, R6, R7, R8, R9, R10, R11, R15);
@@ -229,8 +230,9 @@ if(system_call_number == INT_DELETE) then
 
 
         // block_number = (block_number % MAX_BUFFER);
-        buffer_table_index = 0;
-        while(buffer_table_index < MAX_BUFFER) do
+        // for each valid disk block allocated to the file
+        if([DISK_FREE_LIST + block_number] > 0) then
+            buffer_table_index = block_number % MAX_BUFFER;
             if([BUFFER_TABLE + buffer_table_index * 4 + 0] == block_number && [BUFFER_TABLE + buffer_table_index * 4 + 1] == 1) then
                 // reset the dirty bit
                 [BUFFER_TABLE + buffer_table_index * 4 + 1] = 0;
@@ -241,8 +243,21 @@ if(system_call_number == INT_DELETE) then
             call MEMORY_MANAGER;
             multipop(R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R15);
 
-            buffer_table_index = buffer_table_index + 1;
-        endwhile;
+            // buffer_table_index = 0;
+            // while(buffer_table_index < MAX_BUFFER) do
+            //     if([BUFFER_TABLE + buffer_table_index * 4 + 0] == block_number && [BUFFER_TABLE + buffer_table_index * 4 + 1] == 1) then
+            //         // reset the dirty bit
+            //         [BUFFER_TABLE + buffer_table_index * 4 + 1] = 0;
+            //     endif;
+            //     multipush(R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R15);
+            //     R1 = RELEASE_BLOCK;
+            //     R2 = block_number;
+            //     call MEMORY_MANAGER;
+            //     multipop(R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R15);
+
+            //     buffer_table_index = buffer_table_index + 1;
+            // endwhile;
+        endif;
         
 
         cnt = cnt + 1;
