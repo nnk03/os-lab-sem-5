@@ -65,7 +65,53 @@ if(system_call_number == INT_SEMLOCK) then
 
 endif;
 
+if(system_call_number == INT_SEMUNLOCK) then
+    [process_table_entry + 9] = INT_SEMUNLOCK;
+    alias sem_id R9;
+    sem_id = [[PTBR + 2 * (userSP - 4) / 512] * 512 + (userSP - 4) % 512];
+    
+    alias user_area_page_end R10;
+    user_area_page_end = [process_table_entry + 11] * 512 + RESOURCE_TABLE_OFFSET;
+    
+    if(sem_id < 0 || sem_id >= 8 || [user_area_page_end + 2 * sem_id + 0] != SEMAPHORE) then
+        [return_address] = -1;
+        [process_table_entry + 9] = 0;
+        SP = userSP;
+        ireturn;
+    endif;
 
+    alias sem_table_index R11;
+    sem_table_index = [user_area_page_end + 2 * sem_id + 1];
+
+    if([SEMAPHORE_TABLE + 4 * sem_table_index + 0] != -1) then
+        if(current_PID != [SEMAPHORE_TABLE + 4 * sem_table_index + 0]) then
+            [return_address] = -2;
+            [process_table_entry + 9] = 0;
+            SP = userSP;
+            ireturn;
+        endif;
+        [SEMAPHORE_TABLE + 4 * sem_table_index + 0] = -1;
+
+        alias cnt R12;
+        cnt = 0;
+        while(cnt < MAX_PROC_NUM) do
+            if([PROCESS_TABLE + cnt * 16 + 4] == WAIT_SEMAPHORE && [PROCESS_TABLE + cnt * 16 + 5] == sem_table_index) then
+                [PROCESS_TABLE + cnt * 16 + 4] = READY;
+            endif;
+            cnt = cnt + 1;
+        endwhile;
+    endif;
+
+    [return_address] = 0;
+    SP = userSP;
+    [process_table_entry + 9] = 0;
+    ireturn;
+
+
+
+
+
+endif;
 
 
 

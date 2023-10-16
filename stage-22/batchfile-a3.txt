@@ -1,0 +1,26 @@
+fdisk
+load --os $HOME/myexpos/stage-22/os-startup.xsm
+load --module 7 $HOME/myexpos/stage-22/boot-module.xsm
+load --library $HOME/myexpos/expl/library.lib
+load --idle $HOME/myexpos/stage-22/idle-process.xsm
+load --init $HOME/myexpos/stage-22/shell2.xsm
+load --int=timer $HOME/myexpos/stage-22/timer.xsm
+load --int=6 $HOME/myexpos/stage-22/int6.xsm
+load --int=7 $HOME/myexpos/stage-22/int7.xsm
+load --int=9 $HOME/myexpos/stage-22/int9.xsm
+load --int=8 $HOME/myexpos/stage-22/int8.xsm
+load --int=10 $HOME/myexpos/stage-22/int10.xsm
+load --int=11 $HOME/myexpos/stage-22/int11.xsm
+load --int=13 $HOME/myexpos/stage-22/second-int13.xsm
+load --int=14 $HOME/myexpos/stage-22/second-int14.xsm
+load --int=15 $HOME/myexpos/stage-22/int15.xsm
+load --module 0 $HOME/myexpos/stage-22/mod0.xsm
+load --module 1 $HOME/myexpos/stage-22/mod1.xsm
+load --module 2 $HOME/myexpos/stage-22/mod2.xsm
+load --module 4 $HOME/myexpos/stage-22/mod4.xsm
+load --module 5 $HOME/myexpos/stage-22/scheduler.xsm
+load --int=console $HOME/myexpos/stage-22/console-int.xsm
+load --int=disk $HOME/myexpos/stage-22/disk-int.xsm
+load --exhandler $HOME/myexpos/stage-22/exhandler.xsm
+load --exec $HOME/myexpos/stage-22/merge1.xsm
+load --exec $HOME/myexpos/stage-22/merge2.xsm
