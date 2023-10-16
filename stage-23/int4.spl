@@ -120,7 +120,7 @@ if(system_call_number == INT_DELETE) then
     [process_table_entry + 9] = INT_DELETE;
     alias file_name R9;
     file_name = [[PTBR + 2 * (userSP - 4)/ 512] * 512 + (userSP - 4) % 512];
-    print(file_name);
+    // print(file_name);
 
     alias index_of_file R10;
     index_of_file = 0;
@@ -128,7 +128,7 @@ if(system_call_number == INT_DELETE) then
 
     while(index_of_file < MAX_FILE_NUM) do
         if([INODE_TABLE + index_of_file * 16 + 1] == file_name) then
-            print([INODE_TABLE + index_of_file * 16 + 1]);
+            // print([INODE_TABLE + index_of_file * 16 + 1]);
             // file found
             break;
         endif;
@@ -150,12 +150,12 @@ if(system_call_number == INT_DELETE) then
     endif;
     alias inode_table_entry R11;
     inode_table_entry = INODE_TABLE + index_of_file * 16;
-    print("fileFOUND");
-    print(index_of_file);
+    // print("fileFOUND");
+    // print(index_of_file);
 
     if([inode_table_entry + 0] != DATA) then
         // if file is not a data file, return -1;
-        print("notDATA");
+        // print("notDATA");
         [return_address] = -1;
 
         // reset the mode flag to 0
@@ -172,7 +172,7 @@ if(system_call_number == INT_DELETE) then
 
     if([inode_table_entry + 4] == EXCLUSIVE) then
         if([SYSTEM_STATUS_TABLE + 0] != ROOT && [process_table_entry + 3] != [inode_table_entry + 3]) then
-            print("unAUTHORISED");
+            // print("unAUTHORISED");
             // reset mode flag to zero
             [process_table_entry + 9] = 0;
             // return -1
@@ -186,7 +186,7 @@ if(system_call_number == INT_DELETE) then
     multipush(R5, R6, R7, R8, R9, R10, R11, R15);
     R1 = ACQUIRE_INODE;
     R2 = index_of_file;
-    print("indexOFFILE");
+    // print("indexOFFILE");
     R3 = current_PID;
     call RESOURCE_MANAGER;
     multipop(R5, R6, R7, R8, R9, R10, R11, R15);
@@ -195,7 +195,7 @@ if(system_call_number == INT_DELETE) then
     if([FILE_STATUS_TABLE + index_of_file * 4 + 1] != -1) then
         // file is open, cannot be deleted 
         // therefore, release the lock and return -2
-        print("FILEOPEN");
+        // print("FILEOPEN");
         multipush(R5, R6, R7, R8, R9, R10, R11, R15);
         R1 = RELEASE_INODE;
         R2 = index_of_file;
@@ -293,7 +293,7 @@ if(system_call_number == INT_DELETE) then
     // return value of 0
     [return_address] = 0;
 
-    print("returning");
+    // print("returning");
     // switching to user stack
     SP = userSP;
 

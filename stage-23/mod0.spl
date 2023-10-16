@@ -14,25 +14,25 @@ if(functionNum == ACQUIRE_INODE) then
     process_table_entry = PROCESS_TABLE + current_PID * 16;
 
     while([FILE_STATUS_TABLE + 4 * inode_index + 0] != -1 && [FILE_STATUS_TABLE + 4 * inode_index + 0] != current_PID) do
-        print([FILE_STATUS_TABLE + 4 * inode_index + 0]);
+        // print([FILE_STATUS_TABLE + 4 * inode_index + 0]);
         // set state of the process as (WAIT_FILE, inode_index)
         [process_table_entry + 4] = WAIT_FILE;
         [process_table_entry + 5] = inode_index;
         breakpoint;
-        print("INWHILE");
+        // print("INWHILE");
         multipush(R1, R2, R3, R5);
         call SCHEDULER;
         multipop(R1, R2, R3, R5);
 
 
     endwhile;
-    print("whileexit");
+    // print("whileexit");
 
     if([INODE_TABLE + inode_index * 16 + 1] == -1) then
         // if inode index becomes invalid
         // i.e file was deleted by the time inode was acquired
         // return -1
-        print("invalid");
+        // print("invalid");
         R0 = -1;
         return;
     endif;
@@ -41,7 +41,7 @@ if(functionNum == ACQUIRE_INODE) then
     [FILE_STATUS_TABLE + 4 * inode_index + 0] = current_PID;
 
     
-    print("acquired");
+    // print("acquired");
     // return 0
     R0 = 0;
     return;
