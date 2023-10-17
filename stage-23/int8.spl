@@ -32,7 +32,7 @@ child_PID = R0;
 // if return value is -1
 if(child_PID == -1) then
     [[parent_page_table + 2 * (userSP - 1) / 512] * 512 + ((userSP - 1) % 512)] = -1;
-    [parent_page_table + 9] = 0;
+    [parent_process_table + 9] = 0;
     SP = userSP;
     ireturn;
 endif;

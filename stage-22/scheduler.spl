@@ -4,9 +4,9 @@
 [PROCESS_TABLE + ([SYSTEM_STATUS_TABLE + 1] * 16) + 14] = PTBR;
 [PROCESS_TABLE + ([SYSTEM_STATUS_TABLE + 1] * 16) + 15] = PTLR;
 
-alias currentPID R0;
-alias process_table_entry R1;
-alias newPID R2;
+alias currentPID R5;
+alias process_table_entry R6;
+alias newPID R7;
 
 multipush(BP);
 
@@ -18,7 +18,7 @@ process_table_entry=PROCESS_TABLE+currentPID*16;
 [process_table_entry+14]=PTBR;
 [process_table_entry+15]=PTLR;
 
-alias cnt R3;
+alias cnt R8;
 // ==============================================================================
 
 // slightly different algo for scheduler
@@ -66,6 +66,7 @@ endif;
 process_table_entry=PROCESS_TABLE+newPID*16;
 SP=[process_table_entry+11]*512+[process_table_entry+12];
 PTBR=[process_table_entry+14];
+PTBR = PAGE_TABLE_BASE + newPID * 20;
 PTLR=[process_table_entry+15];
 [SYSTEM_STATUS_TABLE+1]=newPID;
 

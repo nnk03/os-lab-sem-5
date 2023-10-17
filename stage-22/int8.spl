@@ -1,5 +1,6 @@
 // fork system call
 
+print("ENTERFORK");
 alias parent_PID R4;
 parent_PID = [SYSTEM_STATUS_TABLE + 1];
 alias child_PID R5;
@@ -32,7 +33,7 @@ child_PID = R0;
 // if return value is -1
 if(child_PID == -1) then
     [[parent_page_table + 2 * (userSP - 1) / 512] * 512 + ((userSP - 1) % 512)] = -1;
-    [parent_page_table + 9] = 0;
+    [parent_process_table + 9] = 0;
     SP = userSP;
     ireturn;
 endif;
@@ -163,7 +164,7 @@ while(cnt < 8) do
     [child_page_table + 2 * cnt + 1] = [parent_page_table + 2 * cnt + 1];
 
     // incrementing MEMORY_FREE_LIST of the corresponding page
-    if([child_page_table + 2 * cnt] != -1) then 
+    if([child_page_table + 2 * cnt] >= 0) then 
         [MEMORY_FREE_LIST + [child_page_table + 2 * cnt]] = [MEMORY_FREE_LIST + [child_page_table + 2 * cnt]] + 1;
     endif;
     cnt = cnt + 1;
@@ -241,6 +242,8 @@ endwhile;
 
 // switching to user stack of the parent process
 SP = userSP;
+print("EXITFORK");
+
 
 ireturn;
 

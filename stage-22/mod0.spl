@@ -116,7 +116,7 @@ if(functionNum == RELEASE_TERMINAL) then
         return;
     endif;
     [TERMINAL_STATUS_TABLE + 0] = 0;
-    alias cnt R1;
+    alias cnt R5;
     cnt = 1;
     while(cnt < MAX_PROC_NUM) do 
         if([PROCESS_TABLE + (cnt * 16) + 4] == WAIT_TERMINAL) then

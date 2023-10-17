@@ -80,7 +80,9 @@ if(functionNum == GET_FREE_PAGE) then
     
     while([SYSTEM_STATUS_TABLE + 2] == 0) do 
         [process_table_entry + 4] = WAIT_MEM;
+        multipush(R1, R8, R9);
         call CONTEXT_SWITCH;
+        multipop(R1, R8, R9);
     endwhile;
     // decrementing WAIT_MEM_COUNT
     [SYSTEM_STATUS_TABLE + 3] = [SYSTEM_STATUS_TABLE + 3] - 1;

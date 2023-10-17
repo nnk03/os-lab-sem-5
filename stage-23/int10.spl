@@ -8,9 +8,12 @@
 SP = [PROCESS_TABLE + [SYSTEM_STATUS_TABLE + 1] * 16 + 11] * 512 - 1;
 
 
+multipush(R1);
 R1 = EXIT_PROCESS;
 call PROCESS_MANAGER;
+multipop(R1);
 call CONTEXT_SWITCH;
+
 
 
 
