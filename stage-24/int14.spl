@@ -1,0 +1,190 @@
+// interrupt 14 --> SEMLOCK and SEMUNLOCK
+
+// storing userSP
+alias userSP R5;
+userSP = SP;
+
+// extracting sytem call number from user stack 
+alias system_call_number R6;
+system_call_number = [[PTBR + 2 * (userSP - 5) / 512] * 512 + (userSP - 5) % 512];
+
+// switching to kernel stack
+alias current_PID R7;
+alias process_table_entry R8;
+current_PID = [SYSTEM_STATUS_TABLE + 1];
+process_table_entry = PROCESS_TABLE + current_PID * 16;
+
+[process_table_entry + 13] = SP;
+SP = [process_table_entry + 11] * 512 - 1;
+
+if(system_call_number == INT_SEMUNLOCK) then
+    // setting the mode flag
+    [process_table_entry + 9] = INT_SEMUNLOCK;
+    
+    alias sem_id R9;
+    sem_id = [[PTBR + 2 * (userSP - 4) / 512] * 512 + (userSP - 4) % 512];
+
+    alias user_area_page_end R10;
+    user_area_page_end = [process_table_entry + 11] * 512 + 512 - 16;
+
+    // if semaphore descriptor is not valid or entry in resource table is not 1
+    if((sem_id < 0) || (sem_id >= 8) || ([user_area_page_end + 2 * sem_id] != SEMAPHORE)) then
+        // storing -1 as return value;
+        [[PTBR + 2 * (userSP - 1) / 512] * 512 + (userSP - 1) % 512] = -1;
+        
+        // resetting the mode flag to zero
+        [process_table_entry + 9] = 0;
+        SP = userSP;
+        ireturn;
+    endif;
+
+   
+    // semaphore table index is the second word at the sem id of per process resource table
+    alias semaphore_table_index R11;
+    semaphore_table_index = [user_area_page_end + 2 * sem_id + 1];
+
+
+    // if semaphore is locked
+    if([SEMAPHORE_TABLE + 4 * semaphore_table_index + 0] != -1) then
+        // if current process has not locked the semaphore, return -2
+        if([SEMAPHORE_TABLE + 4 * semaphore_table_index + 1] != current_PID) then
+            // return value -2
+            [[PTBR + 2 * (userSP - 1) / 512] * 512 + (userSP - 1) % 512] = -2;
+            
+            // resetting the mode flag
+            [process_table_entry + 9] = 0;
+
+            SP = userSP;
+            ireturn;
+
+
+        endif;
+
+
+        // unlock the semaphore 
+        [SEMAPHORE_TABLE + 4 * semaphore_table_index + 0] = -1;
+
+        alias cnt R12;
+        cnt = 0;
+
+        // loop through the process table
+        while(cnt < MAX_PROC_NUM) do
+            if(([PROCESS_TABLE + cnt * 16 + 4] == WAIT_SEMAPHORE) && ([PROCESS_TABLE + cnt * 16 + 5] == semaphore_table_index)) then
+                [PROCESS_TABLE + cnt * 16 + 4] = READY;
+
+            endif;
+
+            cnt = cnt + 1;
+        endwhile;
+
+
+
+    endif;
+
+    // resetting the mode flag
+    [process_table_entry + 9] = 0;
+
+    // return 0;
+    [[PTBR + 2 * (userSP - 1) / 512] * 512 + (userSP - 1) % 512] = 0;
+
+    // switching to user stack and returning to user mode 
+    SP = userSP;
+    ireturn;
+
+
+
+endif;
+
+
+
+
+
+
+
+if(system_call_number == INT_SEMLOCK) then
+    // changing mode flag
+    [process_table_entry + 9] = INT_SEMLOCK;
+
+    alias sem_id R9;
+    sem_id = [[PTBR + 2 * (userSP - 4) / 512] * 512 + (userSP - 4) % 512];
+
+    alias user_area_page_end R10;
+    user_area_page_end = [process_table_entry + 11] * 512 + 512 - 16;
+
+    if((sem_id < 0) || (sem_id >= 8) || ([user_area_page_end + 2 * sem_id] != SEMAPHORE)) then
+        // storing -1 as return value;
+        [[PTBR + 2 * (userSP - 1) / 512] * 512 + (userSP - 1) % 512] = -1;
+        
+        // resetting the mode flag to zero
+        [process_table_entry + 9] = 0;
+        SP = userSP;
+        ireturn;
+    endif;
+
+    // semaphore table index is the second word at the sem id of per process resource table
+    alias semaphore_table_index R11;
+    semaphore_table_index = [user_area_page_end + 2 * sem_id + 1];
+
+    // print("whileENT");
+    breakpoint;
+    // while semaphore is locked by some other process
+    while([SEMAPHORE_TABLE + 4 * semaphore_table_index + 0] != -1 && [SEMAPHORE_TABLE + 4 * semaphore_table_index + 0] != current_PID) do
+        [process_table_entry + 4] = WAIT_SEMAPHORE;
+        [process_table_entry + 5] = semaphore_table_index;
+        multipush(R5, R6, R7, R8, R9, R10, R11);
+        call SCHEDULER;
+        multipop(R5, R6, R7, R8, R9, R10, R11);
+
+    endwhile;
+    // print("whileEND");
+    breakpoint;
+
+    // reaches here when semaphore becomes free for locking 
+
+    // change the locking pid to pid of current process in the semaphore table
+    
+    [SEMAPHORE_TABLE + semaphore_table_index * 4 + 0] = current_PID;
+
+    // reset the mode flag 
+    [process_table_entry + 9] = 0;
+    SP = userSP;
+
+    // return value is 0
+    [[PTBR + 2 * (userSP - 1) / 512] * 512 + (userSP - 1) % 512] = 0;
+
+    
+    ireturn;
+
+
+
+endif;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+[process_table_entry + 9] = 0;
+// changing back to user stack and returning to user mode
+SP = userSP;
+
+ireturn;
+
+
+
+
+
+
+
+
+
