@@ -126,7 +126,7 @@ if(system_call_number == INT_SEMLOCK) then
     semaphore_table_index = [user_area_page_end + 2 * sem_id + 1];
 
     print("whileENT");
-    breakpoint;
+    //;
     // while semaphore is locked by some other process
     while([SEMAPHORE_TABLE + 4 * semaphore_table_index + 0] != -1 && [SEMAPHORE_TABLE + 4 * semaphore_table_index + 0] != current_PID) do
         [process_table_entry + 4] = WAIT_SEMAPHORE;
@@ -137,7 +137,7 @@ if(system_call_number == INT_SEMLOCK) then
 
     endwhile;
     print("whileEND");
-    breakpoint;
+    //;
 
     // reaches here when semaphore becomes free for locking 
 

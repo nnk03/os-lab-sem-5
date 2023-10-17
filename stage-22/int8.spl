@@ -135,7 +135,9 @@ while(cnt < 8) do
     [child_user_area_page_end + 2 * cnt + 1] = [parent_user_area_page_end + 2 * cnt + 1];
     
     if([child_user_area_page_end + 2 * cnt + 0] == SEMAPHORE) then
-        [SEMAPHORE_TABLE + 4 * [child_user_area_page_end + 2 * cnt + 1] + 1] = [SEMAPHORE_TABLE + 4 * [child_user_area_page_end + 2 * cnt + 1] + 1] + 1;
+        if([child_user_area_page_end + 2 * cnt + 1] >= 0 && [child_user_area_page_end + 2 * cnt + 1] < MAX_SEM_COUNT) then
+            [SEMAPHORE_TABLE + 4 * [child_user_area_page_end + 2 * cnt + 1] + 1] = [SEMAPHORE_TABLE + 4 * [child_user_area_page_end + 2 * cnt + 1] + 1] + 1;
+        endif;
     endif;
 
     

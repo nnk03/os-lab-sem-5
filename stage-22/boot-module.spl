@@ -99,15 +99,6 @@ endwhile;
 //     cnt = cnt + 2;
 // endwhile;
 
-// initializing the semaphore table 
-cnt = 0;
-while(cnt < MAX_SEM_COUNT) do
-    [SEMAPHORE_TABLE + 4 * cnt + 0] = -1; // LOCKING PID to -1
-    [SEMAPHORE_TABLE + 4 * cnt + 1] = 0; // PROCESS_COUNT to 0
-
-    cnt = cnt + 1;
-endwhile;
-
 
 
 // for shell.xsm
@@ -206,10 +197,19 @@ while(cnt < 16) do
     [user_area_page_end + cnt + 1] = -1;
     cnt = cnt + 2;
 endwhile;
+// initializing the semaphore table 
+cnt = 0;
+while(cnt < MAX_SEM_COUNT) do
+    [SEMAPHORE_TABLE + 4 * cnt + 0] = -1; // LOCKING PID to -1
+    [SEMAPHORE_TABLE + 4 * cnt + 1] = 0; // PROCESS_COUNT to 0
+
+    cnt = cnt + 1;
+endwhile;
+
 
 
 print("ret boot");
-breakpoint;
+//breakpoint;
 
 
 return;

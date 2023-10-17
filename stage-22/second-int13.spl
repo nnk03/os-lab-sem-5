@@ -62,9 +62,9 @@ if(system_call_number == INT_SEMGET) then
     [user_area_page_end + 2 * index + 0] = SEMAPHORE;
     [user_area_page_end + 2 * index + 1] = R0;
 
-    SP = userSP;
     [process_table_entry + 9] = 0;
     [return_address] = index;
+    SP = userSP;
     ireturn;
 
 
@@ -84,8 +84,8 @@ if(system_call_number == INT_SEMRELEASE) then
     
     if(sem_id < 0 || sem_id >= 8 || [user_area_page_end + 2 * sem_id + 0] != SEMAPHORE) then
         [return_address] = -1;
-        SP = userSP;
         [process_table_entry + 9] = 0;
+        SP = userSP;
         ireturn;
     endif;
 

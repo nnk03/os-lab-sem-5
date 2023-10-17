@@ -3,7 +3,7 @@
 print("exh entry");
 
 
-breakpoint;
+//breakpoint;
 
 
 
@@ -29,7 +29,7 @@ if((EC != 0) || (userSP == PTLR * 512 - 1)) then
     print(EIP);
     print([EIP]);
     
-    breakpoint;
+    //breakpoint;
 
 
     // calling the EXIT_PROCESS in PROCESS_MANAGER
@@ -104,7 +104,7 @@ if(EC == 0) then
     // storing EIP in the physical address of the top of stack 
     [[PTBR + 2 * (SP / 512)] * 512 + (SP % 512)] = EIP;
 
-    breakpoint;
+    //breakpoint;
     ireturn;
 
 

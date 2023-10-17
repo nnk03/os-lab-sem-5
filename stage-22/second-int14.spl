@@ -1,6 +1,6 @@
 // interrupt 14
 // SEMLOCK and SEMUNLOCK
-breakpoint;
+//breakpoint;
 
 // storing userSP
 alias userSP R5;
@@ -44,7 +44,7 @@ if(system_call_number == INT_SEMLOCK) then
     alias sem_table_index R11;
     sem_table_index = [user_area_page_end + 2 * sem_id + 1];
 
-    while([SEMAPHORE_TABLE + 4 * sem_table_index + 0] != -1) do
+    while([SEMAPHORE_TABLE + 4 * sem_table_index + 0] != -1 && [SEMAPHORE_TABLE + 4 * sem_table_index + 0] != current_PID) do
         [process_table_entry + 4] = WAIT_SEMAPHORE;
         [process_table_entry + 5] = sem_table_index;
         multipush(R5, R6, R7, R8, R9, R10, R11, R15);
@@ -59,7 +59,7 @@ if(system_call_number == INT_SEMLOCK) then
     [return_address] = 0;
 
     SP = userSP;
-    breakpoint;
+    //breakpoint;
     ireturn;
 
 
@@ -104,8 +104,8 @@ if(system_call_number == INT_SEMUNLOCK) then
     endif;
 
     [return_address] = 0;
-    SP = userSP;
     [process_table_entry + 9] = 0;
+    SP = userSP;
     ireturn;
 
 

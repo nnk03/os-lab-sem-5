@@ -57,7 +57,7 @@ if(functionNum == FREE_USER_AREA_PAGE) then
             multipush(R1, R2, R8, R9, R10);
             R1 = RELEASE_SEMAPHORE; 
             R2 = [user_area_page_end + 2 * cnt + 1];
-            R3 = [SYSTEM_STATUS_TABLE + 1];
+            R3 = PID;
             // RELEASE_SEMAPHORE assumes that valid semaphore table index and pid are given
             call RESOURCE_MANAGER; 
             multipop(R1, R2, R8, R9, R10);
