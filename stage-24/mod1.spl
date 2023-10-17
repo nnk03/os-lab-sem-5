@@ -63,6 +63,16 @@ if(functionNum == FREE_USER_AREA_PAGE) then
             multipop(R1, R2, R8, R9, R10);
         endif;
 
+        if([user_area_page_end + 2 * cnt + 0] == FILE) then
+            if([user_area_page_end + 2 * cnt + 1] >= 0 && [user_area_page_end + 2 * cnt + 1] < MAX_OPENFILE_NUM) then
+                multipush(R1, R2, R8, R9, R10);
+                R1 = CLOSE;
+                R2 = [user_area_page_end + 2 * cnt + 1];
+                call FILE_MANAGER;
+                multipop(R1, R2, R8, R9, R10);
+            endif;
+        endif;
+
 
 
         cnt = cnt + 1;
