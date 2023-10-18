@@ -107,7 +107,7 @@ if(system_call_number == INT_CLOSE) then
     // Per Process Resource Table entry is invalid or 
     // does not indicate a FILE, return -1
 
-    if([user_area_page_end + 2 * index_per_process_table + 0] != FILE) then
+    if([user_area_page_end + 2 * file_descriptor + 0] != FILE) then
         [process_table_entry + 9] = 0;
         // return -1
         [return_address] = -1;
@@ -116,7 +116,7 @@ if(system_call_number == INT_CLOSE) then
     endif;
 
     alias index_in_open_file_table R12;
-    index_in_open_file_table = [user_area_page_end + 2 * index_per_process_table + 1];
+    index_in_open_file_table = [user_area_page_end + 2 * file_descriptor + 1];
 
     multipush(R5, R6, R7, R8, R9, R10, R11, R12);
     R1 = CLOSE;
@@ -125,8 +125,8 @@ if(system_call_number == INT_CLOSE) then
     multipop(R5, R6, R7, R8, R9, R10, R11, R12);
 
     // invalidate per process resource table entry
-    [user_area_page_end + 2 * index_per_process_table + 0] = -1;
-    [user_area_page_end + 2 * index_per_process_table + 1] = -1;
+    [user_area_page_end + 2 * file_descriptor + 0] = -1;
+    [user_area_page_end + 2 * file_descriptor + 1] = -1;
     
     // reset the mode flag
     [process_table_entry + 9] = 0;

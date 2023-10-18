@@ -20,27 +20,120 @@ if(functionNum == BUFFERED_READ) then
 
     // BUFFER_BASE is the constant 71
 
+    alias buffer_number R5;
+    buffer_number = disk_block_num % 4;
+
     // acquire the buffer 
-    multipush(R1, R2, R3, R4);
+    multipush(R1, R2, R3, R4, R5);
     R1 = ACQUIRE_BUFFER;
-    R2 = disk_block_num % 4;
+    R2 = buffer_number;
     R3 = [SYSTEM_STATUS_TABLE + 1];
     call RESOURCE_MANAGER;
-    multipop(R1, R2, R3, R4);
+    multipop(R1, R2, R3, R4, R5);
 
+
+    // if buffer contains a different disk block
+    if([BUFFER_TABLE + 4 * buffer_number + 0] != disk_block_num) then
+        // check dirty bit 
+        if([BUFFER_TABLE + 4 * buffer_number + 1] == 1) then
+            // write back the contents of the buffer to the disk 
+            // by calling disk store
+            multipush(R1, R2, R3, R4, R5);
+            R1 = DISK_STORE;
+            R4 = disk_block_num;
+            // disk block num is R2, hence save R4 before
+            // changing R2 to pid
+            R3 = BUFFER_BASE + buffer_number;
+            R2 = [SYSTEM_STATUS_TABLE + 1];
+            call DEVICE_MANAGER;
+            multipop(R1, R2, R3, R4, R5);
+
+            // mark the buffer as clean 
+            [BUFFER_TABLE + 4 * buffer_number + 1] = 0;
+
+        endif;
+
+        // loading the required block into the buffer
+        multipush(R1, R2, R3, R4, R5);
+        R1 = DISK_LOAD;
+        R3 = BUFFER_BASE + buffer_number;
+        // disk block num is R2, hence save R4 before
+        // changing R2 to pid
+        R4 = disk_block_num;
+        R2 = [SYSTEM_STATUS_TABLE + 1];
+        call DEVICE_MANAGER;
+        multipop(R1, R2, R3, R4, R5);
+
+        // set the new disk block in the buffer table entry 
+        [BUFFER_TABLE + 4 * buffer_number + 0] = disk_block_num;
+
+    endif;
+    // is the below correct ??? 
+    [phy_memory_address] = [[BUFFER_BASE + buffer_number] * 512 + (offset % 512)];
+
+
+    // release buffer 
+    multipush(R1, R2, R3, R4, R5);
+    R1 = RELEASE_BUFFER;
+    R3 = [SYSTEM_STATUS_TABLE + 1];
+    R2 = buffer_number;
+    call RESOURCE_MANAGER;
+    multipop(R1, R2, R3, R4, R5);
+
+
+    // release buffer results in success always ??
+    return;
 
 
 
 
 endif;
 
+if(functionNum == CLOSE) then
+    // assumes a valid open file index is given as input  
+    alias index_in_open_file_table R2;
+    
+    // finding the index of the inode table entry of the file from 
+    // the open file table 
+    alias index_in_inode_table R5;
+    index_in_inode_table = [OPEN_FILE_TABLE + index_in_open_file_table * 4 + 0];
 
+    // decrement open file instance in the open file table 
+    if([OPEN_FILE_TABLE + index_in_open_file_table * 4 + 1] > 0) then
+        [OPEN_FILE_TABLE + index_in_open_file_table * 4 + 1] = [OPEN_FILE_TABLE + index_in_open_file_table * 4 + 1] - 1;
+    endif;
+
+    if([OPEN_FILE_TABLE + index_in_open_file_table * 4 + 1] == 0) then
+        alias cnt R6;
+        cnt = 0;
+        while(cnt < 4) do
+            [OPEN_FILE_TABLE + index_in_open_file_table * 4 + cnt] = -1;
+            cnt = cnt + 1;
+        endwhile;
+
+        // if file is not root, i.e index_in_inode_table is not INODE_ROOT
+
+        if(index_in_inode_table != INODE_ROOT) then
+            // decrement file open count in file status table 
+            if([FILE_STATUS_TABLE + index_in_inode_table * 4 + 1] > 0) then
+                [FILE_STATUS_TABLE + index_in_inode_table * 4 + 1] = [FILE_STATUS_TABLE + index_in_inode_table * 4 + 1] - 1;
+            endif;
+
+            // if file open count in file status table becomes zero, set it to -1
+            if([FILE_STATUS_TABLE + index_in_inode_table * 4 + 1] == 0) then
+                [FILE_STATUS_TABLE + index_in_inode_table * 4 + 1] = -1;
+            endif;
+        endif;
+    endif;
+
+    // no return value 
+    return;
+endif;
 
 
 if(functionNum == OPEN) then
     // file name is the only argument
     alias file_name R2;
-
 
     alias index_in_inode_table R5;
     index_in_inode_table = 0;
@@ -90,7 +183,7 @@ if(functionNum == OPEN) then
     alias index_in_open_file_table R7;
     index_in_open_file_table = 0;
 
-    while(index_in_open_file_table < MAX_OPENFILE_NUM) then
+    while(index_in_open_file_table < MAX_OPENFILE_NUM) do
         if([OPEN_FILE_TABLE + 4 * index_in_open_file_table + 0] == -1) then
             break;
 
@@ -148,73 +241,6 @@ if(functionNum == OPEN) then
     return;
 
 endif;
-
-
-
-if(functionNum == CLOSE) then
-    // assumes a valid open file index is given as input  
-    alias index_in_open_file_table R2;
-    
-    // finding the index of the inode table entry of the file from 
-    // the open file table 
-    alias index_in_inode_table R5;
-    index_in_inode_table = [OPEN_FILE_TABLE + index_in_open_file_table * 4 + 0];
-
-    // decrement open file instance in the open file table 
-    if([OPEN_FILE_TABLE + index_in_open_file_table * 4 + 1] > 0) then
-        [OPEN_FILE_TABLE + index_in_open_file_table * 4 + 1] = [OPEN_FILE_TABLE + index_in_open_file_table * 4 + 1] - 1;
-    endif;
-
-    if([OPEN_FILE_TABLE + index_in_open_file_table * 4 + 1] == 0) then
-        alias cnt R6;
-        cnt = 0;
-        while(cnt < 4) do
-            [OPEN_FILE_TABLE + index_in_open_file_table * 4 + cnt] = -1;
-            cnt = cnt + 1;
-        endwhile;
-
-        // if file is not root, i.e index_in_inode_table is not INODE_ROOT
-
-        if(index_in_inode_table != INODE_ROOT) then
-            // decrement file open count in file status table 
-            if([FILE_STATUS_TABLE + index_in_inode_table * 4 + 1] > 0) then
-                [FILE_STATUS_TABLE + index_in_inode_table * 4 + 1] = [FILE_STATUS_TABLE + index_in_inode_table * 4 + 1] - 1;
-            endif;
-
-            // if file open count in file status table becomes zero, set it to -1
-            if([FILE_STATUS_TABLE + index_in_inode_table * 4 + 1] == 0) then
-                [FILE_STATUS_TABLE + index_in_inode_table * 4 + 1] = -1;
-            endif;
-    endif;
-
-    // no return value ...
-    return;
-
-
-
-
-
-endif;
-
-
-return;
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
