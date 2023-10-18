@@ -89,48 +89,6 @@ if(functionNum == BUFFERED_READ) then
 
 endif;
 
-if(functionNum == CLOSE) then
-    // assumes a valid open file index is given as input  
-    alias index_in_open_file_table R2;
-    
-    // finding the index of the inode table entry of the file from 
-    // the open file table 
-    alias index_in_inode_table R5;
-    index_in_inode_table = [OPEN_FILE_TABLE + index_in_open_file_table * 4 + 0];
-
-    // decrement open file instance in the open file table 
-    if([OPEN_FILE_TABLE + index_in_open_file_table * 4 + 1] > 0) then
-        [OPEN_FILE_TABLE + index_in_open_file_table * 4 + 1] = [OPEN_FILE_TABLE + index_in_open_file_table * 4 + 1] - 1;
-    endif;
-
-    if([OPEN_FILE_TABLE + index_in_open_file_table * 4 + 1] == 0) then
-        alias cnt R6;
-        cnt = 0;
-        while(cnt < 4) do
-            [OPEN_FILE_TABLE + index_in_open_file_table * 4 + cnt] = -1;
-            cnt = cnt + 1;
-        endwhile;
-
-        // if file is not root, i.e index_in_inode_table is not INODE_ROOT
-
-        if(index_in_inode_table != INODE_ROOT) then
-            // decrement file open count in file status table 
-            if([FILE_STATUS_TABLE + index_in_inode_table * 4 + 1] > 0) then
-                [FILE_STATUS_TABLE + index_in_inode_table * 4 + 1] = [FILE_STATUS_TABLE + index_in_inode_table * 4 + 1] - 1;
-            endif;
-
-            // if file open count in file status table becomes zero, set it to -1
-            if([FILE_STATUS_TABLE + index_in_inode_table * 4 + 1] == 0) then
-                [FILE_STATUS_TABLE + index_in_inode_table * 4 + 1] = -1;
-            endif;
-        endif;
-    endif;
-
-    // no return value 
-    return;
-endif;
-
-
 if(functionNum == OPEN) then
     // file name is the only argument
     alias file_name R2;
@@ -165,6 +123,7 @@ if(functionNum == OPEN) then
     if(R0 != 0) then
         // acquire inode failed
         R0 = -1;
+    endif;
     return;
 
     // if file is of type EXEC release inode and return -1
@@ -242,5 +201,47 @@ if(functionNum == OPEN) then
 
 endif;
 
+
+
+if(functionNum == CLOSE) then
+    // assumes a valid open file index is given as input  
+    alias index_in_open_file_table R2;
+    
+    // finding the index of the inode table entry of the file from 
+    // the open file table 
+    alias index_in_inode_table R5;
+    index_in_inode_table = [OPEN_FILE_TABLE + index_in_open_file_table * 4 + 0];
+
+    // decrement open file instance in the open file table 
+    if([OPEN_FILE_TABLE + index_in_open_file_table * 4 + 1] > 0) then
+        [OPEN_FILE_TABLE + index_in_open_file_table * 4 + 1] = [OPEN_FILE_TABLE + index_in_open_file_table * 4 + 1] - 1;
+    endif;
+
+    if([OPEN_FILE_TABLE + index_in_open_file_table * 4 + 1] == 0) then
+        alias cnt R6;
+        cnt = 0;
+        while(cnt < 4) do
+            [OPEN_FILE_TABLE + index_in_open_file_table * 4 + cnt] = -1;
+            cnt = cnt + 1;
+        endwhile;
+
+        // if file is not root, i.e index_in_inode_table is not INODE_ROOT
+
+        if(index_in_inode_table != INODE_ROOT) then
+            // decrement file open count in file status table 
+            if([FILE_STATUS_TABLE + index_in_inode_table * 4 + 1] > 0) then
+                [FILE_STATUS_TABLE + index_in_inode_table * 4 + 1] = [FILE_STATUS_TABLE + index_in_inode_table * 4 + 1] - 1;
+            endif;
+
+            // if file open count in file status table becomes zero, set it to -1
+            if([FILE_STATUS_TABLE + index_in_inode_table * 4 + 1] == 0) then
+                [FILE_STATUS_TABLE + index_in_inode_table * 4 + 1] = -1;
+            endif;
+        endif;
+    endif;
+
+    // no return value 
+    return;
+endif;
 
 
