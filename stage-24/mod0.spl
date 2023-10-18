@@ -13,7 +13,7 @@ if(functionNum == ACQUIRE_BUFFER) then
 
     // waiting for the buffer to get unlocked
     while([BUFFER_TABLE + buffer_number * 4 + 2] != -1 && [BUFFER_TABLE + buffer_number * 4 + 2] != current_PID) do
-        print("INWHILE");
+        // print("INWHILE");
         [PROCESS_TABLE + current_PID * 16 + 4] = WAIT_BUFFER;
         [PROCESS_TABLE + current_PID * 16 + 5] = buffer_number;
         multipush(R1, R2, R3);
@@ -87,7 +87,7 @@ if(functionNum == ACQUIRE_INODE) then
         // set state of the process as (WAIT_FILE, inode_index)
         [process_table_entry + 4] = WAIT_FILE;
         [process_table_entry + 5] = inode_index;
-        breakpoint;
+        // breakpoint;
         // print("INWHILE");
         multipush(R1, R2, R3, R5);
         call SCHEDULER;

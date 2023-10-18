@@ -43,6 +43,7 @@ if(functionNum == BUFFERED_READ) then
     // not yet checked the below if block
     // if buffer contains a different disk block
     if([BUFFER_TABLE + 4 * buffer_number + 0] != disk_block_num) then
+        // print("enteredHere");
         // check dirty bit 
         if([BUFFER_TABLE + 4 * buffer_number + 1] == 1) then
             // write back the contents of the buffer to the disk 
@@ -62,6 +63,11 @@ if(functionNum == BUFFERED_READ) then
 
         endif;
 
+        // print("GOINGTOLOAD");
+        // print(BUFFER_BASE + buffer_number);
+        // print(disk_block_num);
+
+
         // loading the required block into the buffer
         multipush(R1, R2, R3, R4, R5);
         R1 = DISK_LOAD;
@@ -78,7 +84,15 @@ if(functionNum == BUFFERED_READ) then
 
     endif;
     // is the below correct ??? 
-    [phy_memory_address] = [[BUFFER_BASE + buffer_number] * 512 + (offset % 512)];
+    // print("inBufferedRead");
+    // print(disk_block_num);
+    // print(buffer_number);
+    // print(offset);
+    // print(BUFFER_BASE + buffer_number);
+    // print([BUFFER_BASE + buffer_number]);
+    // print(phy_memory_address);
+
+    [phy_memory_address] = [(BUFFER_BASE + buffer_number) * 512 + (offset % 512)];
 
 
     // release buffer 
@@ -101,9 +115,9 @@ endif;
 if(functionNum == OPEN) then
     // file name is the only argument
     alias file_name R2;
-    print("filename in");
-    print("mod3");
-    print(file_name);
+    // print("filename in");
+    // print("mod3");
+    // print(file_name);
 
     alias index_in_inode_table R5;
     index_in_inode_table = 0;

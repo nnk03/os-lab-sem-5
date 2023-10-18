@@ -58,11 +58,11 @@ endif;
 
 if(functionNum == RELEASE_BLOCK) then
     alias disk_block_num R2;
-    print("releaseblock");
-    breakpoint;
+    // print("releaseblock");
+    // breakpoint;
     [DISK_FREE_LIST + disk_block_num] = [DISK_FREE_LIST + disk_block_num] - 1;
-    print("diskfreelist");
-    print([DISK_FREE_LIST + disk_block_num]);
+    // print("diskfreelist");
+    // print([DISK_FREE_LIST + disk_block_num]);
     return;
 endif;
 

@@ -114,7 +114,10 @@ lseek = [OPEN_FILE_TABLE + 4 * index_in_open_file_table + 2];
 // buffer address given as input
 
 alias phy_address_of_buffer R3;
-phy_address_of_buffer = [PTBR + 2 * word_address / 512] * 512 + (word_address % 512);
+phy_address_of_buffer = [PTBR + 2 * (word_address / 512)] * 512 + (word_address % 512);
+// print("insideINT6");
+// print("givenINPUT");
+// print(word_address);
 
 // print("filecorresponds");
 // print([OPEN_FILE_TABLE + 4 * index_in_open_file_table + 0]);
@@ -203,6 +206,7 @@ endif;
 // print([INODE_TABLE + 16 * index_in_inode_table + 8 + ( [OPEN_FILE_TABLE + index_in_open_file_table * 4 + 2]/ 512)]);
 // print([OPEN_FILE_TABLE + index_in_open_file_table * 4 + 2] % 512);
 // print(phy_address_of_buffer);
+// print(lseek);
 
 // lseek is R4 and phy address of buffer is R3
 multipush(R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R15, R4, R3);
@@ -240,6 +244,7 @@ multipop(R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R15, R4, R3);
 
 // switch to user stack 
 SP = userSP;
+// breakpoint;
 ireturn;
 
 
