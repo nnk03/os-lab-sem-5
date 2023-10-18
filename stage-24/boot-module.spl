@@ -80,6 +80,17 @@ loadi(11, 24); // for loading interrupt 4 --> CREATE and DELETE
 
 loadi(62, 5); // for loading root file 
 
+loadi(12, 25);
+loadi(13, 26); // for loading interrupt 5 --> SEEK, OPEN, CLOSE
+
+loadi(46, 59);
+loadi(47, 60); // for loading module 5 --> FILE MANAGER
+
+
+
+
+
+
 // setting process table entries to -1
 alias cnt R0;
 
@@ -254,7 +265,21 @@ while(cnt < 16) do
     [user_area_page_end + cnt + 1] = -1;
     cnt = cnt + 2;
 endwhile;
-breakpoint;
+
+// initializing open file table by setting INODE_INDEX to -1 and OPEN INSTANCE COUNT to 0
+cnt = 0;
+while(cnt < MAX_OPENFILE_NUM) do
+    // INODE_INDEX
+    [OPEN_FILE_TABLE + 4 * cnt + 0] = -1;
+    // OPEN_INSTANCE_COUNT
+    [OPEN_FILE_TABLE + 4 * cnt + 1] = 0;
+
+    cnt = cnt + 1;
+endwhile;
+
+
+
+
 
 return;
 

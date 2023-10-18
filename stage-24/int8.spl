@@ -28,14 +28,14 @@ R1 = GET_PCB_ENTRY;
 call PROCESS_MANAGER;
 multipop(R4, R6, R7, R9);
 
-child_PID = R0;
 // if return value is -1
-if(child_PID == -1) then
+if(R0 == -1) then
     [[parent_page_table + 2 * (userSP - 1) / 512] * 512 + ((userSP - 1) % 512)] = -1;
     [parent_process_table + 9] = 0;
     SP = userSP;
     ireturn;
 endif;
+child_PID = R0;
 
 child_process_table = PROCESS_TABLE + child_PID * 16;
 child_page_table = PAGE_TABLE_BASE + child_PID * 20;
@@ -49,9 +49,9 @@ if([parent_page_table + 4] == -1) then
     multipop(R4, R5, R6, R7, R8, R9, R10);
     [parent_page_table + 4] = R0;
     [parent_page_table + 5] = "0110";
-endif;
+// endif;
 
-if([parent_page_table + 6] == -1) then
+// if([parent_page_table + 6] == -1) then
     multipush(R4, R5, R6, R7, R8, R9, R10);
     R1 = GET_FREE_PAGE;
     call MEMORY_MANAGER;
@@ -134,18 +134,29 @@ while(cnt < 8) do
     [child_user_area_page_end + 2 * cnt] = [parent_user_area_page_end + 2 * cnt];
     [child_user_area_page_end + 2 * cnt + 1] = [parent_user_area_page_end + 2 * cnt + 1];
     
+    alias sem_table_entry R3;
+    sem_table_entry = SEMAPHORE_TABLE + 4 * [child_user_area_page_end + 2 * cnt + 1];
+
     if([child_user_area_page_end + 2 * cnt + 0] == SEMAPHORE) then
-        if([child_user_area_page_end + 2 * cnt + 1] >= 0 && [child_user_area_page_end + 2 * cnt + 1] < MAX_SEM_COUNT) then
-            [SEMAPHORE_TABLE + 4 * [child_user_area_page_end + 2 * cnt + 1] + 1] = [SEMAPHORE_TABLE + 4 * [child_user_area_page_end + 2 * cnt + 1] + 1] + 1;
-        endif;
+        // if([child_user_area_page_end + 2 * cnt + 1] >= 0 && [child_user_area_page_end + 2 * cnt + 1] < MAX_SEM_COUNT) then
+
+            // code exceeded 2 block, hence removed the if condition above
+            [sem_table_entry + 1] = [sem_table_entry + 1] + 1;
+
+        // endif;
     endif;
 
+    alias open_file_table_entry R3;
+    open_file_table_entry = OPEN_FILE_TABLE + 4 * [child_user_area_page_end + 2 * cnt + 1];
+    
     if([child_user_area_page_end + 2 * cnt + 0] == FILE) then
-        if([child_user_area_page_end + 2 * cnt + 1] >= 0 && [child_user_area_page_end + 2 * cnt + 1] < MAX_OPENFILE_NUM) then
+        // if([child_user_area_page_end + 2 * cnt + 1] >= 0 && [child_user_area_page_end + 2 * cnt + 1] < MAX_OPENFILE_NUM) then
+        
+            // code exceeded 2 block, hence removed the if condition above
             // increment open instance count in the open file table entry 
-            [OPEN_FILE_TABLE + 4 * [child_user_area_page_end + 2 * cnt + 1] + 1] = [OPEN_FILE_TABLE + 4 * [child_user_area_page_end + 2 * cnt + 1] + 1] + 1;
+            [open_file_table_entry + 1] = [open_file_table_entry + 1] + 1;
 
-        endif;
+        // endif;
 
     endif;
 
@@ -156,8 +167,14 @@ endwhile;
 
 // per process disk map table
 cnt = 0;
+alias disk_map_table_entry_child R12;
+disk_map_table_entry_child = DISK_MAP_TABLE + child_PID * 10;
+
+alias disk_map_table_entry_parent R13;
+disk_map_table_entry_parent = DISK_MAP_TABLE + parent_PID * 10;
+
 while(cnt < 10) do
-    [DISK_MAP_TABLE + child_PID * 10 + cnt] = [DISK_MAP_TABLE + parent_PID * 10 + cnt];
+    [disk_map_table_entry_child + cnt] = [disk_map_table_entry_parent + cnt];
     cnt = cnt + 1;
 endwhile;
 
@@ -171,9 +188,12 @@ while(cnt < 8) do
     [child_page_table + 2 * cnt] = [parent_page_table + 2 * cnt];
     [child_page_table + 2 * cnt + 1] = [parent_page_table + 2 * cnt + 1];
 
+    alias mem_free_list_entry R12;
+    mem_free_list_entry = MEMORY_FREE_LIST + [child_page_table + 2 * cnt];
+
     // incrementing MEMORY_FREE_LIST of the corresponding page
     if([child_page_table + 2 * cnt] >= 0) then 
-        [MEMORY_FREE_LIST + [child_page_table + 2 * cnt]] = [MEMORY_FREE_LIST + [child_page_table + 2 * cnt]] + 1;
+        [mem_free_list_entry] = [mem_free_list_entry] + 1;
     endif;
     cnt = cnt + 1;
 endwhile;
@@ -194,11 +214,13 @@ alias phy_address R12;
 alias parent_stack R14;
 alias child_stack R15;
 
-phy_address = [parent_page_table + 16] * 512;
-parent_stack = phy_address;
+// phy_address = [parent_page_table + 16] * 512;
+// parent_stack = phy_address;
+parent_stack = [parent_page_table + 16] * 512;
 
-phy_address = [child_page_table + 16] * 512;
-child_stack = phy_address; 
+// phy_address = [child_page_table + 16] * 512;
+// child_stack = phy_address; 
+child_stack = [child_page_table + 16] * 512;
 
 cnt = 0;
 while(cnt < 512) do
@@ -207,11 +229,13 @@ while(cnt < 512) do
 endwhile;
 
 
-phy_address = [parent_page_table + 18] * 512;
-parent_stack = phy_address;
+// phy_address = [parent_page_table + 18] * 512;
+// parent_stack = phy_address;
+parent_stack = [parent_page_table + 18] * 512;
 
-phy_address = [child_page_table + 18] * 512;
-child_stack = phy_address;
+// phy_address = [child_page_table + 18] * 512;
+// child_stack = phy_address;
+child_stack = [child_page_table + 18] * 512;
 
 cnt = 0;
 while(cnt < 512) do
@@ -228,20 +252,10 @@ endwhile;
 [[parent_page_table + 2 * (userSP - 1) / 512] * 512 + ((userSP - 1) % 512)] = child_PID;
 
 // return value of child is 0
-[[PAGE_TABLE_BASE + child_PID*20 + 2*(([PROCESS_TABLE + child_PID*16 + 13]-1)/512)]*512 + (([PROCESS_TABLE + child_PID*16 + 13]-1)%512)] = 0;
+alias child_SP R3;
+child_SP = [child_process_table + 13];
+[[child_page_table + 2*((child_SP-1)/512)]*512 + ((child_SP-1)%512)] = 0;
 
-// print("CHILD");
-// cnt = 0;
-// while(cnt < 10) do
-//     print([child_page_table + 2 * cnt]);
-//     cnt = cnt + 1;
-// endwhile;
-// print("PARENT");
-// cnt = 0;
-// while(cnt < 10) do
-//     print([parent_page_table + 2 * cnt]);
-//     cnt = cnt + 1;
-// endwhile;
 
 
 

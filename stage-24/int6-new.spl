@@ -25,6 +25,8 @@ SP = [process_table_entry + 11] * 512 - 1;
 
 alias file_descriptor R9;
 file_descriptor = [[PTBR + 2 * (userSP - 4) / 512] * 512 + (userSP - 4) % 512];
+// print("file_descriptor is");
+// print(file_descriptor);
 
 alias word_address R10;
 word_address = [[PTBR + 2 * (userSP - 3) / 512] * 512 + (userSP - 3) % 512];
@@ -112,8 +114,11 @@ lseek = [OPEN_FILE_TABLE + 4 * index_in_open_file_table + 2];
 // buffer address given as input
 
 alias phy_address_of_buffer R3;
-phy_address_of_buffer = [[PTBR + 2 * word_address / 512] * 512 + (word_address % 512)];
+phy_address_of_buffer = [PTBR + 2 * word_address / 512] * 512 + (word_address % 512);
 
+// print("filecorresponds");
+// print([OPEN_FILE_TABLE + 4 * index_in_open_file_table + 0]);
+// print(INODE_ROOT);
 
 // if file corresponds to root file  
 if([OPEN_FILE_TABLE + 4 * index_in_open_file_table + 0] == INODE_ROOT) then
@@ -194,6 +199,10 @@ endif;
 // Get the disk block number corresponding to the block index from the Inode Table .
 // Get the offset value from lseek position.   /* lseek%512 gives the position to be read from.*/
 
+// print("checking");
+// print([INODE_TABLE + 16 * index_in_inode_table + 8 + ( [OPEN_FILE_TABLE + index_in_open_file_table * 4 + 2]/ 512)]);
+// print([OPEN_FILE_TABLE + index_in_open_file_table * 4 + 2] % 512);
+// print(phy_address_of_buffer);
 
 // lseek is R4 and phy address of buffer is R3
 multipush(R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R15, R4, R3);
@@ -206,6 +215,9 @@ R3 = [OPEN_FILE_TABLE + index_in_open_file_table * 4 + 2];
 // but R3 helps in defining R2
 R2 = [INODE_TABLE + 16 * index_in_inode_table + 8 + (R3 / 512)];
 R3 = R3 % 512;
+// print(R2);
+// print(R3);
+// print(R4);
 call FILE_MANAGER;
 multipop(R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R15, R4, R3);
 

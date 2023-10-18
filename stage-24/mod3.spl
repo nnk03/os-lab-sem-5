@@ -12,6 +12,10 @@ if(functionNum == BUFFERED_READ) then
     alias disk_block_num R2;
     alias offset R3;
     alias phy_memory_address R4;
+    // print("checking2");
+    // print(R2);
+    // print(R3);
+    // print(R4);
 
     // NOTE: Physical memory address must be provided.
     
@@ -30,8 +34,13 @@ if(functionNum == BUFFERED_READ) then
     R3 = [SYSTEM_STATUS_TABLE + 1];
     call RESOURCE_MANAGER;
     multipop(R1, R2, R3, R4, R5);
+    // print("bufferacquired");
 
+    // print("checkbufferread");
+    // print([BUFFER_TABLE + 4 * buffer_number + 0]);
+    // print(disk_block_num);
 
+    // not yet checked the below if block
     // if buffer contains a different disk block
     if([BUFFER_TABLE + 4 * buffer_number + 0] != disk_block_num) then
         // check dirty bit 
@@ -92,6 +101,9 @@ endif;
 if(functionNum == OPEN) then
     // file name is the only argument
     alias file_name R2;
+    print("filename in");
+    print("mod3");
+    print(file_name);
 
     alias index_in_inode_table R5;
     index_in_inode_table = 0;
@@ -102,6 +114,7 @@ if(functionNum == OPEN) then
         endif;
         index_in_inode_table = index_in_inode_table + 1;
     endwhile;
+
     
     if(index_in_inode_table == MAX_FILE_NUM) then
         R0 = -1;
@@ -123,8 +136,8 @@ if(functionNum == OPEN) then
     if(R0 != 0) then
         // acquire inode failed
         R0 = -1;
+        return;
     endif;
-    return;
 
     // if file is of type EXEC release inode and return -1
     if([inode_table_entry + 0] == EXEC) then

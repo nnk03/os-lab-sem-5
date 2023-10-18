@@ -13,6 +13,7 @@ if(functionNum == ACQUIRE_BUFFER) then
 
     // waiting for the buffer to get unlocked
     while([BUFFER_TABLE + buffer_number * 4 + 2] != -1 && [BUFFER_TABLE + buffer_number * 4 + 2] != current_PID) do
+        print("INWHILE");
         [PROCESS_TABLE + current_PID * 16 + 4] = WAIT_BUFFER;
         [PROCESS_TABLE + current_PID * 16 + 5] = buffer_number;
         multipush(R1, R2, R3);
