@@ -28,5 +28,6 @@ load --exhandler $HOME/myexpos/stage-24/exhandler.xsm
 load --exec $HOME/myexpos/stage-24/a1-24.xsm
 load --exec $HOME/myexpos/stage-24/a2-24.xsm
 load --data $HOME/myexpos/sample.dat
+load --data $HOME/myexpos/stage-24/numbers.dat
 dump --inodeusertable
 dump --rootfile
