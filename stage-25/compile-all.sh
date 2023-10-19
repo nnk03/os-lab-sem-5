@@ -2,7 +2,7 @@
 
 cd $HOME/myexpos/spl
 echo "Compiling SPL FILES \n"
-for i in $HOME/myexpos/stage-24/*.spl
+for i in $HOME/myexpos/stage-25/*.spl
 do
     echo $i
     # pwd;
@@ -14,7 +14,7 @@ echo ""
 echo "Compiling EXPL FILES\n"
 
 
-for i in $HOME/myexpos/stage-24/*.expl
+for i in $HOME/myexpos/stage-25/*.expl
 do
     echo $i
     ./expl $i

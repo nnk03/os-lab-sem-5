@@ -27,6 +27,33 @@ if(system_call_number == INT_CREATE) then
     // setting mode flag to INT_CREATE
     [process_table_entry + 9] = INT_CREATE;
     alias cnt R9;
+
+    // free entry index is cnt
+
+    // In the Inode Table entry found above, set FILE NAME to the given file name, 
+    // FILE SIZE to 0 and FILE TYPE to DATA.
+    // In the Inode Table entry, set the block numbers to -1.  /* No disk blocks are allocated to the file */
+    alias file_name R10;
+    file_name = [[PTBR + 2 * (userSP - 4)/ 512] * 512 + (userSP - 4) % 512];
+
+    alias permission R11;
+    permission = [[PTBR + 2 * (userSP - 3) / 512] * 512 + (userSP - 3) % 512];
+
+    cnt = 0;
+    while(cnt < MAX_FILE_NUM) do
+        if([INODE_TABLE + cnt * 16 + 1] == file_name) then
+            // file already present, return 0
+            [process_table_entry + 9] = 0;
+            [return_address] = 0;
+            SP = userSP;
+            ireturn;
+        endif;
+        cnt = cnt + 1;
+    endwhile;
+
+
+
+
     cnt = 0;
     while(cnt < MAX_FILE_NUM) do
         // finding a free entry in INODE_TABLE
@@ -51,16 +78,6 @@ if(system_call_number == INT_CREATE) then
         ireturn;
     endif;
     
-    // free entry index is cnt
-
-    // In the Inode Table entry found above, set FILE NAME to the given file name, 
-    // FILE SIZE to 0 and FILE TYPE to DATA.
-    // In the Inode Table entry, set the block numbers to -1.  /* No disk blocks are allocated to the file */
-    alias file_name R10;
-    file_name = [[PTBR + 2 * (userSP - 4)/ 512] * 512 + (userSP - 4) % 512];
-
-    alias permission R11;
-    permission = [[PTBR + 2 * (userSP - 3) / 512] * 512 + (userSP - 3) % 512];
 
     alias inode_table_entry R12;
     inode_table_entry = INODE_TABLE + cnt * 16;
