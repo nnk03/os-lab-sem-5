@@ -1,4 +1,5 @@
 // WRITE SYSTEM CALL 
+// not yet checked
 
 // storing userSP
 alias userSP R5;
@@ -138,78 +139,81 @@ endif;
 
 if((lseek % 512) == 0 && (lseek == [INODE_TABLE + 16 * index_in_inode_table + 2])) then
     // new block to be allocated 
+    multipush(R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R15, R4);
+    R1 = GET_FREE_BLOCK;
+    // no arguments
+    call MEMORY_MANAGER;
+    multipop(R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R15, R4);
 
+    if(R0 == -1) then
+        // no free disk block 
+        // release inode and return -2
+        multipush(R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R15, R4);
+        R1 = RELEASE_INODE;
+        R2 = index_in_inode_table;
+        R3 = current_PID;
+        call RESOURCE_MANAGER;
+        multipop(R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R15, R4);
+
+        [process_table_entry + 9] = 0;
+        // return -2
+        [return_address] = -2;
+        SP = userSP;
+        ireturn;
+    endif;
+
+    // set the new disk block in the corresponding inode table entry
+    [INODE_TABLE + 16 * index_in_inode_table + 8 + (lseek / 512)] = R0;
 
 endif;
 
+// Find the disk block number and the 
+// position in the block from which input is to be written.
 
 
+// Get the block index from lseek position.   /* block index = lseek / block size (512) */
+// Get the disk block number corresponding to the block index from the Inode Table .
+// Get the offset value from lseek position.   /* offset = lseek % the block size (512) */
 
+multipush(R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R15, R4, R3);
+R1 = BUFFERED_WRITE;
+R4 = word;
+// since lseek in R4 is changed to word,
+// because R4 is an argument to BUFFERED_WRITE
+R3 = [OPEN_FILE_TABLE + 4 * index_in_open_file_table + 2];
+// R3 is still not the correct argument, we have to take modulo 512
+// but R3 helps in defining R2
+R2 = [INODE_TABLE + 16 * index_in_inode_table + 8 + (R3 / 512)];
+R3 = R3 % 512;
+call FILE_MANAGER;
+multipop(R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R15, R4, R3);
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-//breakpoint;
-[PROCESS_TABLE + [SYSTEM_STATUS_TABLE + 1] * 16 + 9] = 5;
-alias userSP R0;
-userSP = SP;
-[PROCESS_TABLE + ([SYSTEM_STATUS_TABLE + 1] * 16) + 13] = SP;
-// Setting SP to UArea Page number * 512 - 1
-SP = [PROCESS_TABLE + ([SYSTEM_STATUS_TABLE + 1] * 16) + 11] * 512 - 1;
-alias physicalPageNum R1;
-alias offset R2;
-alias fileDescPhysicalAddr R3;
-physicalPageNum = [PTBR + 2 * ((userSP - 4)/ 512)];
-offset = (userSP - 4) % 512;
-fileDescPhysicalAddr = (physicalPageNum * 512) + offset;
-alias fileDescriptor R4;
-fileDescriptor=[fileDescPhysicalAddr];
-if (fileDescriptor != -2)
-then
-	 alias physicalAddrRetVal R5;
-	 physicalAddrRetVal = ([PTBR + 2 * ((userSP - 1) / 512)] * 512) + ((userSP - 1) % 512);
-	 [physicalAddrRetVal] = -1;
-else
-	alias word R5;
-	word = [[PTBR + 2 * ((userSP - 3) / 512)] * 512 + ((userSP - 3) % 512)];
-	multipush(R0, R1, R2, R3, R4, R5);
-    R1 = 3;
-    R2 = [SYSTEM_STATUS_TABLE + 1];
-    R3 = word;
-    call MOD_4;
-    multipop(R0, R1, R2, R3, R4, R5);
-
-    alias physicalAddrRetVal R6;
-	physicalAddrRetVal = ([PTBR + 2 * (userSP - 1)/ 512] * 512) + ((userSP - 1) % 512);
-	[physicalAddrRetVal] = 0;
+// if lseek equals file size in inode table 
+if(lseek == [INODE_TABLE + 16 * index_in_inode_table + 2]) then
+    // increment file size in the inode table entry and also in the memory copy of the root file.
+    [INODE_TABLE + 16 * index_in_inode_table + 2] = [INODE_TABLE + 16 * index_in_inode_table + 2] + 1;
+    [ROOT_FILE + 8 * index_in_inode_table + 1] = [ROOT_FILE + 8 * index_in_inode_table + 1] + 1;
 endif;
+
+// increment lseek in the open file table entry
+[OPEN_FILE_TABLE + 4 * index_in_open_file_table + 2] = [OPEN_FILE_TABLE + 4 * index_in_open_file_table + 2] + 1;
+
+// release the lock by calling RELEASE_INODE
+multipush(R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R15, R4, R3);
+R1 = RELEASE_INODE;
+R2 = index_in_inode_table;
+R3 = current_PID;
+call RESOURCE_MANAGER;
+multipop(R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R15, R4, R3);
+
+[process_table_entry + 9] = 0;
+
+// return 0
+[return_address] = 0;
+
+// switch back to user stack 
 SP = userSP;
-[PROCESS_TABLE + ([SYSTEM_STATUS_TABLE + 1] * 16) + 9] = 0;
-
-
 ireturn;
+
+
+
