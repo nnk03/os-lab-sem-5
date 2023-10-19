@@ -1,0 +1,33 @@
+fdisk
+load --os $HOME/myexpos/stage-24/os-startup.xsm
+load --module 7 $HOME/myexpos/stage-24/boot-module.xsm
+load --library $HOME/myexpos/expl/library.lib
+load --idle $HOME/myexpos/stage-24/idle-process.xsm
+load --init $HOME/myexpos/stage-24/shell2.xsm
+load --int=timer $HOME/myexpos/stage-24/timer.xsm
+load --int=4 $HOME/myexpos/stage-24/int4.xsm
+load --int=5 $HOME/myexpos/stage-24/int5.xsm
+load --int=6 $HOME/myexpos/stage-24/int6-new.xsm
+load --int=7 $HOME/myexpos/stage-24/int7.xsm
+load --int=9 $HOME/myexpos/stage-24/int9.xsm
+load --int=8 $HOME/myexpos/stage-24/int8.xsm
+load --int=10 $HOME/myexpos/stage-24/int10.xsm
+load --int=11 $HOME/myexpos/stage-24/int11.xsm
+load --int=13 $HOME/myexpos/stage-24/int13.xsm
+load --int=14 $HOME/myexpos/stage-24/int14.xsm
+load --int=15 $HOME/myexpos/stage-24/int15.xsm
+load --module 0 $HOME/myexpos/stage-24/mod0.xsm
+load --module 1 $HOME/myexpos/stage-24/mod1.xsm
+load --module 2 $HOME/myexpos/stage-24/mod2.xsm
+load --module 3 $HOME/myexpos/stage-24/mod3.xsm
+load --module 4 $HOME/myexpos/stage-24/mod4.xsm
+load --module 5 $HOME/myexpos/stage-24/scheduler.xsm
+load --int=console $HOME/myexpos/stage-24/console-int.xsm
+load --int=disk $HOME/myexpos/stage-24/disk-int.xsm
+load --exhandler $HOME/myexpos/stage-24/exhandler.xsm
+load --exec $HOME/myexpos/stage-24/a1-24.xsm
+load --exec $HOME/myexpos/stage-24/a2-24.xsm
+load --data $HOME/myexpos/sample.dat
+load --data $HOME/myexpos/stage-24/numbers.dat
+dump --inodeusertable
+dump --rootfile

@@ -1,0 +1,215 @@
+// WRITE SYSTEM CALL 
+
+// storing userSP
+alias userSP R5;
+userSP = SP;
+
+// extracting system call number from user stack
+alias system_call_number R6;
+system_call_number = [[PTBR + 2 * (userSP - 5) / 512] * 512 + (userSP - 5) % 512];
+
+
+// switching to kernel stack
+alias current_PID R7;
+alias process_table_entry R8;
+current_PID = [SYSTEM_STATUS_TABLE + 1];
+process_table_entry = PROCESS_TABLE + current_PID * 16;
+
+[process_table_entry + 13] = SP;
+SP = [process_table_entry + 11] * 512 - 1;
+
+[process_table_entry + 9] = INT_READ;
+
+// arguments are file Descriptor and the word to be written 
+
+alias file_descriptor R9;
+file_descriptor = [[PTBR + 2 * (userSP - 4) / 512] * 512 + (userSP - 4) % 512];
+// print("file_descriptor is");
+// print(file_descriptor);
+
+alias word R10;
+word = [[PTBR + 2 * (userSP - 3) / 512] * 512 + (userSP - 3) % 512];
+
+alias return_address R11;
+return_address = [PTBR + 2 * (userSP - 1) / 512] * 512 + (userSP - 1) % 512;
+
+if(file_descriptor == -2) then
+    // terminal write
+    multipush(R5, R6, R7, R8, R9, R10, R11);
+    R1 = TERMINAL_WRITE;
+    R2 = current_PID;
+    R3 = word;
+    call DEVICE_MANAGER;
+    multipop(R5, R6, R7, R8, R9, R10, R11);
+
+    // return 0
+    [return_address] = 0;
+    [process_table_entry + 9] = 0;
+    SP = userSP;
+    ireturn;
+
+endif;
+
+// else its file write
+
+// check if file descriptor is valid (i.e from 0 to 7)
+if(file_descriptor < 0 || file_descriptor >= 8) then
+    [process_table_entry + 9] = 0;
+    // return -1
+    [return_address] = -1;
+    SP = userSP;
+    ireturn;
+endif;
+
+
+// locate the per process resource table 
+
+alias user_area_page_end R12;
+user_area_page_end = [process_table_entry + 11] * 512 + RESOURCE_TABLE_OFFSET;
+
+// resource identifier 
+alias resource_id R13;
+resource_id = [user_area_page_end + 2 * file_descriptor + 0];
+
+
+if(resource_id != FILE) then
+    [process_table_entry + 9] = 0;
+    // return -1
+    [return_address] = -1;
+    SP = userSP;
+    ireturn;
+endif;
+
+// get the index of open file table 
+alias index_in_open_file_table R14;
+index_in_open_file_table = [user_area_page_end + 2 * file_descriptor + 1];
+
+// get the index in inode table from open file table entry
+alias index_in_inode_table R15;
+index_in_inode_table = [OPEN_FILE_TABLE + 4 * index_in_open_file_table + 0];
+
+// current user is not root and current user does not own the file
+// and the exclusive permission is set, return -3
+
+if([SYSTEM_STATUS_TABLE + 0] != ROOT && [INODE_TABLE + 16 * index_in_inode_table + 3] != [SYSTEM_STATUS_TABLE + 0] && [INODE_TABLE + 16 * index_in_inode_table + 4] == EXCLUSIVE) then
+    [process_table_entry + 9] = 0;
+    // return -3
+    [return_address] = -3;
+    SP = userSP;
+    ireturn;
+endif;
+
+multipush(R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R15);
+R1 = ACQUIRE_INODE;
+R2 = index_in_inode_table;
+R3 = current_PID;
+call RESOURCE_MANAGER;
+multipop(R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R15);
+
+if(R0 != 0) then
+    // acquire inode failed, hence return -1
+    [process_table_entry + 9] = 0;
+    [return_address] = -1;
+    SP = userSP;
+    ireturn;
+endif;
+
+
+// get the lseek position from open file table entry 
+// using registers from R4 onwards
+alias lseek R4;
+lseek = [OPEN_FILE_TABLE + 4 * index_in_open_file_table + 2];
+
+if(lseek >= MAX_FILE_SIZE) then
+    // release inode and return -2
+    multipush(R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R15, R4);
+    R1 = RELEASE_INODE;
+    R2 = index_in_inode_table;
+    R3 = current_PID;
+    call RESOURCE_MANAGER;
+    multipop(R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R15, R4);
+    
+    [process_table_entry + 9] = 0;
+    // return -2
+    [return_address] = -2;
+    SP = userSP;
+    ireturn;
+endif;
+
+if((lseek % 512) == 0 && (lseek == [INODE_TABLE + 16 * index_in_inode_table + 2])) then
+    // new block to be allocated 
+
+
+endif;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+//breakpoint;
+[PROCESS_TABLE + [SYSTEM_STATUS_TABLE + 1] * 16 + 9] = 5;
+alias userSP R0;
+userSP = SP;
+[PROCESS_TABLE + ([SYSTEM_STATUS_TABLE + 1] * 16) + 13] = SP;
+// Setting SP to UArea Page number * 512 - 1
+SP = [PROCESS_TABLE + ([SYSTEM_STATUS_TABLE + 1] * 16) + 11] * 512 - 1;
+alias physicalPageNum R1;
+alias offset R2;
+alias fileDescPhysicalAddr R3;
+physicalPageNum = [PTBR + 2 * ((userSP - 4)/ 512)];
+offset = (userSP - 4) % 512;
+fileDescPhysicalAddr = (physicalPageNum * 512) + offset;
+alias fileDescriptor R4;
+fileDescriptor=[fileDescPhysicalAddr];
+if (fileDescriptor != -2)
+then
+	 alias physicalAddrRetVal R5;
+	 physicalAddrRetVal = ([PTBR + 2 * ((userSP - 1) / 512)] * 512) + ((userSP - 1) % 512);
+	 [physicalAddrRetVal] = -1;
+else
+	alias word R5;
+	word = [[PTBR + 2 * ((userSP - 3) / 512)] * 512 + ((userSP - 3) % 512)];
+	multipush(R0, R1, R2, R3, R4, R5);
+    R1 = 3;
+    R2 = [SYSTEM_STATUS_TABLE + 1];
+    R3 = word;
+    call MOD_4;
+    multipop(R0, R1, R2, R3, R4, R5);
+
+    alias physicalAddrRetVal R6;
+	physicalAddrRetVal = ([PTBR + 2 * (userSP - 1)/ 512] * 512) + ((userSP - 1) % 512);
+	[physicalAddrRetVal] = 0;
+endif;
+SP = userSP;
+[PROCESS_TABLE + ([SYSTEM_STATUS_TABLE + 1] * 16) + 9] = 0;
+
+
+ireturn;
