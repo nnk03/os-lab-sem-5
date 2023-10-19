@@ -1,0 +1,60 @@
+int main(){
+decl
+    int temp, fileDescriptor, cnt;
+    string fileName, wordFromFile;
+
+enddecl
+
+begin
+    
+    temp = exposcall("Write", -2, "InputFileName?");
+    temp = exposcall("Read", -1, fileName);
+
+    // we will append in the above file
+    fileDescriptor = exposcall("Open", fileName);
+
+    // in order to bring the seek pointer to the end of the file
+    temp = exposcall("Seek", fileDescriptor, 2048);
+    
+    cnt = 2000;
+    while(cnt < 2514) do
+        temp = exposcall("Write", fileDescriptor, cnt);
+        if(temp != 0) then
+            break;
+        endif;
+
+        cnt = cnt + 1;
+    endwhile;
+
+    temp = exposcall("Write", -2, "BrokenAt");
+    temp = exposcall("Write", -2, cnt);
+
+    temp = exposcall("Seek", fileDescriptor, 0);
+    // now seek pointer points to beginning of file 
+
+    while(1 == 1) do
+        temp = exposcall("Read", fileDescriptor, wordFromFile);
+        if(temp != 0) then
+            break;
+        endif;
+
+        temp = exposcall("Write", -2, wordFromFile);
+
+    endwhile;
+    
+    temp = exposcall("Close", fileDescriptor);
+
+
+    return 0;
+
+
+
+
+
+
+end
+
+
+
+
+}

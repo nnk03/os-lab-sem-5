@@ -23,6 +23,7 @@ begin
             endif;
             temp = exposcall("Write", -2, wordFromFile);
         endwhile;
+        temp = exposcall("Close", fileDescriptor);
     endif;
 
 
