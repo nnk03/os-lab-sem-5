@@ -32,7 +32,7 @@ if(system_call_number == INT_SEEK) then
     alias offset R11;
     offset = [[PTBR + 2 * (userSP - 3) / 512] * 512 + (userSP - 3) % 512];
 
-    alias user_area_page_end R11;
+    alias user_area_page_end R12;
     user_area_page_end = [process_table_entry + 11] * 512 + RESOURCE_TABLE_OFFSET;
 
     if(file_descriptor < 0 || file_descriptor >= 8 || [user_area_page_end + 2 * file_descriptor] != FILE) then
@@ -45,19 +45,19 @@ if(system_call_number == INT_SEEK) then
 
     endif;
 
-    alias index_in_open_file_table R12;
+    alias index_in_open_file_table R13;
     index_in_open_file_table = [user_area_page_end + 2 * file_descriptor + 1];
 
-    alias index_in_inode_table R13;
+    alias index_in_inode_table R14;
     index_in_inode_table = [OPEN_FILE_TABLE + 4 * index_in_open_file_table + 0];
 
     // acquire inode
-    multipush(R5, R6, R7, R8, R9, R10, R11, R12, R13);
+    multipush(R5, R6, R7, R8, R9, R10, R11, R12, R13, R14);
     R1 = ACQUIRE_INODE;
     R2 = index_in_inode_table;
     R3 = current_PID;
     call RESOURCE_MANAGER;
-    multipop(R5, R6, R7, R8, R9, R10, R11, R12, R13);
+    multipop(R5, R6, R7, R8, R9, R10, R11, R12, R13, R14);
 
     if(R0 != 0) then
         // locking failed, return -1
@@ -68,13 +68,13 @@ if(system_call_number == INT_SEEK) then
     endif;
 
     // get the current lseek position from open file table entry
-    alias lseek R14;
+    alias lseek R15;
     lseek = [OPEN_FILE_TABLE + 4 * index_in_open_file_table + 2];
 
     // checking the validity of the given offset
 
     // get the file size from inode table 
-    alias file_size R15;
+    alias file_size R4;
     if([OPEN_FILE_TABLE + 4 * index_in_open_file_table + 0] == INODE_ROOT) then
         // use 480 if inode index is INODE_ROOT
         file_size = 480;
@@ -87,12 +87,12 @@ if(system_call_number == INT_SEEK) then
 
     if((lseek + offset) < 0) then
         // releasing the inode 
-        multipush(R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R15);
+        multipush(R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R15, R4);
         R1 = RELEASE_INODE;
         R2 = index_in_inode_table;
         R3 = current_PID;
         call RESOURCE_MANAGER;
-        multipop(R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R15);
+        multipop(R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R15, R4);
         
         // assuming, release inode was successful
 
@@ -121,12 +121,12 @@ if(system_call_number == INT_SEEK) then
 
 
     // releasing the inode 
-    multipush(R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R15);
+    multipush(R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R15, R4);
     R1 = RELEASE_INODE;
     R2 = index_in_inode_table;
     R3 = current_PID;
     call RESOURCE_MANAGER;
-    multipop(R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R15);
+    multipop(R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R15, R4);
 
 
     [process_table_entry + 9] = 0;

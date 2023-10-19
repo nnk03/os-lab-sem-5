@@ -1,0 +1,42 @@
+int main(){
+decl
+    int temp, permission, fileDescriptor, cnt;
+    string fileName, wordFromFile;
+
+enddecl
+
+begin
+    temp = exposcall("Write", -2, "InputFileName?");
+    temp = exposcall("Read", -1, fileName);
+    
+    temp = exposcall("Write", -2, "Permission?");
+    temp = exposcall("Read", -1, permission);
+
+    temp = exposcall("Create", fileName, permission);
+
+    fileDescriptor = exposcall("Open", fileName);
+
+    if(fileDescriptor >= 0) then
+        cnt = 1;
+        while(cnt <= 1100) do
+            temp = exposcall("Write", fileDescriptor, cnt);
+            cnt = cnt + 1;
+        endwhile;
+
+        temp = exposcall("Seek", fileDescriptor, 0);
+        
+        while(1 == 1) do
+            temp = exposcall("Read", fileDescriptor, wordFromFile);
+            if(temp != 0) then
+                break;
+            endif;
+            temp = exposcall("Write", -2, wordFromFile);
+        endwhile;
+    endif;
+
+    return 0;
+
+
+end
+
+}

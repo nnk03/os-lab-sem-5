@@ -29,8 +29,6 @@ if(functionNum == KILL_ALL) then
     // for each pid from 2 to MAX_PROC_NUM - 1
 
     cnt = 2;
-    alias current_PID R6;
-    current_PID = [SYSTEM_STATUS_TABLE + 1];
     while(cnt < MAX_PROC_NUM) do 
         
         if(cnt != current_PID && [PROCESS_TABLE + cnt * 16 + 4] != TERMINATED) then

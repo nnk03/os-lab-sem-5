@@ -11,6 +11,7 @@ if(functionNum == GET_FREE_BLOCK) then
     cnt = DISK_FREE_AREA;
     while(cnt < DISK_SWAP_AREA) do
         if([DISK_FREE_LIST + cnt] == 0) then
+            [DISK_FREE_LIST + cnt] = 1;
             R0 = cnt;
             return;
         endif;
