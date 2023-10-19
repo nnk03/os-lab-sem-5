@@ -6,8 +6,8 @@ userSP = SP;
 // print("shutdowncall");
 
 // switching to kernel stack
-alias current_PID R7;
-alias process_table_entry R8;
+alias current_PID R6;
+alias process_table_entry R7;
 current_PID = [SYSTEM_STATUS_TABLE + 1];
 process_table_entry = PROCESS_TABLE + current_PID * 16;
 
@@ -22,7 +22,7 @@ SP = [process_table_entry + 11] * 512 - 1;
 // i.e PID in process table is not equal to 1 or 
 // current user is not root 
 
-if(current_PID != 1 || [process_table_entry + 3] != 1) then
+if(current_PID != 1 || [process_table_entry + 3] != ROOT) then
     // store -1 as return value
     [[PTBR + 2 * (userSP - 1) / 512] * 512 + (userSP - 1) % 512] = -1;
 
@@ -36,47 +36,78 @@ if(current_PID != 1 || [process_table_entry + 3] != 1) then
 
 endif;
 
+multipush(R5, R6, R7); 
+R1 = KILL_ALL;
+R2 = [SYSTEM_STATUS_TABLE + 1];
+call PROCESS_MANAGER;
+multipop(R5, R6, R7);
+
+
+alias cnt R8;
+cnt = 0;
+// loop through the buffer table
+while(cnt < MAX_BUFFER) do
+    // if the buffer is dirty
+    if([BUFFER_TABLE + 4 * cnt + 1] == 1) then
+        multipush(R5, R6, R7, R8);
+        R1 = DISK_STORE;
+        R2 = [SYSTEM_STATUS_TABLE + 1];
+        // is R3 correct ?? 
+        R3 = BUFFER_BASE + cnt;
+        R4 = [BUFFER_TABLE + 4 * cnt + 0];
+        call DEVICE_MANAGER;
+        multipop(R5, R6, R7, R8);
+
+    endif;
+    cnt = cnt + 1;
+endwhile;
+
+
+
+// R8 is no longer needed
+
+
 
 // print("startSTORE");
 
 // page number , block number
 
 // inode + user table 59, 60 -- 3, 4
-multipush(R5, R6, R7, R8);
+multipush(R5, R6, R7);
 R1 = DISK_STORE;
 R2 = current_PID;
 R3 = 59;
 R4 = 3;
 call DEVICE_MANAGER;
-multipop(R5, R6, R7, R8);
+multipop(R5, R6, R7);
 
-multipush(R5, R6, R7, R8);
+multipush(R5, R6, R7);
 R1 = DISK_STORE;
 R2 = current_PID;
 R3 = 60;
 R4 = 4;
 call DEVICE_MANAGER;
-multipop(R5, R6, R7, R8);
+multipop(R5, R6, R7);
 
 // root file 62 -- 5
 
-multipush(R5, R6, R7, R8);
+multipush(R5, R6, R7);
 R1 = DISK_STORE;
 R2 = current_PID;
 R3 = 62;
 R4 = 5;
 call DEVICE_MANAGER;
-multipop(R5, R6, R7, R8);
+multipop(R5, R6, R7);
 
 // disk free list 61 -- 2
 
-multipush(R5, R6, R7, R8);
+multipush(R5, R6, R7);
 R1 = DISK_STORE;
 R2 = current_PID;
 R3 = 61;
 R4 = 2;
 call DEVICE_MANAGER;
-multipop(R5, R6, R7, R8);
+multipop(R5, R6, R7);
 
 
 

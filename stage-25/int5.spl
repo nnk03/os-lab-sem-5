@@ -36,6 +36,7 @@ if(system_call_number == INT_SEEK) then
     user_area_page_end = [process_table_entry + 11] * 512 + RESOURCE_TABLE_OFFSET;
 
     if(file_descriptor < 0 || file_descriptor >= 8 || [user_area_page_end + 2 * file_descriptor] != FILE) then
+        // invalid file_descriptor, hence return -1
         [process_table_entry + 9] = 0;
         // return -1 
         [return_address] = -1;
@@ -43,13 +44,98 @@ if(system_call_number == INT_SEEK) then
         ireturn;
 
     endif;
-    
+
+    alias index_in_open_file_table R12;
+    index_in_open_file_table = [user_area_page_end + 2 * file_descriptor + 1];
+
+    alias index_in_inode_table R13;
+    index_in_inode_table = [OPEN_FILE_TABLE + 4 * index_in_open_file_table + 0];
+
+    // acquire inode
+    multipush(R5, R6, R7, R8, R9, R10, R11, R12, R13);
+    R1 = ACQUIRE_INODE;
+    R2 = index_in_inode_table;
+    R3 = current_PID;
+    call RESOURCE_MANAGER;
+    multipop(R5, R6, R7, R8, R9, R10, R11, R12, R13);
+
+    if(R0 != 0) then
+        // locking failed, return -1
+        [process_table_entry + 9] = 0;
+        [return_address] = -1;
+        SP = userSP;
+        ireturn;
+    endif;
+
+    // get the current lseek position from open file table entry
+    alias lseek R14;
+    lseek = [OPEN_FILE_TABLE + 4 * index_in_open_file_table + 2];
+
+    // checking the validity of the given offset
+
+    // get the file size from inode table 
+    alias file_size R15;
+    if([OPEN_FILE_TABLE + 4 * index_in_open_file_table + 0] == INODE_ROOT) then
+        // use 480 if inode index is INODE_ROOT
+        file_size = 480;
+    else
+        file_size = [INODE_TABLE + 16 * index_in_inode_table + 2];
+    endif;
+
+    // if sum of lseek and given offset is less than 0, release inode 
+    // and return -2
+
+    if((lseek + offset) < 0) then
+        // releasing the inode 
+        multipush(R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R15);
+        R1 = RELEASE_INODE;
+        R2 = index_in_inode_table;
+        R3 = current_PID;
+        call RESOURCE_MANAGER;
+        multipop(R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R15);
+        
+        // assuming, release inode was successful
+
+        [process_table_entry + 9] = 0;
+        // return -2
+        [return_address] = -2;
+        SP = userSP;
+        ireturn;
+    endif;
+
+    // if the given offset is zero
+    if(offset == 0) then
+        // set lseek value in the open file table entry to 0
+        [OPEN_FILE_TABLE + 4 * index_in_open_file_table + 2] = 0;
+    else
+        // else if sum of lseek and offset is greater than 
+        // the file size, set the lseek value to file size
+        if((lseek + offset) > [INODE_TABLE + 16 * index_in_inode_table + 2]) then
+            [OPEN_FILE_TABLE + 4 * index_in_open_file_table + 2] = [INODE_TABLE + 16 * index_in_inode_table + 2];
+        else
+            // change the lseek value in per process table entry ?? ???????
+            [OPEN_FILE_TABLE + 4 * index_in_open_file_table + 2] = lseek + offset;
+        endif;
+
+    endif;
 
 
+    // releasing the inode 
+    multipush(R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R15);
+    R1 = RELEASE_INODE;
+    R2 = index_in_inode_table;
+    R3 = current_PID;
+    call RESOURCE_MANAGER;
+    multipop(R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R15);
 
 
+    [process_table_entry + 9] = 0;
 
+    // return 0
+    [return_address] = 0;
 
+    SP = userSP;
+    ireturn;
 
 
 endif;
