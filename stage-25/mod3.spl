@@ -42,7 +42,10 @@ if(functionNum == BUFFERED_WRITE || functionNum == BUFFERED_READ) then
             R2 = [SYSTEM_STATUS_TABLE + 1];
             call DEVICE_MANAGER;
             multipop(R1, R2, R3, R4, R5);
+            [BUFFER_TABLE + 4 * buffer_number + 1] = 0;
+
         endif;
+
 
         // load the required disk block by invoking DISK_LOAD
         multipush(R1, R2, R3, R4, R5);
