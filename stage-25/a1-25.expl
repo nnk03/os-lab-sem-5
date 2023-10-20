@@ -18,7 +18,7 @@ begin
 
     if(fileDescriptor >= 0) then
         cnt = 1;
-        while(cnt <= 1100) do
+        while(cnt <= 100) do
             temp = exposcall("Write", fileDescriptor, cnt);
             cnt = cnt + 1;
         endwhile;
@@ -32,7 +32,10 @@ begin
                 break;
             endif;
             temp = exposcall("Write", -2, wordFromFile);
-            temp = exposcall("Seek", fileDescriptor, -1);
+            temp = exposcall("Seek", fileDescriptor, -2);
+            if(temp != 0) then
+                break;
+            endif;
         endwhile;
         temp = exposcall("Close", fileDescriptor);
     endif;

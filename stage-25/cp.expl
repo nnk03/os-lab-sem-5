@@ -1,0 +1,65 @@
+int main(){
+decl
+    int temp, fileDesc1, fileDesc2;
+    string fileName1, fileName2, wordFromFile;
+enddecl
+
+
+begin
+
+    temp = exposcall("Read", -1, fileName1);
+    temp = exposcall("Read", -1, fileName2);
+    
+    fileDesc1 = exposcall("Open", fileName1);
+    
+    while(1 == 1) do
+        if(fileDesc1 < 0) then
+            temp = exposcall("Write", -2, "FileNotExists");
+            break;
+        endif;
+
+        temp = exposcall("Create", fileName2, 1);
+        if(temp != 0) then
+            temp = exposcall("Write", -2, "ErrorInCreating");
+            break;
+        endif;
+
+        fileDesc2 = exposcall("Open", fileName2);
+
+        if(fileDesc2 < 0) then
+            temp = exposcall("Write", -2 , "ErrorInOpening");
+            break;
+        endif;
+
+        temp = exposcall("Seek", fileDesc1, 0);
+        temp = exposcall("Seek", fileDesc2, 0);
+
+        while(1 == 1) do
+            temp = exposcall("Read", fileDesc1, wordFromFile);
+            if(temp != 0) then
+                break;
+            endif;
+            temp = exposcall("Write", fileDesc2, wordFromFile);
+            if(temp != 0) then
+                break;
+            endif;
+        endwhile;
+
+        break;
+    endwhile;
+    
+
+    temp = exposcall("Close", fileDesc1);
+    temp = exposcall("Close", fileDesc2);
+
+
+    return 0;
+
+
+
+
+end
+
+
+
+}
