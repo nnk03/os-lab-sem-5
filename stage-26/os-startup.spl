@@ -1,11 +1,12 @@
+// idle-process
 loadi(69, 11);
-loadi(70, 12); // idle-process
+// loadi(70, 12); 
 
 loadi(54, 67);
 loadi(55, 68); // loading module 7
 
-// setting SP to (user area page number * 512 - 1) , i.e 82
-SP = 82 * 512 - 1;
+// setting SP to (user area page number * 512 - 1) , i.e 76
+SP = 76 * 512 - 1;
 //;
 call BOOT_MODULE;
 //;
@@ -27,19 +28,23 @@ PTLR = 10;
 //Code
 [PTBR+8] = 69;
 [PTBR+9] = "0100";
-[PTBR+10] = 70;
+[PTBR+10] = -1;
 [PTBR+11] = "0100";
 [PTBR+12] = -1;
 [PTBR+13] = "0000";
 [PTBR+14] = -1;
 [PTBR+15] = "0000";
 
+
+// [PTBR+10] = 
+
 //Stack
-[PTBR+16] = 81;
+[PTBR+16] = 70;
 [PTBR+17] = "0110";
 [PTBR+18] = -1;
 [PTBR+19] = "0000";
 
+// [PTBR+16] = 
 
 // for idle process - 0
 //pid
@@ -47,7 +52,7 @@ PTLR = 10;
 //STATE
 [PROCESS_TABLE + 4] = RUNNING;
 //UAPN
-[PROCESS_TABLE + 11] = 82;
+[PROCESS_TABLE + 11] = 76;
 //UPTR
 [PROCESS_TABLE + 13] = 8 * 512;
 //KPTR
@@ -60,8 +65,19 @@ PTLR = 10;
 
 PTBR = PAGE_TABLE_BASE;  //as PID of idle process is 0
 
-[81 * 512] = [69 * 512 + 1];
+[70 * 512] = [69 * 512 + 1];
 [SYSTEM_STATUS_TABLE + 1] = 0;
 
 SP = 8 * 512;
 ireturn;
+
+
+
+
+
+
+// Changes for idle process allocation
+// Load only the first code page from disk to memory (instead of two code pages). See disk/memory organization.
+// Allocate second code page (70) as user stack page for idle (only one page for user stack is needed). Allocate memory page 76 for kernel stack of idle.
+// Change the page table entries for stack and code pages according to above allocation. Also change the user area page number in the process table entry of idle.
+// Store the starting IP address from the header of the first code page on the top of new user stack as the user stack page number is changed now for idle.

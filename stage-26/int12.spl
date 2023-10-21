@@ -29,7 +29,7 @@ return_address = [PTBR + 2 * (userSP - 1) / 512] * 512 + (userSP - 1) % 512;
 
 // if current process is not shell, then return -1
 // shell is assumed to be PID 2
-if([SYSTEM_STATUS_TABLE + 1] != 2) then
+if([SYSTEM_STATUS_TABLE + 1] != SHELL_PROCESS) then
     [process_table_entry + 9] = 0;
     [return_address] = -1;
     SP = userSP;
@@ -61,6 +61,14 @@ multipop(R5, R6, R7, R8, R9);
 
 // ?????????????????????????????????????????????????????? 
 // not yet completed
+
+
+// save entry point of user stack to the beginning of stack of shell
+
+[[PTBR + 16] * 512] = [[PTBR + 8] * 512 + 1];
+[process_table_entry + 13] = 8 * 512;
+
+
 
 
 
