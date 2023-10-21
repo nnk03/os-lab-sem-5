@@ -25,6 +25,8 @@ load --module 5 $HOME/myexpos/stage-25/scheduler.xsm
 load --int=console $HOME/myexpos/stage-25/console-int.xsm
 load --int=disk $HOME/myexpos/stage-25/disk-int.xsm
 load --exhandler $HOME/myexpos/stage-25/exhandler.xsm
+load --exec $HOME/myexpos/stage-25/ls.xsm
+load --exec $HOME/myexpos/stage-25/rm.xsm
 load --exec $HOME/myexpos/stage-25/cat.xsm
 load --exec $HOME/myexpos/stage-25/cp.xsm
 load --exec $HOME/myexpos/stage-25/a1-25.xsm

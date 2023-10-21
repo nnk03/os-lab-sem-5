@@ -143,14 +143,14 @@ endif;
 
 
 if(system_call_number == INT_OPEN) then
-    print("opening");
+    // print("opening");
     // set the mode flag
     [process_table_entry + 9] = INT_OPEN;
     
     // file name is the argument 
     alias file_name R10;
     file_name = [[PTBR + 2 * (userSP - 4) / 512] * 512 + (userSP - 4) % 512];
-    print(file_name);
+    // print(file_name);
 
     // find a free per process resource table entry 
     alias user_area_page_end R11;
