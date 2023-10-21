@@ -111,9 +111,6 @@ multipop(R5, R6, R7);
 
 
 
-
-
-
 halt;
 
 
