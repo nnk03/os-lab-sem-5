@@ -19,7 +19,7 @@ begin
                 temp = exposcall("Write", -2, wordFromFile);
             endif;
 
-            // temp = exposcall("Seek", fileDesc, 15);
+            temp = exposcall("Seek", fileDesc, 7);
             if(temp != 0) then
                 break;
             endif;
