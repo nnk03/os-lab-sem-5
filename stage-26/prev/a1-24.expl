@@ -1,0 +1,38 @@
+int main(){
+decl
+    int temp, fileDescriptor;
+    string fileName, wordFromFile;
+enddecl
+
+begin
+    temp = exposcall("Write", -2, "InputFileName");
+    temp = exposcall("Read", -1, fileName);
+    // first we have to open the file and get the file descriptor
+
+    fileDescriptor = exposcall("Open", fileName);
+
+    // temp = exposcall("Write", -2, fileDescriptor);
+    if(fileDescriptor < 0) then
+        temp = exposcall("Write", -2, "ErrorInOpening");
+    else
+        temp = 0;
+        while(1 == 1) do
+            temp = exposcall("Read", fileDescriptor, wordFromFile);
+            if(temp != 0) then
+                break;
+            endif;
+            temp = exposcall("Write", -2, wordFromFile);
+        endwhile;
+        temp = exposcall("Close", fileDescriptor);
+    endif;
+
+
+    return 0;
+
+
+
+
+
+end
+
+}
