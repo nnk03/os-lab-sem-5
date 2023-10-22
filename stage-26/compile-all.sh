@@ -1,7 +1,7 @@
 #! /usr/bin/zsh
 
 cd $HOME/myexpos/spl
-echo "Compiling SPL FILES \n"
+echo "Compiling SPL FILES"
 for i in $HOME/myexpos/stage-26/*.spl
 do
     echo $i
@@ -10,8 +10,7 @@ do
 done
 
 cd $HOME/myexpos/expl
-echo ""
-echo "Compiling EXPL FILES\n"
+echo "Compiling EXPL FILES"
 
 
 for i in $HOME/myexpos/stage-26/*.expl

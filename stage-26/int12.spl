@@ -1,6 +1,7 @@
 // LOGOUT --> interrupt 12
+print("LOGOUTENT");
 
-
+breakpoint;
 // storing userSP
 alias userSP R5;
 userSP = SP;

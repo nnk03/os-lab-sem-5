@@ -15,6 +15,7 @@ begin
         flag=0;
         if(input == "Logout" OR input == "Shutdown") then
             flag=1;
+            temp = exposcall(input);
         endif;
               
         // if(input == "Remusr" OR input == "Getuid" OR input == "Getuname") then
