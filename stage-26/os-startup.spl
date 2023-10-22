@@ -115,6 +115,16 @@ PTBR = PAGE_TABLE_BASE;  //as PID of init process is 1
 [70 * 512] = [69 * 512 + 1];
 [SYSTEM_STATUS_TABLE + 1] = 0;
 
+// alias cnt R4;
+// cnt = 0;
+// while(cnt < MAX_USER_NUM) do
+//     print([USER_TABLE + 2 * cnt]);
+// 
+//     cnt = cnt + 1;
+// endwhile;
+
+
+
 SP = 8 * 512;
 ireturn;
 

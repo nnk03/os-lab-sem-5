@@ -66,29 +66,28 @@ multipop(R5, R6, R7, R8, R9);
 // save entry point of user stack to the beginning of stack of shell
 
 [[PTBR + 16] * 512] = [[PTBR + 8] * 512 + 1];
-[process_table_entry + 13] = 8 * 512;
 
 
 
 
 
 // Wake up the Login process by changing STATE in it's process table entry to READY.
-[PROCESS_TABLE + 16 * 2 + 4] = READY;
+[PROCESS_TABLE + 16 * 1 + 4] = READY;
 
 // In system status table, reset the CURRENT_USER_ID field back to 0 (kernel).
 [SYSTEM_STATUS_TABLE + 0] = 0;
 
 multipush(R5, R6, R7, R8, R9);
 call SCHEDULER;
-multipop(R5, R6, R7, R8, R9);
-
-// return value for logout is
-// -1 on error, otherwise does not return
-
-[process_table_entry + 9] = 0;
-[return_address] = 0;
-SP = userSP;
-ireturn;
+// multipop(R5, R6, R7, R8, R9);
+// 
+// // return value for logout is
+// // -1 on error, otherwise does not return
+// 
+// [process_table_entry + 9] = 0;
+// [return_address] = 0;
+// SP = userSP;
+// ireturn;
 
 
 

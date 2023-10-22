@@ -17,10 +17,10 @@ begin
             flag=1;
         endif;
               
-        if(input == "Remusr" OR input == "Getuid" OR input == "Getuname") then
-            flag=1;
-            temp = exposcall("Read",-1, username);
-        endif;
+        // if(input == "Remusr" OR input == "Getuid" OR input == "Getuname") then
+        //     flag=1;
+        //     temp = exposcall("Read",-1, username);
+        // endif;
               
         if(input == "Newusr" OR input == "Setpwd") then
             flag=1;
@@ -29,6 +29,10 @@ begin
         endif;
               
         if(flag==1) then
+            // temp = exposcall("Write", -2, input);
+            // temp = exposcall("Write", -2, username);
+            // temp = exposcall("Write", -2, password);
+
             retcom = exposcall(input, username, password);
             if(retcom < 0) then
                 temp = exposcall("Write",-2, "BAD COMMAND");

@@ -28,8 +28,8 @@ return_address = [PTBR + 2 * (userSP - 1) / 512] * 512 + (userSP - 1) % 512;
 // arguments are username and unencrypted password
 alias user_name R10;
 alias password R11;
-user_name = [[PTBR + 2 * (userSP - 4) / 512] * 512 + (userSP - 4) / 512];
-password = [[PTBR + 2 * (userSP - 3) / 512] * 512 + (userSP - 3) / 512];
+user_name = [[PTBR + 2 * (userSP - 4) / 512] * 512 + (userSP - 4) % 512];
+password = [[PTBR + 2 * (userSP - 3) / 512] * 512 + (userSP - 3) % 512];
 
 // if PID of current process is not 1, then return -2
 if([SYSTEM_STATUS_TABLE + 1] != 1) then

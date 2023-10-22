@@ -28,7 +28,7 @@ if(system_call_number == INT_GETUNAME) then
 
     // argument is the userID
     alias user_id R10;
-    R10 = [[PTBR + 2 * (userSP - 4) / 512] * 512 + (userSP - 4) / 512];
+    R10 = [[PTBR + 2 * (userSP - 4) / 512] * 512 + (userSP - 4) % 512];
 
     if(user_id < 0 || user_id >= MAX_USER_NUM) then
         // reset the mode flag
@@ -69,7 +69,7 @@ if(system_call_number == INT_GETUID) then
     
     // argument is the user_name
     alias user_name R10;
-    user_name = [[PTBR + 2 * (userSP - 4) / 512] * 512 + (userSP - 4) / 512];
+    user_name = [[PTBR + 2 * (userSP - 4) / 512] * 512 + (userSP - 4) % 512];
 
 
     alias index_in_user_table R11;
@@ -104,8 +104,8 @@ if(system_call_number == INT_SETPWD) then
     // arguments are user_name and password
     alias user_name R10;
     alias password R11;
-    user_name = [[PTBR + 2 * (userSP - 4) / 512] * 512 + (userSP - 4) / 512];
-    password = [[PTBR + 2 * (userSP - 3) / 512] * 512 + (userSP - 3) / 512];
+    user_name = [[PTBR + 2 * (userSP - 4) / 512] * 512 + (userSP - 4) % 512];
+    password = [[PTBR + 2 * (userSP - 3) / 512] * 512 + (userSP - 3) % 512];
 
     if(current_PID != SHELL_PROCESS) then
         // return -1
@@ -128,6 +128,7 @@ if(system_call_number == INT_SETPWD) then
 
     if(index_in_user_table == MAX_USER_NUM) then
         // entry not found, return -2 
+        // print("ENTRYNOTFOUND");
         [process_table_entry + 9] = 0;
         [return_address] = -2;
         SP = userSP;
@@ -144,7 +145,6 @@ if(system_call_number == INT_SETPWD) then
             ireturn;
         endif;
     endif;
-    
     encrypt R11;
     // now the alias password contains the encrypted password
     [USER_TABLE + 2 * index_in_user_table + 1] = password;
@@ -171,8 +171,8 @@ if(system_call_number == INT_NEWUSR) then
     // arguments are userName and password
     alias user_name R10;
     alias password R11;
-    user_name = [[PTBR + 2 * (userSP - 4) / 512] * 512 + (userSP - 4) / 512];
-    password = [[PTBR + 2 * (userSP - 3) / 512] * 512 + (userSP - 3) / 512];
+    user_name = [[PTBR + 2 * (userSP - 4) / 512] * 512 + (userSP - 4) % 512];
+    password = [[PTBR + 2 * (userSP - 3) / 512] * 512 + (userSP - 3) % 512];
 
     // if current user is not root or if current process is not the shell,
     // return -2
@@ -236,7 +236,7 @@ if(system_call_number == INT_REMUSR) then
 
     // user_name is the argument 
     alias user_name R10;
-    user_name = [[PTBR + 2 * (userSP - 4) / 512] * 512 + (userSP - 4) / 512];
+    user_name = [[PTBR + 2 * (userSP - 4) / 512] * 512 + (userSP - 4) % 512];
 
 
     // if current user is not root or if current process is not the shell,
