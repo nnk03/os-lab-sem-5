@@ -7,6 +7,7 @@ enddecl
 begin
     a=1;
     while(a == 1) do
+        temp = exposcall("Write", -2, "Shell2");
         temp = exposcall("Write",-2,"---Enter---");
         temp = exposcall("Read",-1, input);
         if(input != "Shutdown") then

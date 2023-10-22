@@ -2,12 +2,59 @@
 loadi(69, 11);
 // loadi(70, 12); 
 
+// from boot module
+loadi(63,13);
+loadi(64,14); //library
+
+loadi(67, 9);
+loadi(68, 10); // for shell program
+
+loadi(34, 47);
+loadi(35, 48); // for interrupt 16 --> NEWUSR, REMUSR, SETPWD, GETUNAME, GETUID
+
+loadi(26, 47);
+loadi(27, 48); // for interrupt 12 --> logout
+
+loadi(36, 49);
+loadi(37, 50); // for interrupt 17 --> login
+
+
+
+// loadi (memory block, disk block);
+
+loadi(4, 17);
+loadi(5, 18); // for timer interrupt handler
+
+loadi(8, 21);
+loadi(9, 22); // for console interrupt
+
+loadi(14, 27);
+loadi(15, 28); // for interrupt 6 routine --> Terminal Read
+
+// init
+loadi(65,7);
+// loadi(66,8); 
+
+loadi(22,35);
+loadi(23,36); // int 10 module
+
+
+loadi(16, 29);
+loadi(17, 30); // for int-7 handler
+
+
+loadi(2, 15);
+loadi(3, 16); // exception handler
+
+// end of from boot module
+
 loadi(54, 67);
 loadi(55, 68); // loading module 7
 
 // setting SP to (user area page number * 512 - 1) , i.e 76
 SP = 76 * 512 - 1;
 //;
+breakpoint;
 call BOOT_MODULE;
 //;
 PTBR = PAGE_TABLE_BASE;  //as PID of idle process is 0
@@ -63,7 +110,7 @@ PTLR = 10;
 [PROCESS_TABLE + 15] = 10;
 
 
-PTBR = PAGE_TABLE_BASE;  //as PID of idle process is 0
+PTBR = PAGE_TABLE_BASE;  //as PID of init process is 1
 
 [70 * 512] = [69 * 512 + 1];
 [SYSTEM_STATUS_TABLE + 1] = 0;
