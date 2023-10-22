@@ -4,7 +4,7 @@ load --module 7 $HOME/myexpos/stage-26/boot-module.xsm
 load --library $HOME/myexpos/expl/library.lib
 load --idle $HOME/myexpos/stage-26/idle-process.xsm
 load --init $HOME/myexpos/stage-26/login.xsm
-load --shell $HOME/myexpos/stage-26/shell4.xsm
+load --shell $HOME/myexpos/stage-26/shell3.xsm
 load --int=timer $HOME/myexpos/stage-26/timer.xsm
 load --int=4 $HOME/myexpos/stage-26/int4.xsm
 load --int=5 $HOME/myexpos/stage-26/int5.xsm
