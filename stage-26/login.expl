@@ -14,8 +14,12 @@ begin
         temp = exposcall("Read", -1, password);
 
         temp = exposcall("Login", userName, password);
-        if(temp == 0) then
-            break;
+        if(temp == -1) then
+            temp = exposcall("Write", -2, "Invalid");
+        else
+            if(temp == -2) then
+                temp = exposcall("Write", -2, "PermissionDeny");
+            endif;
         endif;
     endwhile;
 

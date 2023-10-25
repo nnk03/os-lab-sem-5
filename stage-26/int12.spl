@@ -68,7 +68,6 @@ multipop(R5, R6, R7, R8, R9);
 [[PTBR + 16] * 512] = [[PTBR + 8] * 512 + 1];
 // Reset the USERSP field of the shell to 4096
 [process_table_entry + 13] = 8 * 512;
-[PROCESS_TABLE + 1 * 16 + 13] = 8 * 512;
 
 
 
