@@ -54,7 +54,7 @@ loadi(55, 68); // loading module 7
 // setting SP to (user area page number * 512 - 1) , i.e 76
 SP = 76 * 512 - 1;
 //;
-breakpoint;
+// breakpoint;
 call BOOT_MODULE;
 //;
 PTBR = PAGE_TABLE_BASE;  //as PID of idle process is 0

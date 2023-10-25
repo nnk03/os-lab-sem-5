@@ -8,39 +8,26 @@ enddecl
 begin
     a=1;
     while(a == 1) do
-        temp = exposcall("Write", -2, "ExShell");
         temp = exposcall("Write",-2, "---Enter---");
         temp = exposcall("Read",-1, input);
 
         flag=0;
-        if(input == "Logout") then
+        if(input == "Logout" OR input == "Shutdown") then
             flag=1;
-            breakpoint;
-            temp = exposcall("Logout");
-
-            temp = exposcall("Write", -2, temp);
-        endif;
-        if(input == "Shutdown") then
-            flag = 1;
-            temp = exposcall("Shutdown");
         endif;
               
-        // if(input == "Remusr" OR input == "Getuid" OR input == "Getuname") then
-        //     flag=1;
-        //     temp = exposcall("Read",-1, username);
-        // endif;
+        if(input == "Remusr" OR input == "Getuid" OR input == "Getuname") then
+            flag=1;
+            temp = exposcall("Read",-1, username);
+        endif;
               
-        // if(input == "Newusr" OR input == "Setpwd") then
-        //     flag=1;
-        //     temp = exposcall("Read",-1, username);
-        //     temp = exposcall("Read",-1, password);
-        // endif;
+        if(input == "Newusr" OR input == "Setpwd") then
+            flag=1;
+            temp = exposcall("Read",-1, username);
+            temp = exposcall("Read",-1, password);
+        endif;
               
         if(flag==1) then
-            // temp = exposcall("Write", -2, input);
-            // temp = exposcall("Write", -2, username);
-            // temp = exposcall("Write", -2, password);
-
             retcom = exposcall(input, username, password);
             if(retcom < 0) then
                 temp = exposcall("Write",-2, "BAD COMMAND");
