@@ -1,5 +1,5 @@
 // LOGOUT --> interrupt 12
-print("LOGOUTENT");
+// print("LOGOUTENT");
 
 // storing userSP
 alias userSP R5;
