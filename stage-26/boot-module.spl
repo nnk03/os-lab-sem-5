@@ -268,7 +268,8 @@ endwhile;
 
 // initializing MEM_FREE_COUNT in system status table
 // should be 47, but anyways
-[SYSTEM_STATUS_TABLE + 2] = 128 - 83;
+// [SYSTEM_STATUS_TABLE + 2] = 128 - 83;
+[SYSTEM_STATUS_TABLE + 2] = 47;
 
 
 //print("ret boot");
