@@ -12,8 +12,8 @@ loadi(68, 10); // for shell program
 loadi(34, 47);
 loadi(35, 48); // for interrupt 16 --> NEWUSR, REMUSR, SETPWD, GETUNAME, GETUID
 
-loadi(26, 47);
-loadi(27, 48); // for interrupt 12 --> logout
+loadi(26, 39);
+loadi(27, 40); // for interrupt 12 --> logout
 
 loadi(36, 49);
 loadi(37, 50); // for interrupt 17 --> login

@@ -13,9 +13,16 @@ begin
         temp = exposcall("Read",-1, input);
 
         flag=0;
-        if(input == "Logout" OR input == "Shutdown") then
+        if(input == "Logout") then
             flag=1;
-            temp = exposcall(input);
+            breakpoint;
+            temp = exposcall("Logout");
+
+            temp = exposcall("Write", -2, temp);
+        endif;
+        if(input == "Shutdown") then
+            flag = 1;
+            temp = exposcall("Shutdown");
         endif;
               
         // if(input == "Remusr" OR input == "Getuid" OR input == "Getuname") then
@@ -23,11 +30,11 @@ begin
         //     temp = exposcall("Read",-1, username);
         // endif;
               
-        if(input == "Newusr" OR input == "Setpwd") then
-            flag=1;
-            temp = exposcall("Read",-1, username);
-            temp = exposcall("Read",-1, password);
-        endif;
+        // if(input == "Newusr" OR input == "Setpwd") then
+        //     flag=1;
+        //     temp = exposcall("Read",-1, username);
+        //     temp = exposcall("Read",-1, password);
+        // endif;
               
         if(flag==1) then
             // temp = exposcall("Write", -2, input);
