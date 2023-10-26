@@ -1,0 +1,216 @@
+// exec
+
+// breakpoint;
+
+alias PID R7;
+PID = [SYSTEM_STATUS_TABLE + 1];
+
+
+alias processTableEntry R8;
+processTableEntry = PROCESS_TABLE + (PID * 16);
+
+alias userSP R9;
+userSP = SP;
+
+[processTableEntry + 13] = SP;
+SP = [processTableEntry + 11] * 512 - 1;
+[processTableEntry + 9] = INT_EXEC;
+
+alias virt_address R10;
+alias phy_address R11;
+
+virt_address = userSP - 4;
+phy_address = [PTBR + 2 * (virt_address / 512)] * 512 + (virt_address % 512);
+
+alias fileName R12;
+fileName = [phy_address];
+
+alias cnt R13;
+cnt = 0;
+while(cnt < MAX_FILE_NUM) do 
+    if([INODE_TABLE + (cnt * 16) + 1] == fileName) then
+        break;
+    endif;
+    cnt = cnt + 1;
+endwhile;
+
+if((cnt == MAX_FILE_NUM) || ([INODE_TABLE + (cnt * 16) + 0] != EXEC)) then
+    virt_address = userSP - 1;
+    phy_address = [PTBR + 2 * (virt_address / 512)] * 512 + (virt_address % 512);
+    [phy_address] = -1;
+    [processTableEntry + 9] = 0;
+    SP = [processTableEntry + 13];
+    ireturn;
+endif;
+
+
+alias inodeEntry R14;
+inodeEntry = cnt;
+// print(cnt);
+multipush(R7, R8, R9, R10, R11, R12, R13, R14);
+R1 = EXIT_PROCESS;
+R2 = PID;
+call PROCESS_MANAGER;
+multipop(R7, R8, R9, R10, R11, R12, R13, R14);
+
+// reclaiming the same user area page
+[MEMORY_FREE_LIST + [processTableEntry + 11]] = [MEMORY_FREE_LIST + [processTableEntry + 11]] + 1;
+
+//decrementing the MEM_FREE_COUNT
+[SYSTEM_STATUS_TABLE + 2] = [SYSTEM_STATUS_TABLE + 2] - 1;
+
+SP = [processTableEntry + 11] * 512 - 1;
+[processTableEntry + 4] = RUNNING;
+
+// initializing per process table 
+alias user_area_page_end R15;
+user_area_page_end = [PROCESS_TABLE + (PID * 16) + 11] * 512 + 512 - 16;
+cnt = 0;
+// setting last 8 entries (2 words per entry) to -1
+while(cnt < 8) do 
+    [user_area_page_end + 2 * cnt] = -1;
+    [user_area_page_end + 2 * cnt + 1] = -1;
+    cnt = cnt + 1;
+endwhile;
+//not going to use R15 any further, so no need to multipush R15
+
+// storing the inode index in the process table
+[processTableEntry + 7] = cnt;
+
+//library
+[PTBR + 0] = 63;
+[PTBR + 1] = "0100";
+[PTBR + 2] = 64;
+[PTBR + 3] = "0100";
+
+// heap
+[PTBR + 4] = -1;
+[PTBR + 5] = "0010";
+[PTBR + 6] = -1;
+[PTBR + 7] = "0010";
+
+
+
+//=========================================================================================
+//multipush(R7, R8, R9, R10, R11, R12, R13, R14);
+//
+//R1 = GET_FREE_PAGE;
+//call MEMORY_MANAGER;
+//[PTBR + 4] = R0;
+//[PTBR + 5] = "0110";
+//R1 = GET_FREE_PAGE;
+//call MEMORY_MANAGER;
+//[PTBR + 6] = R0;
+//[PTBR + 7] = "0110";
+//multipop(R7, R8, R9, R10, R11, R12, R13, R14);
+//=========================================================================================
+
+// stack
+multipush(R7, R8, R9, R10, R11, R12, R13, R14);
+R1 = GET_FREE_PAGE;
+call MEMORY_MANAGER;
+[PTBR + 16] = R0;
+[PTBR + 17] = "0110";
+R1 = GET_FREE_PAGE;
+call MEMORY_MANAGER;
+[PTBR + 18] = R0;
+[PTBR + 19] = "0110";
+multipop(R7, R8, R9, R10, R11, R12, R13, R14);
+
+//print("alloc stack");
+
+
+
+
+//=========================================================================================
+//R1 = GET_FREE_PAGE;
+//call MEMORY_MANAGER;
+//[PTBR + 16] = R0;
+//[PTBR + 17] = "0110";
+//R1 = GET_FREE_PAGE;
+//call MEMORY_MANAGER;
+//[PTBR + 18] = R0;
+//[PTBR + 19] = "0110";
+//=========================================================================================
+
+
+// code
+
+cnt = 0;
+while((cnt <= ([INODE_TABLE + inodeEntry * 16 + 2] / PAGE_SIZE)) && cnt < 4) do
+    [DISK_MAP_TABLE + PID * 10 + 4 + cnt] = [INODE_TABLE + inodeEntry * 16 + 8 + cnt];
+    cnt = cnt + 1;
+endwhile;
+
+multipush(R7, R8, R9, R10, R11, R12, R13, R14);
+R1 = GET_CODE_PAGE;
+R2 = [DISK_MAP_TABLE + PID * 10 + 4];
+call MEMORY_MANAGER;
+[PTBR + 8] = R0;
+[PTBR + 9] = "0100";
+multipop(R7, R8, R9, R10, R11, R12, R13, R14);
+
+//print("alloc code");
+
+
+
+
+
+//=========================================================================================
+//cnt = 0;
+//while((cnt < [INODE_TABLE + inodeEntry * 16 + 2] ) && (cnt < 4)) do 
+//
+//    multipush(R7, R8, R9, R10, R11, R12, R13, R14);
+//    R1 = GET_FREE_PAGE;
+//    call MEMORY_MANAGER;
+//    multipop(R7, R8, R9, R10, R11, R12, R13, R14);
+//    [PTBR + (2 * cnt) + 8] = R0;
+//    [PTBR + (2 * cnt) + 8 + 1] = "0100";
+//    cnt = cnt + 1;
+//endwhile;
+//
+//
+//
+//
+//
+//cnt = 0;
+//while(cnt <= ([INODE_TABLE + (inodeEntry * 16) + 2] / PAGE_SIZE) && (cnt < 4)) do 
+//    
+//    // R1 = [PTBR + (2 * cnt) + 8];
+//    // R2 = [INODE_TABLE + (inodeEntry * 16) + 8 + cnt];
+//    // loadi(R1, R2);
+//
+//    // calling the DISK_LOAD function in device manager module --> mod4
+//    multipush(R7, R8, R9, R10, R11, R12, R13, R14);
+//    R1 = DISK_LOAD;
+//    R2 = PID;
+//    R3 = [PTBR + (2 * cnt) + 8];
+//    R4 = [INODE_TABLE + (inodeEntry * 16) + 8 + cnt];
+//    call DEVICE_MANAGER;
+//    multipop(R7, R8, R9, R10, R11, R12, R13, R14);
+//      
+//    cnt = cnt + 1;
+//endwhile;
+//
+//=========================================================================================
+
+
+
+// saving entry point to top of stack
+[[PTBR + 16] * 512] = [[PTBR + 8] * 512 + 1];
+SP = 8 * 512;
+// changing the mode flag
+[processTableEntry + 9] = 0;
+//breakpoint;
+ireturn;
+
+
+
+
+
+
+
+
+
+
+
