@@ -4,6 +4,31 @@
 alias functionNum R1;
 // since function number is present in R1
 
+if(functionNum == GET_SWAP_BLOCK) then
+    // loop through entries from DISK_SWAP_AREA to DISK_SIZE - 1
+    alias cnt R5;
+    cnt = DISK_SWAP_AREA;
+    while(cnt < DISK_SIZE) do
+        if([DISK_FREE_LIST + cnt] == 0) then
+            [DISK_FREE_LIST + cnt] = 1;
+            // return this block
+            R0 = cnt;
+            return;
+        endif;
+
+        cnt = cnt + 1;
+    endwhile;
+
+
+    // return -1 if no disk block is free
+    R0 = -1;
+    return;
+
+endif;
+
+
+
+
 if(functionNum == GET_FREE_BLOCK) then
     // no arguments 
     alias cnt R5;

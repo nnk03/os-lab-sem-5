@@ -1,0 +1,224 @@
+// PAGER MODULE --> SWAP IN and SWAP out
+
+alias functionNum R1;
+// argument is current pid
+alias current_PID R2;
+
+
+if(functionNum == SWAP_IN) then
+
+
+    alias cnt R5;
+    alias maxTick R6;
+    alias process_to_select R7;
+    process_to_select = -1;
+
+    // Loop through the Process Table and find the 
+    // swapped process in the READY state with the highest TICK.
+    // If there is no such process in the READY 
+    // state, reset the PAGING_STATUS field to 0 and Return.
+    cnt = 0;
+    maxTick = -1;
+
+    while(cnt < MAX_PROC_NUM) do
+        alias process_table_entry_local R8;
+        process_table_entry_local = PROCESS_TABLE + 16 * cnt;
+        if([process_table_entry_local + 6] == 1 && [process_table_entry_local + 4] == READY && [process_table_entry_local + 0] > maxTick) then
+
+            maxTick = [process_table_entry_local + 0];
+            process_to_select = cnt;
+        endif;
+
+        cnt = cnt + 1;
+    endwhile;
+
+    if(process_to_select == -1) then
+        [SYSTEM_STATUS_TABLE + 5] = 0;
+        return;
+    endif;
+
+    alias process_table_entry R8;
+    process_table_entry = PROCESS_TABLE + 16 * process_to_select;
+    alias disk_block_num R9;
+    alias page_table_entry R10;
+    page_table_entry = PAGE_TABLE_BASE + process_to_select * 20;
+
+    // set the tick field to zero
+    [process_table_entry + 0] = 0;
+    
+
+    // for each heap page that is swapped out,
+    // call get free page
+    // no need to push R9, because R9 will anyways be changed
+    multipush(R1, R2, R5, R6, R7, R8);
+    R1 = GET_FREE_PAGE;
+    call MEMORY_MANAGER;
+    multipop(R1, R2, R5, R6, R7, R8);
+    // R0 contains the free mem page
+
+    // get the disk_block_num from DISK_MAP_TABLE
+    disk_block_num = [DISK_MAP_TABLE + 10 * process_to_select + 2];
+
+    // call disk load
+    multipush(R1, R2, R5, R6, R7, R8, R9);
+    R1 = DISK_LOAD;
+    R2 = current_PID;
+    R3 = R0;
+    R4 = disk_block_num;
+    call DEVICE_MANAGER;
+    multipop(R1, R2, R5, R6, R7, R8, R9);
+
+    // free the swap block by calling release block
+    multipush(R1, R2, R5, R6, R7, R8, R9);
+    R1 = RELEASE_BLOCK;
+    R2 = disk_block_num;
+    call MEMORY_MANAGER;
+    multipop(R1, R2, R5, R6, R7, R8, R9);
+
+    // R0 will still contain the free mem page
+    [page_table_entry + 4] = R0;
+    [page_table_entry + 5] = "0110";
+    [DISK_MAP_TABLE + 10 * process_to_select + 2] = -1;
+
+
+
+    // call get free page
+    multipush(R1, R2, R5, R6, R7, R8);
+    R1 = GET_FREE_PAGE;
+    call MEMORY_MANAGER;
+    multipop(R1, R2, R5, R6, R7, R8);
+    // R0 contains the free mem page
+
+    // get the disk_block_num from DISK_MAP_TABLE
+    disk_block_num = [DISK_MAP_TABLE + 10 * process_to_select + 3];
+
+    // call disk load
+    multipush(R1, R2, R5, R6, R7, R8, R9);
+    R1 = DISK_LOAD;
+    R2 = current_PID;
+    R3 = R0;
+    R4 = disk_block_num;
+    call DEVICE_MANAGER;
+    multipop(R1, R2, R5, R6, R7, R8, R9);
+
+    // free the swap block by calling release block
+    multipush(R1, R2, R5, R6, R7, R8, R9);
+    R1 = RELEASE_BLOCK;
+    R2 = disk_block_num;
+    call MEMORY_MANAGER;
+    multipop(R1, R2, R5, R6, R7, R8, R9);
+
+    // R0 will still contain the free mem page
+    [page_table_entry + 6] = R0;
+    [page_table_entry + 7] = "0110";
+
+    [DISK_MAP_TABLE + 10 * process_to_select + 3] = -1;
+
+    // do the same for stack ?? 
+
+    // call get free page
+    multipush(R1, R2, R5, R6, R7, R8);
+    R1 = GET_FREE_PAGE;
+    call MEMORY_MANAGER;
+    multipop(R1, R2, R5, R6, R7, R8);
+    // R0 contains the free mem page
+
+    // get the disk_block_num from DISK_MAP_TABLE
+    disk_block_num = [DISK_MAP_TABLE + 10 * process_to_select + 8];
+
+    // call disk load
+    multipush(R1, R2, R5, R6, R7, R8, R9);
+    R1 = DISK_LOAD;
+    R2 = current_PID;
+    R3 = R0;
+    R4 = disk_block_num;
+    call DEVICE_MANAGER;
+    multipop(R1, R2, R5, R6, R7, R8, R9);
+
+    // free the swap block by calling release block
+    multipush(R1, R2, R5, R6, R7, R8, R9);
+    R1 = RELEASE_BLOCK;
+    R2 = disk_block_num;
+    call MEMORY_MANAGER;
+    multipop(R1, R2, R5, R6, R7, R8, R9);
+
+    // R0 will still contain the free mem page
+    [page_table_entry + 16] = R0;
+    [page_table_entry + 17] = "0110";
+
+    [DISK_MAP_TABLE + 10 * process_to_select + 8] = -1;
+    // call get free page
+    multipush(R1, R2, R5, R6, R7, R8);
+    R1 = GET_FREE_PAGE;
+    call MEMORY_MANAGER;
+    multipop(R1, R2, R5, R6, R7, R8);
+    // R0 contains the free mem page
+
+    // get the disk_block_num from DISK_MAP_TABLE
+    disk_block_num = [DISK_MAP_TABLE + 10 * process_to_select + 9];
+
+    // call disk load
+    multipush(R1, R2, R5, R6, R7, R8, R9);
+    R1 = DISK_LOAD;
+    R2 = current_PID;
+    R3 = R0;
+    R4 = disk_block_num;
+    call DEVICE_MANAGER;
+    multipop(R1, R2, R5, R6, R7, R8, R9);
+
+    // free the swap block by calling release block
+    multipush(R1, R2, R5, R6, R7, R8, R9);
+    R1 = RELEASE_BLOCK;
+    R2 = disk_block_num;
+    call MEMORY_MANAGER;
+    multipop(R1, R2, R5, R6, R7, R8, R9);
+
+    // R0 will still contain the free mem page
+    [page_table_entry + 6] = R0;
+    [page_table_entry + 7] = "0110";
+
+    [DISK_MAP_TABLE + 10 * process_to_select + 9] = -1;
+
+    // set the swap flag in process_table_entry to 0
+    [process_table_entry + 6] = 0;
+
+    // decrement swap count in SYSTEM_STATUS_TABLE
+    [SYSTEM_STATUS_TABLE + 4] = [SYSTEM_STATUS_TABLE + 4] - 1;
+
+    // reset paging status back to 0
+    [SYSTEM_STATUS_TABLE + 5] = 0;
+
+
+    return;
+
+
+endif;
+
+
+
+if(functionNum == SWAP_OUT) then
+
+
+
+endif;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
