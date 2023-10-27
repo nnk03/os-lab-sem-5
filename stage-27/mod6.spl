@@ -46,138 +46,151 @@ if(functionNum == SWAP_IN) then
     // set the tick field to zero
     [process_table_entry + 0] = 0;
     
+    alias cnt_page R11;
+    cnt_page = 2;
 
-    // for each heap page that is swapped out,
-    // call get free page
-    // no need to push R9, because R9 will anyways be changed
-    multipush(R1, R2, R5, R6, R7, R8);
-    R1 = GET_FREE_PAGE;
-    call MEMORY_MANAGER;
-    multipop(R1, R2, R5, R6, R7, R8);
-    // R0 contains the free mem page
+    alias disk_map_table_entry R12;
+    disk_map_table_entry = DISK_MAP_TABLE + 10 * process_to_select;
 
-    // get the disk_block_num from DISK_MAP_TABLE
-    disk_block_num = [DISK_MAP_TABLE + 10 * process_to_select + 2];
+    while(cnt_page < 10) do
+        if(cnt_page <= 3 || cnt >= 8) then
+            // for each heap page that is swapped out,
+            // call get free page
+            // no need to push R9, because R9 will anyways be changed
+            multipush(R1, R2, R5, R6, R7, R8, R10, R11, R12);
+            R1 = GET_FREE_PAGE;
+            call MEMORY_MANAGER;
+            multipop(R1, R2, R5, R6, R7, R8, R10, R11, R12);
+            // R0 contains the free mem page
 
-    // call disk load
-    multipush(R1, R2, R5, R6, R7, R8, R9);
-    R1 = DISK_LOAD;
-    R2 = current_PID;
-    R3 = R0;
-    R4 = disk_block_num;
-    call DEVICE_MANAGER;
-    multipop(R1, R2, R5, R6, R7, R8, R9);
+            // get the disk_block_num from DISK_MAP_TABLE
+            disk_block_num = [disk_map_table_entry + cnt_page];
 
-    // free the swap block by calling release block
-    multipush(R1, R2, R5, R6, R7, R8, R9);
-    R1 = RELEASE_BLOCK;
-    R2 = disk_block_num;
-    call MEMORY_MANAGER;
-    multipop(R1, R2, R5, R6, R7, R8, R9);
+            // call disk load
+            multipush(R1, R2, R5, R6, R7, R8, R9, R10, R11, R12);
+            R1 = DISK_LOAD;
+            R2 = current_PID;
+            R3 = R0;
+            R4 = disk_block_num;
+            call DEVICE_MANAGER;
+            multipop(R1, R2, R5, R6, R7, R8, R9, R10, R11, R12);
 
-    // R0 will still contain the free mem page
-    [page_table_entry + 4] = R0;
-    [page_table_entry + 5] = "0110";
-    [DISK_MAP_TABLE + 10 * process_to_select + 2] = -1;
+            // free the swap block by calling release block
+            multipush(R1, R2, R5, R6, R7, R8, R9, R10, R11, R12);
+            R1 = RELEASE_BLOCK;
+            R2 = disk_block_num;
+            call MEMORY_MANAGER;
+            multipop(R1, R2, R5, R6, R7, R8, R9, R10, R11, R12);
+
+            // R0 will still contain the free mem page
+            [page_table_entry + 2 * cnt_page] = R0;
+            [page_table_entry + 2 * cnt_page + 1] = "0110";
+            [disk_map_table_entry + cnt_page] = -1;
+
+        endif;
+
+        cnt = cnt + 1;
+    endwhile;
+
+    // // call get free page
+    // multipush(R1, R2, R5, R6, R7, R8);
+    // R1 = GET_FREE_PAGE;
+    // call MEMORY_MANAGER;
+    // multipop(R1, R2, R5, R6, R7, R8);
+    // // R0 contains the free mem page
+
+    // // get the disk_block_num from DISK_MAP_TABLE
+    // disk_block_num = [DISK_MAP_TABLE + 10 * process_to_select + 3];
+
+    // // call disk load
+    // multipush(R1, R2, R5, R6, R7, R8, R9);
+    // R1 = DISK_LOAD;
+    // R2 = current_PID;
+    // R3 = R0;
+    // R4 = disk_block_num;
+    // call DEVICE_MANAGER;
+    // multipop(R1, R2, R5, R6, R7, R8, R9);
+
+    // // free the swap block by calling release block
+    // multipush(R1, R2, R5, R6, R7, R8, R9);
+    // R1 = RELEASE_BLOCK;
+    // R2 = disk_block_num;
+    // call MEMORY_MANAGER;
+    // multipop(R1, R2, R5, R6, R7, R8, R9);
+
+    // // R0 will still contain the free mem page
+    // [page_table_entry + 6] = R0;
+    // [page_table_entry + 7] = "0110";
+
+    // [DISK_MAP_TABLE + 10 * process_to_select + 3] = -1;
+
+    // // do the same for stack ?? 
+
+    // // call get free page
+    // multipush(R1, R2, R5, R6, R7, R8);
+    // R1 = GET_FREE_PAGE;
+    // call MEMORY_MANAGER;
+    // multipop(R1, R2, R5, R6, R7, R8);
+    // // R0 contains the free mem page
+
+    // // get the disk_block_num from DISK_MAP_TABLE
+    // disk_block_num = [DISK_MAP_TABLE + 10 * process_to_select + 8];
+
+    // // call disk load
+    // multipush(R1, R2, R5, R6, R7, R8, R9);
+    // R1 = DISK_LOAD;
+    // R2 = current_PID;
+    // R3 = R0;
+    // R4 = disk_block_num;
+    // call DEVICE_MANAGER;
+    // multipop(R1, R2, R5, R6, R7, R8, R9);
+
+    // // free the swap block by calling release block
+    // multipush(R1, R2, R5, R6, R7, R8, R9);
+    // R1 = RELEASE_BLOCK;
+    // R2 = disk_block_num;
+    // call MEMORY_MANAGER;
+    // multipop(R1, R2, R5, R6, R7, R8, R9);
+
+    // // R0 will still contain the free mem page
+    // [page_table_entry + 16] = R0;
+    // [page_table_entry + 17] = "0110";
+
+    // [DISK_MAP_TABLE + 10 * process_to_select + 8] = -1;
+    // // call get free page
+    // multipush(R1, R2, R5, R6, R7, R8);
+    // R1 = GET_FREE_PAGE;
+    // call MEMORY_MANAGER;
+    // multipop(R1, R2, R5, R6, R7, R8);
+    // // R0 contains the free mem page
+
+    // // get the disk_block_num from DISK_MAP_TABLE
+    // disk_block_num = [DISK_MAP_TABLE + 10 * process_to_select + 9];
+
+    // // call disk load
+    // multipush(R1, R2, R5, R6, R7, R8, R9);
+    // R1 = DISK_LOAD;
+    // R2 = current_PID;
+    // R3 = R0;
+    // R4 = disk_block_num;
+    // call DEVICE_MANAGER;
+    // multipop(R1, R2, R5, R6, R7, R8, R9);
+
+    // // free the swap block by calling release block
+    // multipush(R1, R2, R5, R6, R7, R8, R9);
+    // R1 = RELEASE_BLOCK;
+    // R2 = disk_block_num;
+    // call MEMORY_MANAGER;
+    // multipop(R1, R2, R5, R6, R7, R8, R9);
+
+    // // R0 will still contain the free mem page
+    // [page_table_entry + 6] = R0;
+    // [page_table_entry + 7] = "0110";
+
+    // [DISK_MAP_TABLE + 10 * process_to_select + 9] = -1;
 
 
 
-    // call get free page
-    multipush(R1, R2, R5, R6, R7, R8);
-    R1 = GET_FREE_PAGE;
-    call MEMORY_MANAGER;
-    multipop(R1, R2, R5, R6, R7, R8);
-    // R0 contains the free mem page
-
-    // get the disk_block_num from DISK_MAP_TABLE
-    disk_block_num = [DISK_MAP_TABLE + 10 * process_to_select + 3];
-
-    // call disk load
-    multipush(R1, R2, R5, R6, R7, R8, R9);
-    R1 = DISK_LOAD;
-    R2 = current_PID;
-    R3 = R0;
-    R4 = disk_block_num;
-    call DEVICE_MANAGER;
-    multipop(R1, R2, R5, R6, R7, R8, R9);
-
-    // free the swap block by calling release block
-    multipush(R1, R2, R5, R6, R7, R8, R9);
-    R1 = RELEASE_BLOCK;
-    R2 = disk_block_num;
-    call MEMORY_MANAGER;
-    multipop(R1, R2, R5, R6, R7, R8, R9);
-
-    // R0 will still contain the free mem page
-    [page_table_entry + 6] = R0;
-    [page_table_entry + 7] = "0110";
-
-    [DISK_MAP_TABLE + 10 * process_to_select + 3] = -1;
-
-    // do the same for stack ?? 
-
-    // call get free page
-    multipush(R1, R2, R5, R6, R7, R8);
-    R1 = GET_FREE_PAGE;
-    call MEMORY_MANAGER;
-    multipop(R1, R2, R5, R6, R7, R8);
-    // R0 contains the free mem page
-
-    // get the disk_block_num from DISK_MAP_TABLE
-    disk_block_num = [DISK_MAP_TABLE + 10 * process_to_select + 8];
-
-    // call disk load
-    multipush(R1, R2, R5, R6, R7, R8, R9);
-    R1 = DISK_LOAD;
-    R2 = current_PID;
-    R3 = R0;
-    R4 = disk_block_num;
-    call DEVICE_MANAGER;
-    multipop(R1, R2, R5, R6, R7, R8, R9);
-
-    // free the swap block by calling release block
-    multipush(R1, R2, R5, R6, R7, R8, R9);
-    R1 = RELEASE_BLOCK;
-    R2 = disk_block_num;
-    call MEMORY_MANAGER;
-    multipop(R1, R2, R5, R6, R7, R8, R9);
-
-    // R0 will still contain the free mem page
-    [page_table_entry + 16] = R0;
-    [page_table_entry + 17] = "0110";
-
-    [DISK_MAP_TABLE + 10 * process_to_select + 8] = -1;
-    // call get free page
-    multipush(R1, R2, R5, R6, R7, R8);
-    R1 = GET_FREE_PAGE;
-    call MEMORY_MANAGER;
-    multipop(R1, R2, R5, R6, R7, R8);
-    // R0 contains the free mem page
-
-    // get the disk_block_num from DISK_MAP_TABLE
-    disk_block_num = [DISK_MAP_TABLE + 10 * process_to_select + 9];
-
-    // call disk load
-    multipush(R1, R2, R5, R6, R7, R8, R9);
-    R1 = DISK_LOAD;
-    R2 = current_PID;
-    R3 = R0;
-    R4 = disk_block_num;
-    call DEVICE_MANAGER;
-    multipop(R1, R2, R5, R6, R7, R8, R9);
-
-    // free the swap block by calling release block
-    multipush(R1, R2, R5, R6, R7, R8, R9);
-    R1 = RELEASE_BLOCK;
-    R2 = disk_block_num;
-    call MEMORY_MANAGER;
-    multipop(R1, R2, R5, R6, R7, R8, R9);
-
-    // R0 will still contain the free mem page
-    [page_table_entry + 6] = R0;
-    [page_table_entry + 7] = "0110";
-
-    [DISK_MAP_TABLE + 10 * process_to_select + 9] = -1;
 
     // set the swap flag in process_table_entry to 0
     [process_table_entry + 6] = 0;
@@ -287,152 +300,165 @@ if(functionNum == SWAP_OUT) then
 
 
     // for each page that is valid and not shared
-    alias heap_page R10;
+    alias page R10;
 
     alias disk_map_table_entry R11;
     disk_map_table_entry = DISK_MAP_TABLE + 10 * process_to_select;
 
-    heap_page = [page_table_entry + 4];
-    if(heap_page != -1 && [MEMORY_FREE_LIST + heap_page] == 1) then
-        // get a free swap block
-        // only need to push R1, R2, R5, but taking no risk
-        multipush(R1, R2, R5, R6, R7, R8, R9, R10, R11);
-        R1 = GET_SWAP_BLOCK;
-        call MEMORY_MANAGER;
-        multipop(R1, R2, R5, R6, R7, R8, R9, R10, R11);
+    alias cnt_page R12;
+    cnt_page = 2;
 
-        if(R0 != -1) then
-            // store the disk block num in DISK_MAP_TABLE
-            [disk_map_table_entry + 2] = R0;
-            multipush(R1, R2, R5, R6, R7, R8, R9, R10, R11);
-            R1 = DISK_STORE;
-            R2 = current_PID;
-            R3 = heap_page;
-            R4 = R0;
-            multipop(R1, R2, R5, R6, R7, R8, R9, R10, R11);
+    while(cnt_page < 10) do
+        if(cnt_page <= 3 || cnt >= 8) then
 
-            // call the release_page to deallocate the page
-            multipush(R1, R2, R5, R6, R7, R8, R9, R10, R11);
-            R1 = RELEASE_PAGE;
-            R2 = heap_page;
-            call MEMORY_MANAGER;
-            multipop(R1, R2, R5, R6, R7, R8, R9, R10, R11);
+            page = [page_table_entry + 2 * cnt_page];
+            if(page != -1 && ((cnt <= 3 && [MEMORY_FREE_LIST + page] == 1) || (cnt >= 8))) then
+                // get a free swap block
+                // only need to push R1, R2, R5, but taking no risk
+                // multipush(R1, R2, R5, R6, R7, R8, R9, R10, R11, R12);
+                multipush(R5);
+                R1 = GET_SWAP_BLOCK;
+                call MEMORY_MANAGER;
+                multipop(R5);
+                // multipop(R1, R2, R5, R6, R7, R8, R9, R10, R11, R12);
 
-            [page_table_entry + 4] = -1;
+                if(R0 != -1) then
+                    // store the disk block num in DISK_MAP_TABLE
+                    [disk_map_table_entry + cnt_page] = R0;
+                    multipush(R1, R2, R5, R6, R7, R8, R9, R10, R11, R12);
+                    R1 = DISK_STORE;
+                    R2 = current_PID;
+                    R3 = page;
+                    R4 = R0;
+                    multipop(R1, R2, R5, R6, R7, R8, R9, R10, R11, R12);
 
-        endif;
+                    // call the release_page to deallocate the page
+                    multipush(R1, R2, R5, R6, R7, R8, R9, R10, R11, R12);
+                    R1 = RELEASE_PAGE;
+                    R2 = page;
+                    call MEMORY_MANAGER;
+                    multipop(R1, R2, R5, R6, R7, R8, R9, R10, R11, R12);
+
+                    [page_table_entry + 2 * cnt] = -1;
+
+                endif;
 
 
 
-    endif;
-
-    heap_page = [page_table_entry + 6];
-    if(heap_page != -1 && [MEMORY_FREE_LIST + heap_page] == 1) then
-        // get a free swap block
-        // only need to push R1, R2, R5, but taking no risk
-        multipush(R1, R2, R5, R6, R7, R8, R9, R10, R11);
-        R1 = GET_SWAP_BLOCK;
-        call MEMORY_MANAGER;
-        multipop(R1, R2, R5, R6, R7, R8, R9, R10, R11);
-
-        if(R0 != -1) then
-            // store the disk block num in DISK_MAP_TABLE
-            [disk_map_table_entry + 3] = R0;
-            multipush(R1, R2, R5, R6, R7, R8, R9, R10, R11);
-            R1 = DISK_STORE;
-            R2 = current_PID;
-            R3 = heap_page;
-            R4 = R0;
-            multipop(R1, R2, R5, R6, R7, R8, R9, R10, R11);
-
-            // call the release_page to deallocate the page
-            multipush(R1, R2, R5, R6, R7, R8, R9, R10, R11);
-            R1 = RELEASE_PAGE;
-            R2 = heap_page;
-            call MEMORY_MANAGER;
-            multipop(R1, R2, R5, R6, R7, R8, R9, R10, R11);
-
-            [page_table_entry + 6] = -1;
+            endif;
 
         endif;
+        cnt = cnt + 1;
+
+    endwhile;
+
+
+    // page = [page_table_entry + 6];
+    // if(page != -1 && [MEMORY_FREE_LIST + page] == 1) then
+    //     // get a free swap block
+    //     // only need to push R1, R2, R5, but taking no risk
+    //     multipush(R1, R2, R5, R6, R7, R8, R9, R10, R11);
+    //     R1 = GET_SWAP_BLOCK;
+    //     call MEMORY_MANAGER;
+    //     multipop(R1, R2, R5, R6, R7, R8, R9, R10, R11);
+
+    //     if(R0 != -1) then
+    //         // store the disk block num in DISK_MAP_TABLE
+    //         [disk_map_table_entry + 3] = R0;
+    //         multipush(R1, R2, R5, R6, R7, R8, R9, R10, R11);
+    //         R1 = DISK_STORE;
+    //         R2 = current_PID;
+    //         R3 = page;
+    //         R4 = R0;
+    //         multipop(R1, R2, R5, R6, R7, R8, R9, R10, R11);
+
+    //         // call the release_page to deallocate the page
+    //         multipush(R1, R2, R5, R6, R7, R8, R9, R10, R11);
+    //         R1 = RELEASE_PAGE;
+    //         R2 = page;
+    //         call MEMORY_MANAGER;
+    //         multipop(R1, R2, R5, R6, R7, R8, R9, R10, R11);
+
+    //         [page_table_entry + 6] = -1;
+
+    //     endif;
 
 
 
-    endif;
+    // endif;
 
 
-    // do the same for stack pages ??
-    
-    // we can use R10 itself for stack_page
-    alias stack_page R10;
-    stack_page = [page_table_entry + 16];
-    if(stack_page != -1) then
-        // get a free swap block
-        // only need to push R1, R2, R5, but taking no risk
-        multipush(R1, R2, R5, R6, R7, R8, R9, R10, R11);
-        R1 = GET_SWAP_BLOCK;
-        call MEMORY_MANAGER;
-        multipop(R1, R2, R5, R6, R7, R8, R9, R10, R11);
+    // // do the same for stack pages ??
+    // 
+    // alias page R10;
+    // page = [page_table_entry + 16];
+    // if(page != -1) then
+    //     // get a free swap block
+    //     // only need to push R1, R2, R5, but taking no risk
+    //     multipush(R1, R2, R5, R6, R7, R8, R9, R10, R11);
+    //     R1 = GET_SWAP_BLOCK;
+    //     call MEMORY_MANAGER;
+    //     multipop(R1, R2, R5, R6, R7, R8, R9, R10, R11);
 
-        if(R0 != -1) then
-            // store the disk block num in DISK_MAP_TABLE
-            [disk_map_table_entry + 8] = R0;
-            multipush(R1, R2, R5, R6, R7, R8, R9, R10, R11);
-            R1 = DISK_STORE;
-            R2 = current_PID;
-            R3 = stack_page;
-            R4 = R0;
-            multipop(R1, R2, R5, R6, R7, R8, R9, R10, R11);
+    //     if(R0 != -1) then
+    //         // store the disk block num in DISK_MAP_TABLE
+    //         [disk_map_table_entry + 8] = R0;
+    //         multipush(R1, R2, R5, R6, R7, R8, R9, R10, R11);
+    //         R1 = DISK_STORE;
+    //         R2 = current_PID;
+    //         R3 = page;
+    //         R4 = R0;
+    //         multipop(R1, R2, R5, R6, R7, R8, R9, R10, R11);
 
-            // call the release_page to deallocate the page
-            multipush(R1, R2, R5, R6, R7, R8, R9, R10, R11);
-            R1 = RELEASE_PAGE;
-            R2 = stack_page;
-            call MEMORY_MANAGER;
-            multipop(R1, R2, R5, R6, R7, R8, R9, R10, R11);
+    //         // call the release_page to deallocate the page
+    //         multipush(R1, R2, R5, R6, R7, R8, R9, R10, R11);
+    //         R1 = RELEASE_PAGE;
+    //         R2 = page;
+    //         call MEMORY_MANAGER;
+    //         multipop(R1, R2, R5, R6, R7, R8, R9, R10, R11);
 
-            [page_table_entry + 16] = -1;
+    //         [page_table_entry + 16] = -1;
 
-        endif;
-
-
-
-    endif;
-
-
-    stack_page = [page_table_entry + 18];
-    if(stack_page != -1) then
-        // get a free swap block
-        // only need to push R1, R2, R5, but taking no risk
-        multipush(R1, R2, R5, R6, R7, R8, R9, R10, R11);
-        R1 = GET_SWAP_BLOCK;
-        call MEMORY_MANAGER;
-        multipop(R1, R2, R5, R6, R7, R8, R9, R10, R11);
-
-        if(R0 != -1) then
-            // store the disk block num in DISK_MAP_TABLE
-            [disk_map_table_entry + 9] = R0;
-            multipush(R1, R2, R5, R6, R7, R8, R9, R10, R11);
-            R1 = DISK_STORE;
-            R2 = current_PID;
-            R3 = stack_page;
-            R4 = R0;
-            multipop(R1, R2, R5, R6, R7, R8, R9, R10, R11);
-
-            // call the release_page to deallocate the page
-            multipush(R1, R2, R5, R6, R7, R8, R9, R10, R11);
-            R1 = RELEASE_PAGE;
-            R2 = stack_page;
-            call MEMORY_MANAGER;
-            multipop(R1, R2, R5, R6, R7, R8, R9, R10, R11);
-
-            [page_table_entry + 18] = -1;
-
-        endif;
+    //     endif;
 
 
 
-    endif;
+    // endif;
+
+
+    // page = [page_table_entry + 18];
+    // if(page != -1) then
+    //     // get a free swap block
+    //     // only need to push R1, R2, R5, but taking no risk
+    //     multipush(R1, R2, R5, R6, R7, R8, R9, R10, R11);
+    //     R1 = GET_SWAP_BLOCK;
+    //     call MEMORY_MANAGER;
+    //     multipop(R1, R2, R5, R6, R7, R8, R9, R10, R11);
+
+    //     if(R0 != -1) then
+    //         // store the disk block num in DISK_MAP_TABLE
+    //         [disk_map_table_entry + 9] = R0;
+    //         multipush(R1, R2, R5, R6, R7, R8, R9, R10, R11);
+    //         R1 = DISK_STORE;
+    //         R2 = current_PID;
+    //         R3 = page;
+    //         R4 = R0;
+    //         multipop(R1, R2, R5, R6, R7, R8, R9, R10, R11);
+
+    //         // call the release_page to deallocate the page
+    //         multipush(R1, R2, R5, R6, R7, R8, R9, R10, R11);
+    //         R1 = RELEASE_PAGE;
+    //         R2 = page;
+    //         call MEMORY_MANAGER;
+    //         multipop(R1, R2, R5, R6, R7, R8, R9, R10, R11);
+
+    //         [page_table_entry + 18] = -1;
+
+    //     endif;
+
+
+
+    // endif;
 
 
 
