@@ -3,55 +3,115 @@
 
 // loadi (memory block, disk block);
 
-loadi(6, 19);
-loadi(7, 20); // for interrupt 2 --> Disk interrupt handler 
 
-loadi(40, 53);
-loadi(41, 54); // for module 0 --> resource manager
+alias memory_page_load R7;
+alias disk_page_load R8;
+memory_page_load = 2;
+disk_page_load = 15;
 
-loadi(42, 55);
-loadi(43, 56); // for module 1 --> Process manager
+while(memory_page_load <= 9) do
+    loadi(memory_page_load, disk_page_load);
+    memory_page_load = memory_page_load + 1;
+    disk_page_load = disk_page_load + 1;
+endwhile;
 
-loadi(44, 57);
-loadi(45, 58); // for module 2 --> memory manager;
-
-loadi(46, 59);
-loadi(47, 60); // for loading module 3 --> FILE MANAGER
-
-loadi(48, 61);
-loadi(49, 62); // for module 4 --> device manager 
-
-loadi(50, 63);
-loadi(51, 64); // for module - 5  --> scheduler
-
-loadi(52, 65);
-loadi(53, 66); // for module 6 --> PAGER_MODULE
-
-
-loadi(10, 23);
-loadi(11, 24); // for loading interrupt 4 --> CREATE and DELETE
-
-loadi(12, 25);
-loadi(13, 26); // for loading interrupt 5 --> SEEK, OPEN, CLOSE
+// loadi(2, 15);
+// loadi(3, 16); // exception handler
+// 
+// loadi(4, 17);
+// loadi(5, 18); // for timer interrupt handler
+// 
+// loadi(6, 19);
+// loadi(7, 20); // for interrupt 2 --> Disk interrupt handler 
+// 
+// loadi(8, 21);
+// loadi(9, 22); // for console interrupt
 
 
-loadi(18, 31);
-loadi(19, 32); // for loading interrupt 8 --> fork
+memory_page_load = 40;
+disk_page_load = 53;
+while(memory_page_load <= 53) do
+    loadi(memory_page_load, disk_page_load);
 
-loadi(20, 33);
-loadi(21, 34); // for interrupt 9 --> exec
+    memory_page_load = memory_page_load + 1;
+    disk_page_load = disk_page_load + 1;
+endwhile;
 
-loadi(24, 37);
-loadi(25, 38); // for loading interrupt 11 --> GETPID, GETPPID, WAIT, SIGNAL
 
-loadi(28, 41);
-loadi(29, 42); // for loading interrupt 13 --> SEMGET and SEMRELEASE
+// loadi(40, 53);
+// loadi(41, 54); // for module 0 --> resource manager
+// 
+// loadi(42, 55);
+// loadi(43, 56); // for module 1 --> Process manager
+// 
+// loadi(44, 57);
+// loadi(45, 58); // for module 2 --> memory manager;
+// 
+// loadi(46, 59);
+// loadi(47, 60); // for loading module 3 --> FILE MANAGER
+// 
+// loadi(48, 61);
+// loadi(49, 62); // for module 4 --> device manager 
+// 
+// loadi(50, 63);
+// loadi(51, 64); // for module - 5  --> scheduler
+// 
+// loadi(52, 65);
+// loadi(53, 66); // for module 6 --> PAGER_MODULE
 
-loadi(30, 43);
-loadi(31, 44); // for loading interrupt 14 --> SEMLOCK and SEMUNLOCK
 
-loadi(32, 45);
-loadi(33, 46); // for loading interrupt 15 --> SHUTDOWN
+
+
+memory_page_load = 12;
+disk_page_load = 25;
+while(memory_page_load <= 37) do
+    loadi(memory_page_load, disk_page_load);
+    memory_page_load = memory_page_load + 1;
+    disk_page_load = disk_page_load + 1;
+endwhile;
+
+
+// loadi(12, 25);
+// loadi(13, 26); // for loading interrupt 5 --> SEEK, OPEN, CLOSE
+// 
+// 
+// loadi(14, 27);
+// loadi(15, 28); // for interrupt 6 routine --> Terminal Read
+// 
+// loadi(16, 29);
+// loadi(17, 30); // for interrupt 7 handler
+// 
+// loadi(18, 31);
+// loadi(19, 32); // for loading interrupt 8 --> fork
+// 
+// loadi(20, 33);
+// loadi(21, 34); // for interrupt 9 --> exec
+// 
+// loadi(22,35);
+// loadi(23,36); // interrupt 10
+// 
+// loadi(24, 37);
+// loadi(25, 38); // for loading interrupt 11 --> GETPID, GETPPID, WAIT, SIGNAL
+// 
+// loadi(26, 39);
+// loadi(27, 40); // for interrupt 12 --> logout
+// 
+// loadi(28, 41);
+// loadi(29, 42); // for loading interrupt 13 --> SEMGET and SEMRELEASE
+// 
+// loadi(30, 43);
+// loadi(31, 44); // for loading interrupt 14 --> SEMLOCK and SEMUNLOCK
+// 
+// loadi(32, 45);
+// loadi(33, 46); // for loading interrupt 15 --> SHUTDOWN
+// 
+// loadi(34, 47);
+// loadi(35, 48); // for interrupt 16 --> NEWUSR, REMUSR, SETPWD, GETUNAME, GETUID
+// 
+// 
+// loadi(36, 49);
+// loadi(37, 50); // for interrupt 17 --> login
+
 
 loadi(61, 2); // for loading DISK_FREE_LIST
 
@@ -59,18 +119,6 @@ loadi(62, 5); // for loading root file
 
 loadi(59, 3);
 loadi(60, 4); // for loading memory copy of inode table and user table 
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 alias cnt R5;
@@ -82,18 +130,6 @@ while(cnt < MAX_PROC_NUM) do
 
     cnt = cnt + 1;
 endwhile;
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -145,8 +181,6 @@ disk_map_table_entry = DISK_MAP_TABLE + 10;
 // for init process - 1
 //PID
 [process_table_entry + 1] = 1;
-// tick
-[process_table_entry + 0] = 0;
 // user id
 [process_table_entry + 3] = 0;
 //STATE
@@ -220,8 +254,6 @@ process_table_entry = PROCESS_TABLE + 32;
 
 //PID
 [process_table_entry + 1] = 2;
-// tick
-[process_table_entry + 0] = 0;
 // user id
 [process_table_entry + 3] = 0;
 // PPID

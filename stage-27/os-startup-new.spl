@@ -10,43 +10,15 @@ loadi(69, 11);
 loadi(54, 67);
 loadi(55, 68); // loading module 7
 
-// from boot module
-loadi(2, 15);
-loadi(3, 16); // exception handler
 
-loadi(4, 17);
-loadi(5, 18); // for timer interrupt handler
 
-loadi(8, 21);
-loadi(9, 22); // for console interrupt
 
 loadi(63,13);
 loadi(64,14); //library
 
-loadi(14, 27);
-loadi(15, 28); // for interrupt 6 routine --> Terminal Read
 
-loadi(16, 29);
-loadi(17, 30); // for interrupt 7 handler
-
-loadi(22,35);
-loadi(23,36); // interrupt 10
-
-loadi(26, 39);
-loadi(27, 40); // for interrupt 12 --> logout
-
-loadi(34, 47);
-loadi(35, 48); // for interrupt 16 --> NEWUSR, REMUSR, SETPWD, GETUNAME, GETUID
-
-
-loadi(36, 49);
-loadi(37, 50); // for interrupt 17 --> login
-
-
-
-
-// end of from boot module
-
+loadi(10, 23);
+loadi(11, 24); // for loading interrupt 4 --> CREATE and DELETE
 
 // setting SP to (user area page number * 512 - 1) , i.e 76
 SP = 76 * 512 - 1;

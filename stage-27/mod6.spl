@@ -53,7 +53,7 @@ if(functionNum == SWAP_IN) then
     disk_map_table_entry = DISK_MAP_TABLE + 10 * process_to_select;
 
     while(cnt_page < 10) do
-        if(cnt_page <= 3 || cnt >= 8) then
+        if(cnt_page <= 3 || cnt_page >= 8) then
             // for each heap page that is swapped out,
             // call get free page
             // no need to push R9, because R9 will anyways be changed
@@ -89,7 +89,7 @@ if(functionNum == SWAP_IN) then
 
         endif;
 
-        cnt = cnt + 1;
+        cnt_page = cnt_page + 1;
     endwhile;
 
     // // call get free page
@@ -299,7 +299,7 @@ if(functionNum == SWAP_OUT) then
 
 
 
-    // for each page that is valid and not shared
+    // for each heap_page that is valid and not shared
     alias page R10;
 
     alias disk_map_table_entry R11;
@@ -309,12 +309,13 @@ if(functionNum == SWAP_OUT) then
     cnt_page = 2;
 
     while(cnt_page < 10) do
-        if(cnt_page <= 3 || cnt >= 8) then
+        if(cnt_page <= 3 || cnt_page >= 8) then
 
             page = [page_table_entry + 2 * cnt_page];
-            if(page != -1 && ((cnt <= 3 && [MEMORY_FREE_LIST + page] == 1) || (cnt >= 8))) then
+            if(page != -1 && ((cnt_page <= 3 && [MEMORY_FREE_LIST + page] == 1) || (cnt_page >= 8))) then
                 // get a free swap block
-                // only need to push R1, R2, R5, but taking no risk
+                // only need to push R1, R2, R5, but thought of taking no risk
+                // but, optimizing pager module led to pushing only R5, since only R5 is used in GET_SWAP_BLOCK
                 // multipush(R1, R2, R5, R6, R7, R8, R9, R10, R11, R12);
                 multipush(R5);
                 R1 = GET_SWAP_BLOCK;
@@ -339,7 +340,7 @@ if(functionNum == SWAP_OUT) then
                     call MEMORY_MANAGER;
                     multipop(R1, R2, R5, R6, R7, R8, R9, R10, R11, R12);
 
-                    [page_table_entry + 2 * cnt] = -1;
+                    [page_table_entry + 2 * cnt_page] = -1;
 
                 endif;
 
@@ -348,7 +349,7 @@ if(functionNum == SWAP_OUT) then
             endif;
 
         endif;
-        cnt = cnt + 1;
+        cnt_page = cnt_page + 1;
 
     endwhile;
 
