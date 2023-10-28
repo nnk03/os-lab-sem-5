@@ -1,5 +1,6 @@
 fdisk
-load --os $HOME/myexpos/stage-27/os-startup-new.xsm
+load --os $HOME/myexpos/stage-26/os-startup.xsm
+load --module 7 $HOME/myexpos/stage-27/boot-module.xsm
 load --library $HOME/myexpos/expl/library.lib
 load --idle $HOME/myexpos/stage-27/idle-process.xsm
 load --init $HOME/myexpos/stage-27/login.xsm
@@ -29,7 +30,6 @@ load --module 3 $HOME/myexpos/stage-27/mod3.xsm
 load --module 4 $HOME/myexpos/stage-27/mod4.xsm
 load --module 5 $HOME/myexpos/stage-27/scheduler-new.xsm
 load --module 6 $HOME/myexpos/stage-27/mod6.xsm
-load --module 7 $HOME/myexpos/stage-27/boot-module.xsm
 load --exec $HOME/myexpos/stage-27/ls.xsm
 load --exec $HOME/myexpos/stage-27/rm.xsm
 load --exec $HOME/myexpos/stage-27/cat.xsm

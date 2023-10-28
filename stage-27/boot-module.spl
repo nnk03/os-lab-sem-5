@@ -206,7 +206,6 @@ while(cnt < 10) do
     [disk_map_table_entry + cnt] = -1;
     cnt = cnt + 1;
 endwhile;
-[disk_map_table_entry + 4] = 7;
 
 
 
