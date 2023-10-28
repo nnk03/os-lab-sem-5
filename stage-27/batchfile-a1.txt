@@ -36,6 +36,6 @@ load --exec $HOME/myexpos/stage-27/cat.xsm
 load --exec $HOME/myexpos/stage-27/cp.xsm
 load --exec $HOME/myexpos/stage-27/lu.xsm
 load --exec $HOME/myexpos/stage-27/ru.xsm
-load --exec $HOME/myexpos/stage-27/a1-25.xsm
+load --exec $HOME/myexpos/stage-27/a1-27.xsm
 dump --inodeusertable
 dump --rootfile

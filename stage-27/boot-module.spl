@@ -6,8 +6,8 @@
 
 alias memory_page_load R7;
 alias disk_page_load R8;
-memory_page_load = 2;
-disk_page_load = 15;
+memory_page_load = 4;
+disk_page_load = 17;
 
 while(memory_page_load <= 9) do
     loadi(memory_page_load, disk_page_load);
@@ -62,15 +62,17 @@ endwhile;
 
 
 
-memory_page_load = 12;
-disk_page_load = 25;
+memory_page_load = 10;
+disk_page_load = 23;
 while(memory_page_load <= 37) do
     loadi(memory_page_load, disk_page_load);
     memory_page_load = memory_page_load + 1;
     disk_page_load = disk_page_load + 1;
 endwhile;
 
-
+// loadi(10, 23);
+// loadi(11, 24); // for loading interrupt 4 --> CREATE and DELETE
+// 
 // loadi(12, 25);
 // loadi(13, 26); // for loading interrupt 5 --> SEEK, OPEN, CLOSE
 // 
@@ -204,6 +206,7 @@ while(cnt < 10) do
     [disk_map_table_entry + cnt] = -1;
     cnt = cnt + 1;
 endwhile;
+[disk_map_table_entry + 4] = 7;
 
 
 
@@ -400,6 +403,7 @@ endwhile;
 
 
 
+breakpoint;
 
 return;
 

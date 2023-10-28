@@ -10,6 +10,9 @@ loadi(69, 11);
 loadi(54, 67);
 loadi(55, 68); // loading module 7
 
+loadi(2, 15);
+loadi(3, 16);
+
 
 
 
@@ -17,8 +20,6 @@ loadi(63,13);
 loadi(64,14); //library
 
 
-loadi(10, 23);
-loadi(11, 24); // for loading interrupt 4 --> CREATE and DELETE
 
 // setting SP to (user area page number * 512 - 1) , i.e 76
 SP = 76 * 512 - 1;
@@ -35,9 +36,9 @@ PTBR = PAGE_TABLE_BASE;  //as PID of idle process is 0
 PTLR = 10;
 // for idle process
 //Library
-[PTBR+0] = -1;
+[PTBR+0] = 63;
 [PTBR+1] = "0000";
-[PTBR+2] = -1;
+[PTBR+2] = 64;
 [PTBR+3] = "0000";
 
 //Heap
@@ -99,9 +100,9 @@ PTLR = 10;
 
 // for SWAPPER_DAEMON
 //Library
-[PTBR+0] = -1;
+[PTBR+0] = 63;
 [PTBR+1] = "0000";
-[PTBR+2] = -1;
+[PTBR+2] = 64;
 [PTBR+3] = "0000";
 
 //Heap
@@ -157,6 +158,7 @@ PTLR = 10;
 
 
 SP = 8 * 512;
+breakpoint;
 ireturn;
 
 
