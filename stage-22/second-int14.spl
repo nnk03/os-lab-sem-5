@@ -1,6 +1,8 @@
 // interrupt 14
 // SEMLOCK and SEMUNLOCK
 //breakpoint;
+print("KERNEL");
+
 
 // storing userSP
 alias userSP R5;

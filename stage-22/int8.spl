@@ -1,6 +1,7 @@
 // fork system call
+print("KERNEL");
 
-print("ENTERFORK");
+// print("ENTERFORK");
 alias parent_PID R4;
 parent_PID = [SYSTEM_STATUS_TABLE + 1];
 alias child_PID R5;

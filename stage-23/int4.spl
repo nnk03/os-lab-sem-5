@@ -44,8 +44,10 @@ if(system_call_number == INT_CREATE) then
     while(cnt < MAX_FILE_NUM) do
         if([INODE_TABLE + cnt * 16 + 1] == file_name) then
             // file already present, return 0
+            print("FILEALREADY");
             [process_table_entry + 9] = 0;
             [return_address] = 0;
+            print([return_address]);
             SP = userSP;
             ireturn;
         endif;

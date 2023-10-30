@@ -8,7 +8,7 @@ load --shell $HOME/myexpos/stage-27/shell3.xsm
 load --exhandler $HOME/myexpos/stage-27/exhandler.xsm
 load --int=console $HOME/myexpos/stage-27/console-int.xsm
 load --int=disk $HOME/myexpos/stage-27/disk-int.xsm
-load --int=timer $HOME/myexpos/stage-27/timer-new.xsm
+load --int=timer $HOME/myexpos/stage-27/timer.xsm
 load --int=4 $HOME/myexpos/stage-27/int4.xsm
 load --int=5 $HOME/myexpos/stage-27/int5.xsm
 load --int=6 $HOME/myexpos/stage-27/int6-new.xsm
@@ -28,7 +28,7 @@ load --module 1 $HOME/myexpos/stage-27/mod1.xsm
 load --module 2 $HOME/myexpos/stage-27/mod2.xsm
 load --module 3 $HOME/myexpos/stage-27/mod3.xsm
 load --module 4 $HOME/myexpos/stage-27/mod4.xsm
-load --module 5 $HOME/myexpos/stage-27/scheduler-new.xsm
+load --module 5 $HOME/myexpos/stage-27/scheduler.xsm
 load --module 6 $HOME/myexpos/stage-27/mod6.xsm
 load --exec $HOME/myexpos/stage-27/ls.xsm
 load --exec $HOME/myexpos/stage-27/rm.xsm

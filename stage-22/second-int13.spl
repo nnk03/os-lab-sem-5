@@ -1,6 +1,7 @@
 // SEMGET and SEMRELEASE
 // interrupt 13
 
+print("KERNEL");
 // storing userSP 
 alias userSP R5;
 userSP = SP;
