@@ -11,6 +11,7 @@ alias newPID R7;
 multipush(BP);
 
 currentPID=[SYSTEM_STATUS_TABLE+1];
+// print("CONTEXTSWITCH");
 
 process_table_entry=PROCESS_TABLE+currentPID*16;
 
