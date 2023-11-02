@@ -54,6 +54,7 @@ endwhile;
 
 if(user_table_index == MAX_USER_NUM) then
     // user entry not found, return -1 
+    print("here");
     [process_table_entry + 9] = 0;
     [return_address] = -1;
     SP = userSP;

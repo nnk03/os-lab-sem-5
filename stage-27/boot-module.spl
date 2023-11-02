@@ -198,7 +198,7 @@ disk_map_table_entry = DISK_MAP_TABLE + 10;
 //KPTR 
 [process_table_entry + 12] = 0;
 // USERID of INIT to root
-[process_table_entry + 3] = 1;
+// [process_table_entry + 3] = 1;
 
 // Remove disk map table initialization for the init process as it is not needed any longer.
 cnt = 0;

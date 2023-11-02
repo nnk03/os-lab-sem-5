@@ -1,0 +1,288 @@
+// mod-7 --> boot module
+
+alias memory_page R14;
+alias disk_page R15;
+
+alias cnt R10;
+
+memory_page = 2;
+disk_page = 15;
+while(memory_page <= 9) do
+    loadi(memory_page, disk_page);
+    memory_page = memory_page + 1;
+    disk_page = disk_page + 1;
+endwhile;
+
+loadi(63, 13);
+loadi(64, 14);
+
+memory_page = 10;
+disk_page = 23;
+
+while(memory_page <= 37) do
+    loadi(memory_page, disk_page);
+    memory_page = memory_page + 1;
+    disk_page = disk_page + 1;
+endwhile;
+
+memory_page = 40;
+disk_page = 53;
+while(memory_page <= 53) do
+    loadi(memory_page, disk_page);
+
+    memory_page = memory_page + 1;
+    disk_page = disk_page + 1;
+endwhile;
+
+loadi(62, 5);
+loadi(59, 3);
+loadi(60, 4);
+loadi(61, 2);
+
+loadi(65, 7);
+// loading only the first code page
+
+// now, pid 1 is for login, init
+
+PTBR = PAGE_TABLE_BASE + 20;
+PTLR = 10;
+
+//Library
+[PTBR+0] = 63;
+[PTBR+1] = "0100";
+[PTBR+2] = 64;
+[PTBR+3] = "0100";
+
+//Heap
+[PTBR+4] = -1;
+[PTBR+5] = "0110";
+[PTBR+6] = -1;
+[PTBR+7] = "0110";
+
+//Code
+[PTBR+8] = 65;
+[PTBR+9] = "0100";
+[PTBR+10] = -1;
+[PTBR+11] = "0100";
+[PTBR+12] = -1;
+[PTBR+13] = "0000";
+[PTBR+14] = -1;
+[PTBR+15] = "0000";
+
+//stack
+[PTBR+16] = 66;
+[PTBR+17] = "0110";
+[PTBR+18] = -1;
+[PTBR+19] = "0000";
+
+// setting the entry point of init
+[66 * 512] = [65 * 512 + 1];
+
+alias process_table_entry R12;
+process_table_entry = PROCESS_TABLE + 16;
+alias disk_map_table_entry R13;
+disk_map_table_entry = DISK_MAP_TABLE + 10;
+
+// for init process - 1
+//PID
+[process_table_entry + 1] = 1;
+// tick
+[process_table_entry + 0] = 0;
+// user id
+[process_table_entry + 3] = 0;
+//STATE
+[process_table_entry + 4] = CREATED;
+//UAPN
+[process_table_entry + 11] = 77;
+//PTBR
+[process_table_entry + 14] = PAGE_TABLE_BASE + 20;
+//PTLR
+[process_table_entry + 15] = 10;
+//UPTR
+[process_table_entry + 13] = 8 * 512;
+//KPTR 
+[process_table_entry + 12] = 0;
+
+cnt = 0;
+while(cnt < 10) do
+    [disk_map_table_entry + cnt] = -1;
+    cnt = cnt + 1;
+endwhile;
+
+// shell
+loadi(67, 9);
+loadi(68, 10);
+
+PTBR = PAGE_TABLE_BASE + 40;
+PTLR = 10;
+
+//Library
+[PTBR+0] = 63;
+[PTBR+1] = "0100";
+[PTBR+2] = 64;
+[PTBR+3] = "0100";
+
+//Heap
+[PTBR+4] = -1;
+[PTBR+5] = "0000";
+[PTBR+6] = -1;
+[PTBR+7] = "0000";
+
+//Code
+[PTBR+8] = 67;
+[PTBR+9] = "0100";
+[PTBR+10] = 68;
+[PTBR+11] = "0100";
+[PTBR+12] = -1;
+[PTBR+13] = "0000";
+[PTBR+14] = -1;
+[PTBR+15] = "0000";
+
+//stack
+[PTBR+16] = 78;
+[PTBR+17] = "0110";
+[PTBR+18] = 79;
+[PTBR+19] = "0110";
+
+[78 * 512] = [67 * 512 + 1];
+process_table_entry = PROCESS_TABLE + 32;
+disk_map_table_entry = DISK_MAP_TABLE + 20;
+
+// for init process - 1
+//PID
+[process_table_entry + 1] = 2;
+// tick
+[process_table_entry + 0] = 0;
+// user id
+[process_table_entry + 3] = 0;
+//STATE
+[process_table_entry + 4] = TERMINATED;
+//UAPN
+[process_table_entry + 11] = 77;
+//PTBR
+[process_table_entry + 14] = PAGE_TABLE_BASE + 20;
+//PTLR
+[process_table_entry + 15] = 10;
+//UPTR
+[process_table_entry + 13] = 8 * 512;
+//KPTR 
+[process_table_entry + 12] = 0;
+
+
+cnt = 0;
+while(cnt < 10) do
+    [disk_map_table_entry + cnt] = -1;
+    cnt = cnt + 1;
+endwhile;
+[disk_map_table_entry + 4] = 9;
+[disk_map_table_entry + 5] = 10;
+
+
+
+
+// setting process table entries to -1
+
+cnt = 3;
+// setting state of all process to TERMINATED
+
+while(cnt < MAX_PROC_NUM - 1) do 
+	[PROCESS_TABLE + (cnt * 16) + 4] = TERMINATED;
+	cnt = cnt + 1;
+endwhile;
+
+[TERMINAL_STATUS_TABLE + 0] = 0;
+
+
+// initializing the STATE of the DISK_STATUS_TABLE to 0
+[DISK_STATUS_TABLE + 0] = 0;
+
+cnt = 0;
+while(cnt < 83) do 
+    [MEMORY_FREE_LIST + cnt] = 1;
+    cnt = cnt + 1;
+endwhile;
+
+while(cnt < MAX_MEM_PAGE) do 
+    [MEMORY_FREE_LIST + cnt] = 0;
+    cnt = cnt + 1;
+endwhile;
+
+[SYSTEM_STATUS_TABLE + 2] = 45;
+[SYSTEM_STATUS_TABLE + 3] = 0;
+[SYSTEM_STATUS_TABLE + 4] = 0;
+[SYSTEM_STATUS_TABLE + 5] = 0;
+
+// initializing per process table of INIT process 
+alias user_area_page_end R1;
+user_area_page_end = [PROCESS_TABLE + (1 * 16) + 11] * 512 + 512 - 16;
+cnt = 0;
+// setting last 8 entries (2 words per entry) to -1
+while(cnt < 16) do 
+    [user_area_page_end + cnt] = -1;
+    cnt = cnt + 1;
+endwhile;
+
+user_area_page_end = [PROCESS_TABLE + (2 * 16) + 11] * 512 + 512 - 16;
+cnt = 0;
+// setting last 8 entries (2 words per entry) to -1
+while(cnt < 16) do 
+    [user_area_page_end + cnt] = -1;
+    cnt = cnt + 1;
+endwhile;
+
+// initializing the semaphore table 
+cnt = 0;
+while(cnt < MAX_SEM_COUNT) do
+    [SEMAPHORE_TABLE + 4 * cnt + 0] = -1; // LOCKING PID to -1
+    [SEMAPHORE_TABLE + 4 * cnt + 1] = 0; // PROCESS_COUNT to 0
+
+    cnt = cnt + 1;
+endwhile;
+
+
+//
+
+
+// Initialize the buffer table by setting BLOCK NUMBER and LOCKING PID fields to -1 and DIRTY BIT to 0 in all entries.
+cnt = 0;
+while(cnt < MAX_BUFFER) do
+    [BUFFER_TABLE + cnt * 4 + 0] = -1;
+    [BUFFER_TABLE + cnt * 4 + 2] = -1;
+
+    [BUFFER_TABLE + cnt * 4 + 1] = 0;
+
+    cnt = cnt + 1;
+endwhile;
+
+
+
+
+cnt = 0;
+while(cnt < MAX_FILE_NUM) do
+    // print(cnt);
+    [FILE_STATUS_TABLE + cnt * 4 + 0] = -1;
+    [FILE_STATUS_TABLE + cnt * 4 + 1] = -1;
+    cnt = cnt + 1;
+endwhile;
+
+
+
+// initializing open file table by setting INODE_INDEX to -1 and OPEN INSTANCE COUNT to 0
+cnt = 0;
+while(cnt < MAX_OPENFILE_NUM) do
+    // INODE_INDEX
+    [OPEN_FILE_TABLE + 4 * cnt + 0] = -1;
+    // OPEN_INSTANCE_COUNT
+    [OPEN_FILE_TABLE + 4 * cnt + 1] = 0;
+
+    cnt = cnt + 1;
+endwhile;
+
+
+
+
+
+return;
+
+
+

@@ -1,6 +1,6 @@
 fdisk
-load --os $HOME/myexpos/stage-26/os-startup.xsm
-load --module 7 $HOME/myexpos/stage-27/boot-module.xsm
+load --os $HOME/myexpos/stage-27/second-os-startup.xsm
+load --module 7 $HOME/myexpos/stage-27/second-boot-module.xsm
 load --library $HOME/myexpos/expl/library.lib
 load --idle $HOME/myexpos/stage-27/idle-process.xsm
 load --init $HOME/myexpos/stage-27/login.xsm
