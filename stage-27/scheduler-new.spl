@@ -63,6 +63,8 @@ PTLR = [process_table_entry + 15];
 [SYSTEM_STATUS_TABLE + 1] = newPID;
 
 if([process_table_entry + 4] == CREATED)then
+    // print("HERE");
+    // print(newPID);
     SP = [process_table_entry + 13];
     [process_table_entry + 4] = RUNNING;
     [process_table_entry + 9] = 0;

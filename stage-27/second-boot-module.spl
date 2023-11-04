@@ -148,7 +148,6 @@ PTLR = 10;
 process_table_entry = PROCESS_TABLE + 32;
 disk_map_table_entry = DISK_MAP_TABLE + 20;
 
-// for init process - 1
 //PID
 [process_table_entry + 1] = 2;
 // tick
@@ -160,7 +159,7 @@ disk_map_table_entry = DISK_MAP_TABLE + 20;
 //UAPN
 [process_table_entry + 11] = 77;
 //PTBR
-[process_table_entry + 14] = PAGE_TABLE_BASE + 20;
+[process_table_entry + 14] = PAGE_TABLE_BASE + 40;
 //PTLR
 [process_table_entry + 15] = 10;
 //UPTR
@@ -278,6 +277,12 @@ while(cnt < MAX_OPENFILE_NUM) do
     cnt = cnt + 1;
 endwhile;
 
+cnt = 0;
+while(cnt < MAX_PROC_NUM) do
+    [PROCESS_TABLE + 16 * cnt + 6] = 0;
+
+    cnt = cnt + 1;
+endwhile;
 
 
 

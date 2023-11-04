@@ -33,6 +33,7 @@ if([SYSTEM_STATUS_TABLE + 1] != SHELL_PROCESS) then
     [process_table_entry + 9] = 0;
     [return_address] = -1;
     SP = userSP;
+    print("HERE");
     ireturn;
 endif;
 
@@ -79,7 +80,7 @@ multipop(R5, R6, R7, R8, R9);
 [SYSTEM_STATUS_TABLE + 0] = 0;
 
 multipush(R5, R6, R7, R8, R9);
-breakpoint;
+// breakpoint;
 call SCHEDULER;
 multipop(R5, R6, R7, R8, R9);
 
