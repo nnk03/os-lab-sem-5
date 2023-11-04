@@ -37,5 +37,7 @@ load --exec $HOME/myexpos/stage-27/cp.xsm
 load --exec $HOME/myexpos/stage-27/lu.xsm
 load --exec $HOME/myexpos/stage-27/ru.xsm
 load --exec $HOME/myexpos/stage-27/a1-27.xsm
+load --exec $HOME/myexpos/stage-27/pid.xsm
+load --exec $HOME/myexpos/stage-27/thrFork2.xsm
 dump --inodeusertable
 dump --rootfile

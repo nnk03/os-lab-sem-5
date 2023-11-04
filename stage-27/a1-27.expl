@@ -6,24 +6,39 @@ enddecl
 begin
     // involves 4 fork back to back
     p1 = exposcall("Fork");
-    p2 = exposcall("Fork");
-    p3 = exposcall("Fork");
-    p4 = exposcall("Fork");
-
     if(p1 > 0) then
         temp = exposcall("Wait", p1);
     endif;
+    p2 = exposcall("Fork");
     if(p2 > 0) then
-        temp = exposcall("Wait", p1);
+        temp = exposcall("Wait", p2);
     endif;
+    p3 = exposcall("Fork");
+
     if(p3 > 0) then
-        temp = exposcall("Wait", p1);
+        temp = exposcall("Wait", p3);
     endif;
+    p4 = exposcall("Fork");
     if(p4 > 0) then
-        temp = exposcall("Wait", p1);
+        temp = exposcall("Wait", p4);
     endif;
 
     temp = exposcall("Exec", "pid.xsm");
+
+
+    // if(p1 > 0) then
+    //     temp = exposcall("Wait", p1);
+    // endif;
+    // if(p2 > 0) then
+    //     temp = exposcall("Wait", p2);
+    // endif;
+    // if(p3 > 0) then
+    //     temp = exposcall("Wait", p3);
+    // endif;
+    // if(p4 > 0) then
+    //     temp = exposcall("Wait", p4);
+    // endif;
+
 
     return 0;
 
