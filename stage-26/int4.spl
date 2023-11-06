@@ -96,6 +96,8 @@ if(system_call_number == INT_CREATE) then
 
     // setting userID to userID of process from process_table_entry
     [inode_table_entry + 3] = [process_table_entry + 3];
+    // print("OWNER");
+    // print([inode_table_entry + 3]);
     // setting the permission as the permission given as input 
     [inode_table_entry + 4] = permission;
 
@@ -186,14 +188,20 @@ if(system_call_number == INT_DELETE) then
     // If the exclusive permission is set
 	//      if the current user is not root and the current user does not own the file
 	//          return -1. 
+    // print("OWNER");
+    // print([inode_table_entry + 3]);
+    // print("CURRENTUSER");
+    // print([SYSTEM_STATUS_TABLE + 0]);
 
     if([inode_table_entry + 4] == EXCLUSIVE) then
-        if([SYSTEM_STATUS_TABLE + 0] != ROOT && [process_table_entry + 3] != [inode_table_entry + 3]) then
+        if([SYSTEM_STATUS_TABLE + 0] != ROOT && [SYSTEM_STATUS_TABLE + 0] != [inode_table_entry + 3]) then
             // print("unAUTHORISED");
             // reset mode flag to zero
             [process_table_entry + 9] = 0;
             // return -1
             [return_address] = -1;
+            SP = userSP;
+            ireturn;
         endif;
 
     endif;
