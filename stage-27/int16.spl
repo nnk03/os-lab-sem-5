@@ -135,7 +135,8 @@ if(system_call_number == INT_SETPWD) then
         ireturn;
     endif;
     // if user_id of the process is not equal to user_id of the user
-    if([process_table_entry + 3] != [SYSTEM_STATUS_TABLE + 0]) then
+    // if([process_table_entry + 3] != [SYSTEM_STATUS_TABLE + 0]) then
+    if([process_table_entry + 3] != index_in_user_table) then
         // if the current user is not root 
         if([SYSTEM_STATUS_TABLE + 0] != ROOT) then
             // return -1

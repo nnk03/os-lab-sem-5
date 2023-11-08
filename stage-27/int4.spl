@@ -194,6 +194,8 @@ if(system_call_number == INT_DELETE) then
             [process_table_entry + 9] = 0;
             // return -1
             [return_address] = -1;
+            SP = userSP;
+            ireturn;
         endif;
 
     endif;

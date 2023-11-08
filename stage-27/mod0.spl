@@ -72,6 +72,21 @@ if(functionNum == RELEASE_BUFFER) then
 endif;
 
 
+if(functionNum == ACQUIRE_DISK) then
+
+    while([DISK_STATUS_TABLE + 0] == 1) do
+        [PROCESS_TABLE + (currentPID * 16) + 4] = WAIT_DISK;
+        multipush(R1, R2);
+        call CONTEXT_SWITCH;
+        multipop(R1, R2);
+    endwhile;
+    [DISK_STATUS_TABLE + 0] = 1; // state of the DISK
+    [DISK_STATUS_TABLE + 4] = currentPID; // PID of the process which acquired disk
+    return;
+    
+
+endif;
+
 
 
 if(functionNum == ACQUIRE_INODE) then
@@ -215,21 +230,6 @@ if(functionNum == RELEASE_SEMAPHORE) then
 endif;
 
 
-
-if(functionNum == ACQUIRE_DISK) then
-
-    while([DISK_STATUS_TABLE + 0] == 1) do
-        [PROCESS_TABLE + (currentPID * 16) + 4] = WAIT_DISK;
-        multipush(R1, R2);
-        call CONTEXT_SWITCH;
-        multipop(R1, R2);
-    endwhile;
-    [DISK_STATUS_TABLE + 0] = 1; // state of the DISK
-    [DISK_STATUS_TABLE + 4] = currentPID; // PID of the process which acquired disk
-    return;
-    
-
-endif;
 
 
 
