@@ -91,6 +91,7 @@ endif;
 
 if(functionNum == ACQUIRE_INODE) then
     // inode index and pid are the arguments
+    // assumes valid inode index and pid
     alias inode_index R2;
     alias current_PID R3;
 
@@ -167,6 +168,7 @@ endif;
 
 if(functionNum == ACQUIRE_SEMAPHORE) then
     // acquire semaphore takes PID as argument
+    // assumes valid PID
     alias cnt R5;
     cnt = 0;
     // each entry in semaphore table is 4 words
@@ -218,7 +220,9 @@ if(functionNum == RELEASE_SEMAPHORE) then
     endif;
 
     // decrement the process count of the semaphore in semaphore table
-    [SEMAPHORE_TABLE + sem_table_index * 4 + 1] = [SEMAPHORE_TABLE + sem_table_index * 4 + 1] - 1;
+    if([SEMAPHORE_TABLE + sem_table_index * 4 + 1] > 0) then
+        [SEMAPHORE_TABLE + sem_table_index * 4 + 1] = [SEMAPHORE_TABLE + sem_table_index * 4 + 1] - 1;
+    endif;
 
     // return value ?????????
 
@@ -256,7 +260,7 @@ if(functionNum == RELEASE_TERMINAL) then
     endif;
     [TERMINAL_STATUS_TABLE + 0] = 0;
     alias cnt R5;
-    cnt = 1;
+    cnt = 0;
     while(cnt < MAX_PROC_NUM) do 
         if([PROCESS_TABLE + (cnt * 16) + 4] == WAIT_TERMINAL) then
             [PROCESS_TABLE + (cnt * 16) + 4] = READY;
