@@ -35,7 +35,7 @@ if(functionNum == BUFFERED_WRITE || functionNum == BUFFERED_READ) then
             // write back the contents by invoking DISK_STORE
             multipush(R1, R2, R3, R4, R5);
             R1 = DISK_STORE;
-            R4 = disk_block_num;
+            R4 = [BUFFER_TABLE + 4 * buffer_number + 1];
             // disk block num is R2, hence save R4 before
             // changing R2 to pid
             R3 = BUFFER_BASE + buffer_number;
