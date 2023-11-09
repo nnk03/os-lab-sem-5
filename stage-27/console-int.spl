@@ -6,6 +6,10 @@ backup;
 alias reqPID R4;
 alias currentPID R5;
 
+// to indicate terminal is free
+// but already done in RELEASE_TERMINAL
+[TERMINAL_STATUS_TABLE + 0] = 0;
+
 currentPID = [SYSTEM_STATUS_TABLE + 1];
 reqPID = [TERMINAL_STATUS_TABLE + 1];
 
