@@ -47,7 +47,7 @@ if(functionNum == FREE_USER_AREA_PAGE) then
     user_area_page = [PROCESS_TABLE + (PID * 16) + 11];
     
     alias user_area_page_end R9;
-    user_area_page_end = user_area_page * 512 + 512 - 16;
+    user_area_page_end = user_area_page * 512 + RESOURCE_TABLE_OFFSET;
     alias cnt R10;
     cnt = 0;
 
@@ -72,7 +72,7 @@ if(functionNum == FREE_USER_AREA_PAGE) then
             endif;
         endif;
         [user_area_page_end + 2 * cnt + 0] = -1;
-        [user_area_page_end + 2 * cnt + 1] = -1;
+        // [user_area_page_end + 2 * cnt + 1] = -1;
         cnt = cnt + 1;
     endwhile;
 
@@ -153,9 +153,9 @@ if(functionNum == FREE_PAGE_TABLE) then
     page_table = PAGE_TABLE_BASE + (PID * 20);
     // invalidating the library pages
     [page_table + 0] = -1;
-    [page_table + 1] = "0000";
+    // [page_table + 1] = "0000";
     [page_table + 2] = -1;
-    [page_table + 3] = "0000";
+    // [page_table + 3] = "0000";
 
     alias cnt R10;
     cnt = 0;
@@ -170,9 +170,9 @@ if(functionNum == FREE_PAGE_TABLE) then
             multipop(R1, R2, R9, R10);
             [page_table + cnt] = -1;
             [page_table + cnt + 1] = "0000";
+            [page_table + cnt] = -1;
+            [page_table + cnt + 1] = "0000";
         endif;
-        [page_table + cnt] = -1;
-        [page_table + cnt + 1] = "0000";
         // 2 words has been changed, so advancing by two words
         cnt = cnt + 2;
     endwhile;
@@ -246,11 +246,13 @@ if(functionNum == KILL_ALL) then
     // for each pid from 2 to MAX_PROC_NUM - 1
 
     cnt = 2;
-    while(cnt < MAX_PROC_NUM) do 
-        if(cnt == SWAPPER_DAEMON) then
-            cnt = cnt + 1;
-            continue;
-        endif;
+    while(cnt < MAX_PROC_NUM - 1) do 
+        // code exceeds two blocks because of the below 3 lines, so changed the upper bound
+        // of while loop to MAX_PROC_NUM - 1
+        // if(cnt == SWAPPER_DAEMON) then
+        //     cnt = cnt + 1;
+        //     continue;
+        // endif;
         
         if(cnt != current_PID && [PROCESS_TABLE + cnt * 16 + 4] != TERMINATED) then
             // call EXIT_PROCESS
