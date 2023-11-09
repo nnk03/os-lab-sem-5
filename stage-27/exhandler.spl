@@ -76,7 +76,7 @@ if(EC == 0) then
         R2 = [disk_map_table_entry + EPN];
         call MEMORY_MANAGER;
         multipop(R5, R6, R7, R8, R9);
-        [disk_map_table_entry + EPN] = R0;        
+        // [disk_map_table_entry + EPN] = R0;        
         [page_table_entry + EPN * 2 + 0] = R0;
         [page_table_entry + EPN * 2 + 1] = "1100";
 
@@ -88,7 +88,7 @@ if(EC == 0) then
         R1 = GET_FREE_PAGE;
         call MEMORY_MANAGER;
         multipop(R5, R6, R7, R8, R9);
-        [disk_map_table_entry + EPN] = R0;        
+        // [disk_map_table_entry + EPN] = R0;        
         [page_table_entry + EPN * 2 + 0] = R0;
         [page_table_entry + EPN * 2 + 1] = "1110";
 
@@ -96,7 +96,7 @@ if(EC == 0) then
         R1 = GET_FREE_PAGE;
         call MEMORY_MANAGER;
         multipop(R5, R6, R7, R8, R9);
-        [disk_map_table_entry + EPN + 1] = R0;        
+        // [disk_map_table_entry + EPN + 1] = R0;        
         [page_table_entry + EPN * 2 + 2] = R0;
         [page_table_entry + EPN * 2 + 3] = "1110";
 
