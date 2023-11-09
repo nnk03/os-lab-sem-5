@@ -55,8 +55,8 @@ if(functionNum == FREE_USER_AREA_PAGE) then
         if(([user_area_page_end + 2 * cnt] == SEMAPHORE) && ([user_area_page_end + 2 * cnt + 1] >= 0) && ([user_area_page_end + 2 * cnt + 1] < MAX_SEM_COUNT)) then
             multipush(R1, R2, R8, R9, R10);
             R1 = RELEASE_SEMAPHORE; 
-            R2 = [user_area_page_end + 2 * cnt + 1];
-            R3 = [SYSTEM_STATUS_TABLE + 1];
+            R3 = [user_area_page_end + 2 * cnt + 1];
+            R2 = [SYSTEM_STATUS_TABLE + 1];
             // RELEASE_SEMAPHORE assumes that valid semaphore table index and pid are given
             call RESOURCE_MANAGER; 
             multipop(R1, R2, R8, R9, R10);
@@ -71,9 +71,8 @@ if(functionNum == FREE_USER_AREA_PAGE) then
                 multipop(R1, R2, R8, R9, R10);
             endif;
         endif;
-
-
-
+        [user_area_page_end + 2 * cnt + 0] = -1;
+        [user_area_page_end + 2 * cnt + 1] = -1;
         cnt = cnt + 1;
     endwhile;
 
@@ -129,7 +128,9 @@ if(functionNum == EXIT_PROCESS) then
     R1 = FREE_PAGE_TABLE;
     R2 = PID;
     call PROCESS_MANAGER;
+    multipop(R1, R2, R8);
 
+    multipush(R1, R2, R8);
     // deallocating the user area page
     R1 = FREE_USER_AREA_PAGE;
     R2 = PID;
@@ -170,6 +171,8 @@ if(functionNum == FREE_PAGE_TABLE) then
             [page_table + cnt] = -1;
             [page_table + cnt + 1] = "0000";
         endif;
+        [page_table + cnt] = -1;
+        [page_table + cnt + 1] = "0000";
         // 2 words has been changed, so advancing by two words
         cnt = cnt + 2;
     endwhile;
@@ -186,6 +189,7 @@ if(functionNum == FREE_PAGE_TABLE) then
             multipop(R1, R2, R9, R10);
             
         endif;
+        [DISK_MAP_TABLE + PID * 10 + cnt] = -1;
         cnt = cnt + 1;
     endwhile;
 
@@ -203,6 +207,7 @@ if(functionNum == FREE_PAGE_TABLE) then
 
 
         endif;
+        [DISK_MAP_TABLE + PID * 10 + cnt] = -1;
         cnt = cnt + 1;
     endwhile;
 
@@ -242,6 +247,10 @@ if(functionNum == KILL_ALL) then
 
     cnt = 2;
     while(cnt < MAX_PROC_NUM) do 
+        if(cnt == SWAPPER_DAEMON) then
+            cnt = cnt + 1;
+            continue;
+        endif;
         
         if(cnt != current_PID && [PROCESS_TABLE + cnt * 16 + 4] != TERMINATED) then
             // call EXIT_PROCESS

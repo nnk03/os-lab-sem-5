@@ -19,7 +19,7 @@ process_table_entry = PROCESS_TABLE + current_PID * 16;
 [process_table_entry + 13] = SP;
 SP = [process_table_entry + 11] * 512 - 1;
 
-[process_table_entry + 9] = INT_READ;
+[process_table_entry + 9] = INT_WRITE;
 
 // arguments are file Descriptor and the word to be written 
 
