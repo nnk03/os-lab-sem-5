@@ -13,13 +13,15 @@ if(functionNum == GET_PCB_ENTRY) then
 
     alias process_table_index R5;
     process_table_index = 0;
+    alias process_table_entry R6;
     while(process_table_index < MAX_PROC_NUM) do
-        if([PROCESS_TABLE + process_table_index * 16 + 4] == TERMINATED) then
-            [PROCESS_TABLE + process_table_index * 16 + 0] = 0;
-            [PROCESS_TABLE + process_table_index * 16 + 1] = process_table_index;
-            [PROCESS_TABLE + process_table_index * 16 + 4] = ALLOCATED;
-            [PROCESS_TABLE + process_table_index * 16 + 14] = PAGE_TABLE_BASE + process_table_index * 20;
-            [PROCESS_TABLE + process_table_index * 16 + 15] = 10;
+        process_table_entry = PROCESS_TABLE + 16 * process_table_index;
+        if([process_table_entry + 4] == TERMINATED) then
+            [process_table_entry ] = 0;
+            [process_table_entry + 1] = process_table_index;
+            [process_table_entry + 4] = ALLOCATED;
+            [process_table_entry + 14] = PAGE_TABLE_BASE + process_table_index * 20;
+            [process_table_entry + 15] = 10;
 
             // return value
             R0 = process_table_index;
@@ -51,40 +53,49 @@ if(functionNum == FREE_USER_AREA_PAGE) then
     alias cnt R10;
     cnt = 0;
 
-    while(cnt < 8) do 
-        if(([user_area_page_end + 2 * cnt] == SEMAPHORE) && ([user_area_page_end + 2 * cnt + 1] >= 0) && ([user_area_page_end + 2 * cnt + 1] < MAX_SEM_COUNT)) then
-            multipush(R1, R2, R8, R9, R10);
+    while(cnt < 16) do 
+        if(([user_area_page_end + cnt] == SEMAPHORE) && ([user_area_page_end + cnt + 1] >= 0) && ([user_area_page_end + cnt + 1] < MAX_SEM_COUNT)) then
+            // multipush(R1, R2, R8, R9, R10);
+            // RELEASE_SEMAPHORE only uses R1, R2, R3, R5
+            multipush(R1, R2);
             R1 = RELEASE_SEMAPHORE; 
-            R3 = [user_area_page_end + 2 * cnt + 1];
+            R3 = [user_area_page_end + cnt + 1];
             R2 = [SYSTEM_STATUS_TABLE + 1];
             // RELEASE_SEMAPHORE assumes that valid semaphore table index and pid are given
             call RESOURCE_MANAGER; 
-            multipop(R1, R2, R8, R9, R10);
+            multipop(R1, R2);
+            // multipop(R1, R2, R8, R9, R10);
         endif;
 
-        if([user_area_page_end + 2 * cnt + 0] == FILE) then
-            if([user_area_page_end + 2 * cnt + 1] >= 0 && [user_area_page_end + 2 * cnt + 1] < MAX_OPENFILE_NUM) then
-                multipush(R1, R2, R8, R9, R10);
+        if([user_area_page_end + cnt ] == FILE) then
+            if([user_area_page_end + cnt + 1] >= 0 && [user_area_page_end + cnt + 1] < MAX_OPENFILE_NUM) then
+                // multipush(R1, R2, R8, R9, R10);
+                // CLOSE only uses R5, R6
+                multipush(R1, R2);
                 R1 = CLOSE;
-                R2 = [user_area_page_end + 2 * cnt + 1];
+                R2 = [user_area_page_end + cnt + 1];
                 call FILE_MANAGER;
-                multipop(R1, R2, R8, R9, R10);
+                multipop(R1, R2);
+                // multipop(R1, R2, R8, R9, R10);
             endif;
         endif;
-        [user_area_page_end + 2 * cnt + 0] = -1;
-        // [user_area_page_end + 2 * cnt + 1] = -1;
-        cnt = cnt + 1;
+        [user_area_page_end + cnt ] = -1;
+        // [user_area_page_end + cnt + 1] = -1;
+        cnt = cnt + 2;
     endwhile;
 
 
 
 
-    multipush(R1, R2, R8);
+    // multipush(R1, R2, R8);
+    // RELEASE_PAGE only uses R10
+    multipush(R1, R2);
     // freeing user area page
     R1 = RELEASE_PAGE;
     R2 = user_area_page;
     call MEMORY_MANAGER;
-    multipop(R1, R2, R8);
+    multipop(R1, R2);
+    // multipop(R1, R2, R8);
     return;
 endif;
 
@@ -98,16 +109,18 @@ if(functionNum == EXIT_PROCESS) then
     if([process_table_entry + 9] != INT_EXEC) then
         alias index R11;
         index = 0;
+        alias process_table_entry_per_process R12;
         while(index < MAX_PROC_NUM) do
             // change the state to READY for the processes whose 
             // state is tuple (WAIT_PROCESS, current PID).
-            if(([PROCESS_TABLE + index * 16 + 4] == WAIT_PROCESS) && ([PROCESS_TABLE + index * 16 + 5] == PID)) then
-                [PROCESS_TABLE + index * 16 + 4] = READY;
+            process_table_entry_per_process = PROCESS_TABLE + 16 * index;
+            if(([process_table_entry_per_process + 4] == WAIT_PROCESS) && ([process_table_entry_per_process + 5] == PID)) then
+                [process_table_entry_per_process + 4] = READY;
             endif;
 
             // if the PPID of a process is PID of current process, then invalidate PPID field to -1
-            if([PROCESS_TABLE + index * 16 + 2] == PID) then
-                [PROCESS_TABLE + index * 16 + 2] = -1;
+            if([process_table_entry_per_process + 2] == PID) then
+                [process_table_entry_per_process + 2] = -1;
             endif;
 
             index = index + 1;
@@ -152,7 +165,7 @@ if(functionNum == FREE_PAGE_TABLE) then
 
     page_table = PAGE_TABLE_BASE + (PID * 20);
     // invalidating the library pages
-    [page_table + 0] = -1;
+    [page_table ] = -1;
     // [page_table + 1] = "0000";
     [page_table + 2] = -1;
     // [page_table + 3] = "0000";
@@ -169,9 +182,9 @@ if(functionNum == FREE_PAGE_TABLE) then
             call MEMORY_MANAGER;
             multipop(R1, R2, R9, R10);
             [page_table + cnt] = -1;
-            [page_table + cnt + 1] = "0000";
+            // [page_table + cnt + 1] = "0000";
             [page_table + cnt] = -1;
-            [page_table + cnt + 1] = "0000";
+            // [page_table + cnt + 1] = "0000";
         endif;
         // 2 words has been changed, so advancing by two words
         cnt = cnt + 2;
@@ -179,35 +192,40 @@ if(functionNum == FREE_PAGE_TABLE) then
     
     // invalidating the heap pages;
     cnt = 2;
+    alias disk_map_table_entry R11;
+    disk_map_table_entry = DISK_MAP_TABLE + PID * 10;
     while(cnt < 4) do
-        if([DISK_MAP_TABLE + PID * 10 + cnt] != -1) then
+        if([disk_map_table_entry + cnt] != -1) then
 
-            multipush(R1, R2, R9, R10);
+            multipush(R1, R2, R9, R10, R11);
             R1 = RELEASE_BLOCK;
-            R2 = [DISK_MAP_TABLE + PID * 10 + cnt];
+            R2 = [disk_map_table_entry + cnt];
             call MEMORY_MANAGER;
-            multipop(R1, R2, R9, R10);
+            multipop(R1, R2, R9, R10, R11);
             
         endif;
-        [DISK_MAP_TABLE + PID * 10 + cnt] = -1;
+        [disk_map_table_entry + cnt] = -1;
         cnt = cnt + 1;
     endwhile;
 
     // invalidating the stack pages
     cnt = 8;
     while(cnt < 10) do 
-        if([DISK_MAP_TABLE + PID * 10 + cnt] != -1) then
+        if([disk_map_table_entry + cnt] != -1) then
             
-            multipush(R1, R2, R9, R10);
+            // multipush(R1, R2, R9, R10);
+            // RELEASE_BLOCK does not use any other registers 
+            multipush(R1, R2);
             R1 = RELEASE_BLOCK;
-            R2 = [DISK_MAP_TABLE + PID * 10 + cnt];
+            R2 = [disk_map_table_entry + cnt];
             call MEMORY_MANAGER;
 
-            multipop(R1, R2, R9, R10);
+            multipop(R1, R2);
+            // multipop(R1, R2, R9, R10);
 
 
         endif;
-        [DISK_MAP_TABLE + PID * 10 + cnt] = -1;
+        [disk_map_table_entry + cnt] = -1;
         cnt = cnt + 1;
     endwhile;
 
@@ -216,7 +234,7 @@ if(functionNum == FREE_PAGE_TABLE) then
     
     cnt = 0;
     while(cnt < 10) do
-        [DISK_MAP_TABLE + PID * 10 + cnt] = -1;
+        [disk_map_table_entry + cnt] = -1;
         cnt = cnt + 1;
     endwhile;
 
@@ -290,7 +308,6 @@ endif;
 
 
 
-return;
 
 
 
