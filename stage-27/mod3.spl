@@ -259,4 +259,4 @@ if(functionNum == CLOSE) then
     return;
 endif;
 
-
+return;
