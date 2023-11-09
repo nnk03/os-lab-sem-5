@@ -4,121 +4,6 @@
 alias functionNum R1;
 // since function number is present in R1
 
-if(functionNum == GET_SWAP_BLOCK) then
-    // loop through entries from DISK_SWAP_AREA to DISK_SIZE - 1
-    alias cnt R5;
-    cnt = DISK_SWAP_AREA;
-    while(cnt < DISK_SIZE) do
-        if([DISK_FREE_LIST + cnt] == 0) then
-            [DISK_FREE_LIST + cnt] = 1;
-            // return this block
-            R0 = cnt;
-            return;
-        endif;
-
-        cnt = cnt + 1;
-    endwhile;
-
-
-    // return -1 if no disk block is free
-    R0 = -1;
-    return;
-
-endif;
-
-
-
-
-if(functionNum == GET_FREE_BLOCK) then
-    // no arguments 
-    alias cnt R5;
-    // loop through disk free list from DISK_FREE_AREA to DISK_SWAP_AREA - 1
-    cnt = DISK_FREE_AREA;
-    while(cnt < DISK_SWAP_AREA) do
-        if([DISK_FREE_LIST + cnt] == 0) then
-            [DISK_FREE_LIST + cnt] = 1;
-            R0 = cnt;
-            return;
-        endif;
-
-        cnt = cnt + 1;
-    endwhile;
-    
-    // if no free disk block is found
-    R0 = -1;
-    return;
-
-
-
-endif;
-
-
-
-
-if(functionNum == GET_CODE_PAGE) then
-    alias block_num R2;
-
-    alias cnt R9;
-    cnt = 0;
-    alias index R10;
-
-    alias page_table_addr R11;
-
-
-
-    while(cnt < MAX_PROC_NUM) do
-        index = 4;
-        while(index < 8) do
-            if([DISK_MAP_TABLE + cnt * 10 + index] == block_num) then
-                page_table_addr = [PAGE_TABLE_BASE + cnt * 20 + 2 * index];
-                
-                if(page_table_addr != -1) then
-                    [MEMORY_FREE_LIST + page_table_addr] = [MEMORY_FREE_LIST + page_table_addr] - 1;
-                    R0 = page_table_addr;
-                    return;
-                endif;
-            endif;
-            index = index + 1;
-
-        endwhile;
-        cnt = cnt + 1;
-    endwhile;
-    // if required page is not in memory
-    multipush(R1, R2, R9, R10, R11);
-    R1 = GET_FREE_PAGE;
-    call MEMORY_MANAGER;
-    multipop(R1, R2, R9, R10, R11);
-    // R0 will have the memory page
-    multipush(R0, R1, R2, R9, R10, R11);
-    R1 = DISK_LOAD;
-    R4 = block_num;
-    // since block_num is an alias for R2, which is going to be updated in the next line
-    R2 = [SYSTEM_STATUS_TABLE + 1];
-    R3 = R0;
-    call DEVICE_MANAGER;
-    multipop(R0, R1, R2, R9, R10, R11);
-    // R0 will have the loaded page
-    return;
-    
-
-
-
-endif;
-
-
-if(functionNum == RELEASE_BLOCK) then
-    alias disk_block_num R2;
-    // print("releaseblock");
-    // breakpoint;
-    [DISK_FREE_LIST + disk_block_num] = [DISK_FREE_LIST + disk_block_num] - 1;
-    // print("diskfreelist");
-    // print([DISK_FREE_LIST + disk_block_num]);
-    return;
-endif;
-
-
-
-
 
 if(functionNum == GET_FREE_PAGE) then
     //breakpoint;
@@ -163,7 +48,6 @@ if(functionNum == GET_FREE_PAGE) then
 
 endif;
 
-
 if(functionNum == RELEASE_PAGE) then
     // breakpoint;
     alias page_num R2;
@@ -187,6 +71,126 @@ if(functionNum == RELEASE_PAGE) then
     return;
 
 endif;
+
+
+
+if(functionNum == GET_FREE_BLOCK) then
+    // no arguments 
+    alias cnt R5;
+    // loop through disk free list from DISK_FREE_AREA to DISK_SWAP_AREA - 1
+    cnt = DISK_FREE_AREA;
+    while(cnt < DISK_SWAP_AREA) do
+        if([DISK_FREE_LIST + cnt] == 0) then
+            [DISK_FREE_LIST + cnt] = 1;
+            R0 = cnt;
+            return;
+        endif;
+
+        cnt = cnt + 1;
+    endwhile;
+    
+    // if no free disk block is found
+    R0 = -1;
+    return;
+
+
+
+endif;
+
+
+if(functionNum == RELEASE_BLOCK) then
+    alias disk_block_num R2;
+    // print("releaseblock");
+    // breakpoint;
+    [DISK_FREE_LIST + disk_block_num] = [DISK_FREE_LIST + disk_block_num] - 1;
+    // print("diskfreelist");
+    // print([DISK_FREE_LIST + disk_block_num]);
+    return;
+endif;
+
+
+
+
+if(functionNum == GET_CODE_PAGE) then
+    alias block_num R2;
+
+    alias cnt R9;
+    cnt = 0;
+    alias index R10;
+
+    alias page_table_addr R11;
+
+
+
+    while(cnt < MAX_PROC_NUM) do
+        index = 4;
+        while(index < 8) do
+            if([DISK_MAP_TABLE + cnt * 10 + index] == block_num) then
+                page_table_addr = [PAGE_TABLE_BASE + cnt * 20 + 2 * index];
+                
+                if(page_table_addr != -1) then
+                    [MEMORY_FREE_LIST + page_table_addr] = [MEMORY_FREE_LIST + page_table_addr] + 1;
+                    R0 = page_table_addr;
+                    return;
+                endif;
+            endif;
+            index = index + 1;
+
+        endwhile;
+        cnt = cnt + 1;
+    endwhile;
+    // if required page is not in memory
+    multipush(R1, R2, R9, R10);
+    R1 = GET_FREE_PAGE;
+    call MEMORY_MANAGER;
+    multipop(R1, R2, R9, R10);
+    // R0 will have the memory page
+    multipush(R0, R1, R2, R9, R10);
+    R1 = DISK_LOAD;
+    R4 = block_num;
+    // since block_num is an alias for R2, which is going to be updated in the next line
+    R2 = [SYSTEM_STATUS_TABLE + 1];
+    R3 = R0;
+    call DEVICE_MANAGER;
+    multipop(R0, R1, R2, R9, R10);
+    // R0 will have the loaded page
+    return;
+    
+
+
+
+endif;
+
+if(functionNum == GET_SWAP_BLOCK) then
+    // loop through entries from DISK_SWAP_AREA to DISK_SIZE - 1
+    alias cnt R5;
+    cnt = DISK_SWAP_AREA;
+    while(cnt < DISK_SIZE) do
+        if([DISK_FREE_LIST + cnt] == 0) then
+            [DISK_FREE_LIST + cnt] = 1;
+            // return this block
+            R0 = cnt;
+            return;
+        endif;
+
+        cnt = cnt + 1;
+    endwhile;
+
+
+    // return -1 if no disk block is free
+    R0 = -1;
+    return;
+
+endif;
+
+
+
+
+
+
+
+
+
 
 
 
