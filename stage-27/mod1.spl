@@ -8,64 +8,6 @@ alias PID R2;
 
 alias user_area_page R8;
 
-if(functionNum == KILL_ALL) then
-    // pid is the argument
-    alias current_PID R2;
-    // for each valid entry in INODE_TABLE, acquire lock
-    alias cnt R5;
-    cnt = 0;
-    while(cnt < MAX_FILE_NUM) do
-        if([INODE_TABLE + 16 * cnt + 1] != -1) then
-            multipush(R1, R2, R5);
-            R1 = ACQUIRE_INODE;
-            R2 = cnt;
-            R3 = [SYSTEM_STATUS_TABLE + 1];
-            call RESOURCE_MANAGER;
-            multipop(R1, R2, R5);
-        endif;
-        cnt = cnt + 1;
-    endwhile;
-
-    // for each pid from 2 to MAX_PROC_NUM - 1
-
-    cnt = 2;
-    while(cnt < MAX_PROC_NUM) do 
-        
-        if(cnt != current_PID && [PROCESS_TABLE + cnt * 16 + 4] != TERMINATED) then
-            // call EXIT_PROCESS
-            multipush(R1, R2, R5, R6);
-            R1 = EXIT_PROCESS;
-            R2 = cnt;
-            call PROCESS_MANAGER;
-            multipop(R1, R2, R5, R6);
-
-        endif;
-        
-        cnt = cnt + 1;
-    endwhile;
-
-    cnt = 0;
-    while(cnt < MAX_FILE_NUM) do
-        if([INODE_TABLE + 16 * cnt + 1] != -1) then
-            multipush(R1, R2, R5, R6);
-            R1 = RELEASE_INODE;
-            R2 = cnt;
-            R3 = [SYSTEM_STATUS_TABLE + 1];
-            call RESOURCE_MANAGER;
-            multipop(R1, R2, R5, R6);
-        endif;
-        cnt = cnt + 1;
-    endwhile;
-
-    // return
-    return;
-
-
-
-endif;
-
-
-
 if(functionNum == GET_PCB_ENTRY) then
     // no arguments for GET_PCB_ENTRY
 
@@ -99,7 +41,6 @@ if(functionNum == GET_PCB_ENTRY) then
 
 
 endif;
-
 
 
 if(functionNum == FREE_USER_AREA_PAGE) then
@@ -147,6 +88,8 @@ if(functionNum == FREE_USER_AREA_PAGE) then
     multipop(R1, R2, R8);
     return;
 endif;
+
+
 
 if(functionNum == EXIT_PROCESS) then
     alias process_table_entry R10;
@@ -275,6 +218,66 @@ if(functionNum == FREE_PAGE_TABLE) then
 
     return;
 endif;
+
+
+if(functionNum == KILL_ALL) then
+    // pid is the argument
+    alias current_PID R2;
+    // for each valid entry in INODE_TABLE, acquire lock
+    alias cnt R5;
+    cnt = 0;
+    while(cnt < MAX_FILE_NUM) do
+        if([INODE_TABLE + 16 * cnt + 1] != -1) then
+            multipush(R1, R2, R5);
+            R1 = ACQUIRE_INODE;
+            R2 = cnt;
+            R3 = [SYSTEM_STATUS_TABLE + 1];
+            call RESOURCE_MANAGER;
+            multipop(R1, R2, R5);
+        endif;
+        cnt = cnt + 1;
+    endwhile;
+
+    // for each pid from 2 to MAX_PROC_NUM - 1
+
+    cnt = 2;
+    while(cnt < MAX_PROC_NUM) do 
+        
+        if(cnt != current_PID && [PROCESS_TABLE + cnt * 16 + 4] != TERMINATED) then
+            // call EXIT_PROCESS
+            multipush(R1, R2, R5, R6);
+            R1 = EXIT_PROCESS;
+            R2 = cnt;
+            call PROCESS_MANAGER;
+            multipop(R1, R2, R5, R6);
+
+        endif;
+        
+        cnt = cnt + 1;
+    endwhile;
+
+    cnt = 0;
+    while(cnt < MAX_FILE_NUM) do
+        if([INODE_TABLE + 16 * cnt + 1] != -1) then
+            multipush(R1, R2, R5, R6);
+            R1 = RELEASE_INODE;
+            R2 = cnt;
+            R3 = [SYSTEM_STATUS_TABLE + 1];
+            call RESOURCE_MANAGER;
+            multipop(R1, R2, R5, R6);
+        endif;
+        cnt = cnt + 1;
+    endwhile;
+
+    // return
+    return;
+
+
+
+endif;
+
+
+
 
 return;
 
