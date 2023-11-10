@@ -99,6 +99,8 @@ if(system_call_number == INT_SIGNAL) then
     [[PTBR + 2 * (userSP - 1) / 512] * 512 + (userSP - 1) % 512] = 0;
 
 
+    SP = userSP;
+    ireturn;
 
 endif;
 
@@ -111,6 +113,8 @@ if(system_call_number == INT_GETPID) then
 
     [[PTBR + 2 * (userSP - 1) / 512] * 512 + (userSP - 1) % 512] = [process_table_entry + 1];
     [process_table_entry + 9] = 0;
+    SP = userSP;
+    ireturn;
 endif;
 
 
@@ -121,6 +125,8 @@ if(system_call_number == INT_GETPPID) then
     // stores parent PID as return value
     [[PTBR + 2 * (userSP - 1) / 512] * 512 + (userSP - 1) % 512] = [process_table_entry + 2];
     [process_table_entry + 9] = 0;
+    SP = userSP;
+    ireturn;
 endif;
 
 
