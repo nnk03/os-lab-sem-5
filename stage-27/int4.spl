@@ -188,7 +188,8 @@ if(system_call_number == INT_DELETE) then
 	//          return -1. 
 
     if([inode_table_entry + 4] == EXCLUSIVE) then
-        if([SYSTEM_STATUS_TABLE + 0] != ROOT && [process_table_entry + 3] != [inode_table_entry + 3]) then
+        // if([SYSTEM_STATUS_TABLE + 0] != ROOT && [process_table_entry + 3] != [inode_table_entry + 3]) then
+        if([SYSTEM_STATUS_TABLE + 0] != ROOT && [SYSTEM_STATUS_TABLE + 0] != [inode_table_entry + 3]) then
             // print("unAUTHORISED");
             // reset mode flag to zero
             [process_table_entry + 9] = 0;
@@ -250,7 +251,7 @@ if(system_call_number == INT_DELETE) then
 
         // block_number = (block_number % MAX_BUFFER);
         // for each valid disk block allocated to the file
-        if([DISK_FREE_LIST + block_number] > 0) then
+        if(block_number != -1 && [DISK_FREE_LIST + block_number] > 0) then
             buffer_table_index = block_number % MAX_BUFFER;
             if([BUFFER_TABLE + buffer_table_index * 4 + 0] == block_number && [BUFFER_TABLE + buffer_table_index * 4 + 1] == 1) then
                 // reset the dirty bit
