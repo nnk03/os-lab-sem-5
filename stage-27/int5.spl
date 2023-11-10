@@ -113,7 +113,6 @@ if(system_call_number == INT_SEEK) then
         if((lseek + offset) > [INODE_TABLE + 16 * index_in_inode_table + 2]) then
             [OPEN_FILE_TABLE + 4 * index_in_open_file_table + 2] = [INODE_TABLE + 16 * index_in_inode_table + 2];
         else
-            // change the lseek value in per process table entry ?? ???????
             [OPEN_FILE_TABLE + 4 * index_in_open_file_table + 2] = lseek + offset;
         endif;
 
