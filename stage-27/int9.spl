@@ -64,7 +64,7 @@ SP = [processTableEntry + 11] * 512 - 1;
 
 // initializing per process table 
 alias user_area_page_end R15;
-user_area_page_end = [PROCESS_TABLE + (PID * 16) + 11] * 512 + 512 - 16;
+user_area_page_end = [PROCESS_TABLE + (PID * 16) + 11] * 512 + RESOURCE_TABLE_OFFSET;
 cnt = 0;
 // setting last 8 entries (2 words per entry) to -1
 while(cnt < 8) do 
@@ -76,6 +76,15 @@ endwhile;
 
 // storing the inode index in the process table
 [processTableEntry + 7] = cnt;
+
+// added new 
+cnt = 0;
+while(cnt < 10) do
+    [PTBR + 2 * cnt] = -1;
+    [PTBR + 2 * cnt + 1] = "0000";
+
+    cnt = cnt + 1;
+endwhile;
 
 //library
 [PTBR + 0] = 63;
@@ -111,6 +120,8 @@ R1 = GET_FREE_PAGE;
 call MEMORY_MANAGER;
 [PTBR + 16] = R0;
 [PTBR + 17] = "0110";
+multipop(R7, R8, R9, R10, R11, R12, R13, R14);
+multipush(R7, R8, R9, R10, R11, R12, R13, R14);
 R1 = GET_FREE_PAGE;
 call MEMORY_MANAGER;
 [PTBR + 18] = R0;
@@ -137,7 +148,7 @@ multipop(R7, R8, R9, R10, R11, R12, R13, R14);
 // code
 
 cnt = 0;
-while((cnt <= ([INODE_TABLE + inodeEntry * 16 + 2] / PAGE_SIZE)) && cnt < 4) do
+while((cnt < (([INODE_TABLE + inodeEntry * 16 + 2] + PAGE_SIZE - 1) / PAGE_SIZE)) && cnt < 4) do
     [DISK_MAP_TABLE + PID * 10 + 4 + cnt] = [INODE_TABLE + inodeEntry * 16 + 8 + cnt];
     cnt = cnt + 1;
 endwhile;
