@@ -1,0 +1,137 @@
+// interrupt 11 system call
+
+// extract the system call number from the user stack and
+// switch to kernel stack
+
+alias userSP R4;
+userSP = SP;
+
+alias system_call_number R5;
+system_call_number = [[PTBR + 2 * (userSP - 5) / 512] * 512 + (userSP - 5) % 512];
+
+alias currentPID R6;
+currentPID = [SYSTEM_STATUS_TABLE + 1];
+
+alias process_table_entry R7;
+process_table_entry = PROCESS_TABLE + currentPID * 16;
+
+[process_table_entry + 13] = SP;
+SP = [process_table_entry + 11] * 512 - 1;
+
+// check for which system call has occurred
+if(system_call_number == INT_WAIT) then
+    // setting the mode flag in process table 
+    [process_table_entry + 9] = INT_WAIT;
+
+    // wait system call takes PID of a process (for which the given process will wait) as an argument.
+    alias wait_pid R8;
+    // wait_pid is the argument PID
+    wait_pid = [[PTBR + 2 * (userSP - 4) / 512] * 512 + (userSP - 4) % 512];
+
+    // first we should check for valid conditions for argument
+    // argument PID should be in valid range, ie 0 to MAX_PROC_NUM
+    // a process should not wait for itself or terminated process
+
+    if((wait_pid < 0) || (wait_pid >= MAX_PROC_NUM) || (wait_pid == currentPID) || [PROCESS_TABLE + wait_pid * 16 + 4] == TERMINATED) then
+        // storing -1 as return value
+        [[PTBR + 2 * (userSP - 1) / 512] * 512 + (userSP - 1) % 512] = -1;
+        
+        // resetting the mode flag
+        [process_table_entry + 9] = 0;
+        // switching to user stack 
+        SP = userSP;
+        
+        // returning to user mode
+        ireturn;
+
+    endif;
+
+    // Changing the state of the current process from RUNNING 
+    // to the tuple (WAIT_PROCESS, argument PID) in the process table
+    [process_table_entry + 4] = WAIT_PROCESS;
+    [process_table_entry + 5] = wait_pid;
+
+    // we only need userSP (alias for R4) and process_table_entry (alias R7) after
+    // returning from scheduler, hence multipushing only those two
+    multipush(R4, R7);
+    call SCHEDULER;
+    multipop(R4, R7);
+    // resetting the mode flag
+    [process_table_entry + 9] = 0;
+
+    // storing 0 as return value
+    [[PTBR + 2 * (userSP - 1) / 512] * 512 + (userSP - 1) % 512] = 0;
+
+    // switching to user stack and returning
+    SP = userSP;
+    ireturn;
+    
+
+
+endif;
+
+
+if(system_call_number == INT_SIGNAL) then
+    // this system call does not have any arguments
+
+    // setting the mode flag in process table 
+    [process_table_entry + 9] = INT_SIGNAL;
+
+    
+    alias cnt R9;
+    // wait_pid is also alias for R8 but that is in the previous "if" block
+    cnt = 0;
+    while(cnt < MAX_PROC_NUM) do
+
+        // if state is the tuple (WAIT_PROCESS, currentPID) then we change the state to READY
+
+        if(([PROCESS_TABLE + cnt * 16 + 4] == WAIT_PROCESS) && ([PROCESS_TABLE + cnt * 16 + 5] == currentPID)) then
+            [PROCESS_TABLE + cnt * 16 + 4] = READY;
+        endif;
+
+        cnt = cnt + 1;
+    endwhile;
+    
+    // resetting the mode flag to zero
+    [process_table_entry + 9] = 0;
+
+    // storing return value as zero 
+    [[PTBR + 2 * (userSP - 1) / 512] * 512 + (userSP - 1) % 512] = 0;
+
+
+    SP = userSP;
+    ireturn;
+
+endif;
+
+
+if(system_call_number == INT_GETPID) then
+    // setting the mode flag in process table 
+    [process_table_entry + 9] = INT_GETPID;
+
+    // stores PID as return value
+
+    [[PTBR + 2 * (userSP - 1) / 512] * 512 + (userSP - 1) % 512] = [process_table_entry + 1];
+    [process_table_entry + 9] = 0;
+    SP = userSP;
+    ireturn;
+endif;
+
+
+if(system_call_number == INT_GETPPID) then
+    // setting the mode flag in process table 
+    [process_table_entry + 9] = INT_GETPPID;
+
+    // stores parent PID as return value
+    [[PTBR + 2 * (userSP - 1) / 512] * 512 + (userSP - 1) % 512] = [process_table_entry + 2];
+    [process_table_entry + 9] = 0;
+    SP = userSP;
+    ireturn;
+endif;
+
+
+
+// change back to user stack and return to user mode
+SP = userSP;
+ireturn;
+
