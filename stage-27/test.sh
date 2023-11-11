@@ -6,8 +6,8 @@ pwd
 for i in *.spl
 do
     echo "$i"
-    echo "print($i)" 
-    cat $i > test.txt
+    echo "print(\"$i\");" > test.txt 
+    cat $i >> test.txt
     cat test.txt > $i
 done
 
