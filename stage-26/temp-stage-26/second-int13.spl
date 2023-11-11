@@ -1,0 +1,126 @@
+// SEMGET and SEMRELEASE
+// interrupt 13
+
+// storing userSP 
+alias userSP R5;
+userSP = SP;
+
+// extracting sytem call number from user stack 
+alias system_call_number R6;
+system_call_number = [[PTBR + 2 * (userSP - 5) / 512] * 512 + (userSP - 5) % 512];
+
+
+// switching to kernel stack
+alias current_PID R7;
+alias process_table_entry R8;
+current_PID = [SYSTEM_STATUS_TABLE + 1];
+process_table_entry = PROCESS_TABLE + current_PID * 16;
+
+[process_table_entry + 13] = SP;
+SP = [process_table_entry + 11] * 512 - 1;
+
+alias return_address R15;
+return_address = [PTBR + 2 * (userSP - 1) / 512] * 512 + (userSP - 1) % 512;
+
+if(system_call_number == INT_SEMGET) then
+    [process_table_entry + 9] = INT_SEMGET;
+
+    alias index R9;
+    index = 0;
+
+    alias user_area_page_end R10;
+    user_area_page_end = [process_table_entry + 11] * 512 + RESOURCE_TABLE_OFFSET;
+
+
+    while(index < 8) do
+        if([user_area_page_end + 2 * index + 0] == -1) then
+            break;
+        endif;
+        index = index + 1;
+    endwhile;
+
+    if(index == 8) then
+        [process_table_entry + 9] = 0;
+        [return_address] = -1;
+        SP = userSP;
+        ireturn;
+    endif;
+    
+    multipush(R5, R6, R7, R8, R9, R10, R15);
+    R1 = ACQUIRE_SEMAPHORE;
+    R2 = current_PID;
+    call RESOURCE_MANAGER;
+    multipop(R5, R6, R7, R8, R9, R10, R15);
+
+    if(R0 == -1) then
+        [process_table_entry + 9] = 0;
+        [return_address] = -2;
+        SP = userSP;
+        ireturn;
+    endif;
+
+    [user_area_page_end + 2 * index + 0] = SEMAPHORE;
+    [user_area_page_end + 2 * index + 1] = R0;
+
+    [process_table_entry + 9] = 0;
+    [return_address] = index;
+    SP = userSP;
+    ireturn;
+
+
+
+
+endif;
+
+
+if(system_call_number == INT_SEMRELEASE) then
+    // argument is sem_id
+
+    alias sem_id R9;
+    sem_id = [[PTBR + 2 * (userSP - 4) / 512] * 512 + (userSP - 4) % 512];
+
+    alias user_area_page_end R10;
+    user_area_page_end = [process_table_entry + 11] * 512 + RESOURCE_TABLE_OFFSET;
+    
+    if(sem_id < 0 || sem_id >= 8 || [user_area_page_end + 2 * sem_id + 0] != SEMAPHORE) then
+        [return_address] = -1;
+        [process_table_entry + 9] = 0;
+        SP = userSP;
+        ireturn;
+    endif;
+
+    multipush(R5, R6, R7, R8, R9, R10, R15);
+    R1 = RELEASE_SEMAPHORE;
+    R2 = [user_area_page_end + 2 * sem_id + 1];
+    R3 = current_PID;
+    call RESOURCE_MANAGER;
+    multipop(R5, R6, R7, R8, R9, R10, R15);
+
+    [user_area_page_end + 2 * sem_id] = -1;
+    [user_area_page_end + 2 * sem_id + 1] = -1;
+
+    [process_table_entry + 9] = 0;
+
+    [return_address] = 0;
+    SP = userSP;
+    ireturn;
+
+
+
+endif;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

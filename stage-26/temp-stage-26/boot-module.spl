@@ -1,0 +1,326 @@
+// mod-7 --> boot module
+
+
+
+loadi(50, 63);
+loadi(51, 64); // for module - 5  --> scheduler
+
+loadi(40, 53);
+loadi(41, 54); // for module 0 --> resource manager
+
+loadi(48, 61);
+loadi(49, 62); // for module 4 --> device manager 
+
+[TERMINAL_STATUS_TABLE + 0] = 0; // denoting terminal is free before scheduling the first process
+
+loadi(20, 33);
+loadi(21, 34); // for interrupt 9 --> exec
+
+loadi(42, 55);
+loadi(43, 56); // for module 1 --> Process manager
+
+loadi(44, 57);
+loadi(45, 58); // for module 2 --> memory manager;
+
+loadi(59, 3);
+loadi(60, 4); // for loading memory copy of inode table
+
+loadi(6, 19);
+loadi(7, 20); // for interrupt 2 --> Disk interrupt handler 
+
+loadi(61, 2); // for loading DISK_FREE_LIST
+
+loadi(18, 31);
+loadi(19, 32); // for loading interrupt 8 --> fork
+
+loadi(24, 37);
+loadi(25, 38); // for loading interrupt 11 --> GETPID, GETPPID, WAIT, SIGNAL
+
+loadi(32, 45);
+loadi(33, 46); // for loading interrupt 15 --> SHUTDOWN
+
+loadi(28, 41);
+loadi(29, 42); // for loading interrupt 13 --> SEMGET and SEMRELEASE
+
+loadi(30, 43);
+loadi(31, 44); // for loading interrupt 14 --> SEMLOCK and SEMUNLOCK
+
+loadi(10, 23);
+loadi(11, 24); // for loading interrupt 4 --> CREATE and DELETE
+
+loadi(62, 5); // for loading root file 
+
+loadi(12, 25);
+loadi(13, 26); // for loading interrupt 5 --> SEEK, OPEN, CLOSE
+
+loadi(46, 59);
+loadi(47, 60); // for loading module 5 --> FILE MANAGER
+
+
+
+
+
+
+// setting process table entries to -1
+alias cnt R0;
+
+cnt = 0;
+// setting state of all process to TERMINATED
+
+while(cnt < MAX_PROC_NUM) do 
+	[PROCESS_TABLE + (cnt * 16) + 4] = TERMINATED;
+	cnt = cnt + 1;
+endwhile;
+
+// initializing the STATE of the DISK_STATUS_TABLE to 0
+[DISK_STATUS_TABLE + 0] = 0;
+
+
+
+// initializing the semaphore table 
+cnt = 0;
+while(cnt < MAX_SEM_COUNT) do
+    [SEMAPHORE_TABLE + 4 * cnt + 0] = -1; // LOCKING PID to -1
+    [SEMAPHORE_TABLE + 4 * cnt + 1] = 0; // PROCESS_COUNT to 0
+
+    cnt = cnt + 1;
+endwhile;
+
+
+
+
+
+
+// now, pid 1 is for login, init
+
+PTBR = PAGE_TABLE_BASE + 20;
+PTLR = 10;
+
+//Library
+[PTBR+0] = 63;
+[PTBR+1] = "0100";
+[PTBR+2] = 64;
+[PTBR+3] = "0100";
+
+//Heap
+[PTBR+4] = -1;
+[PTBR+5] = "0110";
+[PTBR+6] = -1;
+[PTBR+7] = "0110";
+
+//Code
+[PTBR+8] = 65;
+[PTBR+9] = "0100";
+[PTBR+10] = -1;
+[PTBR+11] = "0100";
+[PTBR+12] = -1;
+[PTBR+13] = "0000";
+[PTBR+14] = -1;
+[PTBR+15] = "0000";
+
+//stack
+[PTBR+16] = 66;
+[PTBR+17] = "0110";
+[PTBR+18] = -1;
+[PTBR+19] = "0110";
+
+// setting the entry point of init
+[66 * 512] = [65 * 512 + 1];
+
+alias process_table_entry R2;
+process_table_entry = PROCESS_TABLE + 16;
+alias disk_map_table_entry R3;
+disk_map_table_entry = DISK_MAP_TABLE + 10;
+
+// for init process - 1
+//PID
+[process_table_entry + 1] = 1;
+//STATE
+[process_table_entry + 4] = CREATED;
+//UAPN
+[process_table_entry + 11] = 77;
+//PTBR
+[process_table_entry + 14] = PAGE_TABLE_BASE + 20;
+//PTLR
+[process_table_entry + 15] = 10;
+//UPTR
+[process_table_entry + 13] = 8 * 512;
+//KPTR 
+[process_table_entry + 12] = 0;
+// USERID of INIT to root
+[process_table_entry + 3] = 1;
+
+// Remove disk map table initialization for the init process as it is not needed any longer.
+cnt = 0;
+while(cnt < 10) do
+    [disk_map_table_entry + cnt] = -1;
+    cnt = cnt + 1;
+endwhile;
+
+// code pages of INIT
+// [disk_map_table_entry + 4] = 7;
+// [disk_map_table_entry + 5] = 8; 
+
+
+
+
+
+
+// pid 2 is for shell 
+PTBR = PAGE_TABLE_BASE + 40;
+PTLR = 10;
+
+//Library
+[PTBR+0] = 63;
+[PTBR+1] = "0100";
+[PTBR+2] = 64;
+[PTBR+3] = "0100";
+
+//Heap
+[PTBR+4] = -1;
+[PTBR+5] = "0110";
+[PTBR+6] = -1;
+[PTBR+7] = "0110";
+
+//Code
+[PTBR+8] = 67;
+[PTBR+9] = "0100";
+[PTBR+10] = 68;
+[PTBR+11] = "0100";
+[PTBR+12] = -1;
+[PTBR+13] = "0000";
+[PTBR+14] = -1;
+[PTBR+15] = "0000";
+
+//stack
+[PTBR+16] = 78;
+[PTBR+17] = "0110";
+[PTBR+18] = 79;
+[PTBR+19] = "0110";
+
+
+// still not sure if its correct 
+// for shell process - 2
+process_table_entry = PROCESS_TABLE + 32;
+
+//PID
+[process_table_entry + 1] = 2;
+// PPID
+[process_table_entry + 2] = 1;
+//STATE
+[process_table_entry + 4] = TERMINATED;
+//UAPN
+[process_table_entry + 11] = 80;
+//PTBR
+[process_table_entry + 14] = PAGE_TABLE_BASE + 40;
+//PTLR
+[process_table_entry + 15] = 10;
+//UPTR
+[process_table_entry + 13] = 8 * 512;
+//KPTR 
+[process_table_entry + 12] = 0;
+// USERID of INIT to root
+[process_table_entry + 3] = 1;
+
+// setting the entry point for shell
+[78 * 512] = [67 * 512 + 1];
+
+// initializing the DISK_MAP_TABLE of init process
+
+cnt = 0;
+disk_map_table_entry = DISK_MAP_TABLE + 20;
+
+while(cnt < 10) do
+    [disk_map_table_entry + cnt] = -1;
+    cnt = cnt + 1;
+endwhile;
+// load the block numbers of two code pages
+[disk_map_table_entry + 4] = 9;
+[disk_map_table_entry + 5] = 10;
+
+
+
+
+
+
+
+
+
+
+
+//
+
+//  the effective free pool (MEM_FREE_COUNT value) at the end of OS initialization process starts from memory page 83.
+cnt = 0;
+while(cnt < 83) do 
+    [MEMORY_FREE_LIST + cnt] = 1;
+    cnt = cnt + 1;
+endwhile;
+
+while(cnt < MAX_MEM_PAGE) do 
+    [MEMORY_FREE_LIST + cnt] = 0;
+    cnt = cnt + 1;
+endwhile;
+
+
+// initializing WAIT_MEM_COUNT to zero
+[SYSTEM_STATUS_TABLE + 3] = 0;
+
+// initializing MEM_FREE_COUNT in system status table
+// should be 47, but anyways
+// [SYSTEM_STATUS_TABLE + 2] = 128 - 83;
+[SYSTEM_STATUS_TABLE + 2] = 47;
+
+
+//print("ret boot");
+// Initialize the file status table by setting LOCKING PID and FILE OPEN COUNT fields of all entries to -1.
+// print("initFST");
+cnt = 0;
+while(cnt < MAX_FILE_NUM) do
+    // print(cnt);
+    [FILE_STATUS_TABLE + cnt * 4 + 0] = -1;
+    [FILE_STATUS_TABLE + cnt * 4 + 1] = -1;
+    cnt = cnt + 1;
+endwhile;
+
+// Initialize the buffer table by setting BLOCK NUMBER and LOCKING PID fields to -1 and DIRTY BIT to 0 in all entries.
+cnt = 0;
+while(cnt < MAX_BUFFER) do
+    [BUFFER_TABLE + cnt * 4 + 0] = -1;
+    [BUFFER_TABLE + cnt * 4 + 2] = -1;
+
+    [BUFFER_TABLE + cnt * 4 + 1] = 0;
+
+    cnt = cnt + 1;
+endwhile;
+
+// initializing per process table of INIT process 
+alias user_area_page_end R1;
+user_area_page_end = [PROCESS_TABLE + (1 * 16) + 11] * 512 + 512 - 16;
+cnt = 0;
+// setting last 8 entries (2 words per entry) to -1
+while(cnt < 16) do 
+    [user_area_page_end + cnt] = -1;
+    [user_area_page_end + cnt + 1] = -1;
+    cnt = cnt + 2;
+endwhile;
+
+// initializing open file table by setting INODE_INDEX to -1 and OPEN INSTANCE COUNT to 0
+cnt = 0;
+while(cnt < MAX_OPENFILE_NUM) do
+    // INODE_INDEX
+    [OPEN_FILE_TABLE + 4 * cnt + 0] = -1;
+    // OPEN_INSTANCE_COUNT
+    [OPEN_FILE_TABLE + 4 * cnt + 1] = 0;
+
+    cnt = cnt + 1;
+endwhile;
+
+
+
+
+
+return;
+
+
+
