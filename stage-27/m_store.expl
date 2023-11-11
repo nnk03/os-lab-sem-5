@@ -84,21 +84,21 @@ begin
 
   write("Stored");
 
-  pid=exposcall("Fork");
-  if(pid!=0) then
-    while(pid<13) do
-      x=exposcall("Wait", pid);
-      pid=pid+1;
-    endwhile;
-  else
-    x=exposcall("Fork");
-    x=exposcall("Fork");
-    x=exposcall("Fork");
-
-    x=exposcall("Exec", "m_sort.xsm");
-  endif;
-
-  write("Sorted");
+//  pid=exposcall("Fork");
+//  if(pid!=0) then
+//    while(pid<13) do
+//      x=exposcall("Wait", pid);
+//      pid=pid+1;
+//    endwhile;
+//  else
+//    x=exposcall("Fork");
+//    x=exposcall("Fork");
+//    x=exposcall("Fork");
+//
+//    x=exposcall("Exec", "m_sort.xsm");
+//  endif;
+//
+//  write("Sorted");
 
   return 1;
 end

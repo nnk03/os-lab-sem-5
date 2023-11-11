@@ -26,12 +26,12 @@ begin
     x=exposcall("Exec", "m_store.xsm");
   endif;
 
-  pid=exposcall("Fork");
-  if(pid!=0) then
-    x=exposcall("Wait", pid);
-  else
-    x=exposcall("Exec", "m_merge.xsm");
-  endif;
+//  pid=exposcall("Fork");
+//  if(pid!=0) then
+//    x=exposcall("Wait", pid);
+//  else
+//    x=exposcall("Exec", "m_merge.xsm");
+//  endif;
 
   a=exposcall("Seek", fp, 0);
   a=exposcall("Read", fp, word);
