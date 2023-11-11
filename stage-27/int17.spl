@@ -66,14 +66,14 @@ endif;
 // shell is assumed to be PID 2
 
 // state
-[PROCESS_TABLE + 16 * 2 + 4] = CREATED;
+[PROCESS_TABLE + 16 * SHELL_PROCESS + 4] = CREATED;
 // userID
-[PROCESS_TABLE + 16 * 2 + 3] = user_table_index;
+[PROCESS_TABLE + 16 * SHELL_PROCESS + 3] = user_table_index;
 
 // login waits for shell to exit
 
 [PROCESS_TABLE + 16 * current_PID + 4] = WAIT_PROCESS;
-[PROCESS_TABLE + 16 * current_PID + 5] = 2;
+[PROCESS_TABLE + 16 * current_PID + 5] = SHELL_PROCESS;
 
 // in the SYSTEM_STATUS_TABLE, set CURRENT_USER_ID to that of the current_user
 [SYSTEM_STATUS_TABLE + 0] = user_table_index;
