@@ -12,7 +12,7 @@ begin
 
   counter=0;
   while(counter<512) do
-    word=512-counter;
+    word=counter+1;
     x=exposcall("Write", fp, word);
     counter=counter+1;
   endwhile;
