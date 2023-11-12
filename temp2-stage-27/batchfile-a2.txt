@@ -1,0 +1,43 @@
+fdisk
+load --os $HOME/myexpos/stage-27/second-os-startup.xsm
+load --module 7 $HOME/myexpos/stage-27/second-boot-module.xsm
+load --library $HOME/myexpos/expl/library.lib
+load --idle $HOME/myexpos/stage-27/idle-process.xsm
+load --init $HOME/myexpos/stage-27/login.xsm
+load --shell $HOME/myexpos/stage-27/shell3.xsm
+load --exhandler $HOME/myexpos/stage-27/exhandler.xsm
+load --int=console $HOME/myexpos/stage-27/console-int.xsm
+load --int=disk $HOME/myexpos/stage-27/disk-int.xsm
+load --int=timer $HOME/myexpos/stage-27/timer-new.xsm
+load --int=4 $HOME/myexpos/stage-27/int4.xsm
+load --int=5 $HOME/myexpos/stage-27/int5.xsm
+load --int=6 $HOME/myexpos/stage-27/int6-new.xsm
+load --int=7 $HOME/myexpos/stage-27/int7-new.xsm
+load --int=8 $HOME/myexpos/stage-27/int8.xsm
+load --int=9 $HOME/myexpos/stage-27/int9-cleaned.xsm
+load --int=10 $HOME/myexpos/stage-27/int10.xsm
+load --int=11 $HOME/myexpos/stage-27/int11.xsm
+load --int=12 $HOME/myexpos/stage-27/int12.xsm
+load --int=13 $HOME/myexpos/stage-27/second-int13.xsm
+load --int=14 $HOME/myexpos/stage-27/second-int14.xsm
+load --int=15 $HOME/myexpos/stage-27/int15.xsm
+load --int=16 $HOME/myexpos/stage-27/int16.xsm
+load --int=17 $HOME/myexpos/stage-27/int17.xsm
+load --module 0 $HOME/myexpos/stage-27/mod0.xsm
+load --module 1 $HOME/myexpos/stage-27/mod1.xsm
+load --module 2 $HOME/myexpos/stage-27/mod2.xsm
+load --module 3 $HOME/myexpos/stage-27/mod3.xsm
+load --module 4 $HOME/myexpos/stage-27/mod4.xsm
+load --module 5 $HOME/myexpos/stage-27/scheduler-new.xsm
+load --module 6 $HOME/myexpos/stage-27/mod6-cleaned.xsm
+load --exec $HOME/myexpos/stage-27/ls.xsm
+load --exec $HOME/myexpos/stage-27/rm.xsm
+load --exec $HOME/myexpos/stage-27/cat.xsm
+load --exec $HOME/myexpos/stage-27/cp.xsm
+load --exec $HOME/myexpos/stage-27/lu.xsm
+load --exec $HOME/myexpos/stage-27/ru.xsm
+load --exec $HOME/myexpos/stage-27/a1-27.xsm
+load --exec $HOME/myexpos/stage-27/pid.xsm
+load --exec $HOME/myexpos/stage-27/a2-27.xsm
+dump --inodeusertable
+dump --rootfile

@@ -1,0 +1,93 @@
+// SCHEDULER --> MODULE 5
+
+// already in kernel stack 
+multipush(BP);
+[PROCESS_TABLE + ([SYSTEM_STATUS_TABLE + 1] * 16) + 12] = SP % 512;
+[PROCESS_TABLE + ([SYSTEM_STATUS_TABLE + 1] * 16) + 14] = PTBR;
+[PROCESS_TABLE + ([SYSTEM_STATUS_TABLE + 1] * 16) + 15] = PTLR;
+
+alias currentPID R5;
+alias process_table_entry R6;
+alias newPID R7;
+currentPID = [SYSTEM_STATUS_TABLE+1];
+
+process_table_entry = PROCESS_TABLE + currentPID * 16;
+
+[process_table_entry+12]=SP%512;
+[process_table_entry+14]=PTBR;
+[process_table_entry+15]=PTLR;
+
+if([SYSTEM_STATUS_TABLE + 5] != 0) then
+    // paging is ongoing
+    if([PROCESS_TABLE + 16 * SWAPPER_DAEMON + 4] != READY) then
+        newPID = IDLE_PROCESS;
+    else
+        newPID = SWAPPER_DAEMON;
+    endif;
+else
+    newPID = -1;
+    
+    //  Find the next non swapped process to schedule 
+    // using the Round Robin scheduling technique, excluding the 
+    // Swapper Daemon
+
+    alias cnt R8;
+    cnt = currentPID + 1;
+    while(cnt < MAX_PROC_NUM - 1) do 
+        if([PROCESS_TABLE + 16 * cnt + 6] == 0 && ([PROCESS_TABLE + 16 * cnt + 4]==CREATED || [PROCESS_TABLE + 16 * cnt + 4]==READY)) then
+            newPID = cnt;
+            break;
+        endif;
+        cnt = cnt + 1;
+    endwhile;
+    if(newPID == -1) then
+        cnt = 1;
+        while(cnt < currentPID) do
+            if([PROCESS_TABLE + 16 * cnt + 6] == 0 && ([PROCESS_TABLE + 16 * cnt + 4]==CREATED || [PROCESS_TABLE + 16 * cnt + 4]==READY)) then
+                newPID = cnt;
+                break;
+            endif;
+            cnt = cnt + 1;
+        endwhile;
+        if(newPID == -1) then
+            newPID = 0;
+        endif;
+    endif;
+
+endif;
+
+process_table_entry = PROCESS_TABLE + newPID * 16;
+SP = [process_table_entry + 11] * 512 + [process_table_entry + 12] % 512;
+PTBR = [process_table_entry + 14];
+PTLR = [process_table_entry + 15];
+[SYSTEM_STATUS_TABLE + 1] = newPID;
+
+if([process_table_entry + 4] == CREATED)then
+    // print("HERE");
+    // print(newPID);
+    SP = [process_table_entry + 13];
+    [process_table_entry + 4] = RUNNING;
+    [process_table_entry + 9] = 0;
+
+    // storing the value in the first word of kernel stack to the BP register
+    BP = [[process_table_entry + 11] * 512];
+
+    ireturn;
+endif;
+
+
+[process_table_entry + 4] = RUNNING;
+
+
+
+
+multipop(BP);
+return;
+
+
+
+
+
+
+
+

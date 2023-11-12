@@ -1,0 +1,27 @@
+int main()
+{
+decl 
+int x, fp, counter, word, a, pid;
+enddecl
+
+begin
+  x = initialize();
+  counter = 0;
+  fp = exposcall("Open", "merge.dat");
+  while(counter < 512) do
+      word = counter;
+      x = exposcall("Write", fp, word);
+      counter = counter + 1;
+  endwhile;
+
+  write("Sorted");
+
+  x = exposcall("Close", fp);
+
+  return 0;
+
+end
+
+
+
+}

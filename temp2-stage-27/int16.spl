@@ -1,0 +1,342 @@
+// NEWUSR, REMUSR, SETPWD, GETUNAME, and GETUID
+
+
+// storing userSP
+alias userSP R5;
+userSP = SP;
+
+// extracting system call number from userStack
+alias system_call_number R6;
+system_call_number = [[PTBR + 2 * (userSP - 5) / 512] * 512 + (userSP - 5) % 512];
+
+
+// switching to kernel stack
+alias current_PID R7;
+alias process_table_entry R8;
+current_PID = [SYSTEM_STATUS_TABLE + 1];
+process_table_entry = PROCESS_TABLE + current_PID * 16;
+
+[process_table_entry + 13] = SP;
+SP = [process_table_entry + 11] * 512 - 1;
+
+alias return_address R9;
+return_address = [PTBR + 2 * (userSP - 1) / 512] * 512 + (userSP - 1) % 512;
+
+if(system_call_number == INT_GETUNAME) then
+    // set the mode flag
+    [process_table_entry + 9] = INT_GETUNAME;
+
+    // argument is the userID
+    alias user_id R10;
+    R10 = [[PTBR + 2 * (userSP - 4) / 512] * 512 + (userSP - 4) % 512];
+
+    if(user_id < 0 || user_id >= MAX_USER_NUM) then
+        // reset the mode flag
+        [process_table_entry + 9] = 0;
+
+        // return -1
+        [return_address] = -1;
+        SP = userSP;
+        ireturn;
+    endif;
+
+    if([USER_TABLE + 2 * user_id + 0] == -1) then
+        // entry invalid, return -1
+        [process_table_entry + 9] = 0;
+        [return_address] = -1;
+        SP = userSP;
+        ireturn;
+    endif;
+    
+    // reset the mode flag
+    [process_table_entry + 9] = 0;
+
+    // return the user name
+    [return_address] = [USER_TABLE + 2 * user_id + 0];
+    SP = userSP;
+    ireturn;
+
+
+
+endif;
+
+
+
+
+if(system_call_number == INT_GETUID) then
+    // set the mode flag
+    [process_table_entry + 9] = INT_GETUID;
+    
+    // argument is the user_name
+    alias user_name R10;
+    user_name = [[PTBR + 2 * (userSP - 4) / 512] * 512 + (userSP - 4) % 512];
+
+
+    alias index_in_user_table R11;
+    index_in_user_table = 0;
+    while(index_in_user_table < MAX_USER_NUM) do
+        if([USER_TABLE + 2 * index_in_user_table + 0] == user_name) then
+            // userID found, return it
+            [process_table_entry + 9] = 0;
+            [return_address] = index_in_user_table;
+            SP = userSP;
+            ireturn;
+        endif;
+
+        index_in_user_table = index_in_user_table + 1;
+    endwhile;
+
+    // no such entry found
+    [process_table_entry + 9] = 0;
+    [return_address] = -1;
+    SP = userSP;
+    ireturn;
+
+endif;
+
+
+
+
+if(system_call_number == INT_SETPWD) then
+    // set the mode flag
+    [process_table_entry + 9] = INT_SETPWD;
+
+    // arguments are user_name and password
+    alias user_name R10;
+    alias password R11;
+    user_name = [[PTBR + 2 * (userSP - 4) / 512] * 512 + (userSP - 4) % 512];
+    password = [[PTBR + 2 * (userSP - 3) / 512] * 512 + (userSP - 3) % 512];
+
+    if(current_PID != SHELL_PROCESS) then
+        // return -1
+        [process_table_entry + 9] = 0;
+        [return_address] = -1;
+        SP = userSP;
+        ireturn;
+    endif;
+
+    alias index_in_user_table R12;
+    index_in_user_table = 0;
+    while(index_in_user_table < MAX_USER_NUM) do
+        if([USER_TABLE + 2 * index_in_user_table + 0] == user_name) then
+            // entry found
+            break;
+        endif;
+
+        index_in_user_table = index_in_user_table + 1;
+    endwhile;
+
+    if(index_in_user_table == MAX_USER_NUM) then
+        // entry not found, return -2 
+        // print("ENTRYNOTFOUND");
+        [process_table_entry + 9] = 0;
+        [return_address] = -2;
+        SP = userSP;
+        ireturn;
+    endif;
+    // if user_id of the process is not equal to user_id of the user
+    // if([process_table_entry + 3] != [SYSTEM_STATUS_TABLE + 0]) then
+    if([process_table_entry + 3] != index_in_user_table) then
+        // if the current user is not root 
+        if([SYSTEM_STATUS_TABLE + 0] != ROOT) then
+            // return -1
+            [process_table_entry + 9] = 0;
+            [return_address] = -1;
+            SP = userSP;
+            ireturn;
+        endif;
+    endif;
+    encrypt R11;
+    // now the alias password contains the encrypted password
+    [USER_TABLE + 2 * index_in_user_table + 1] = password;
+
+    // reset the mode flag
+    [process_table_entry + 9] = 0;
+
+    // return 0
+    [return_address] = 0;
+    SP = userSP;
+    ireturn;
+
+endif;
+
+
+
+
+
+
+if(system_call_number == INT_NEWUSR) then
+    [process_table_entry + 9] = INT_NEWUSR;
+
+
+    // arguments are userName and password
+    alias user_name R10;
+    alias password R11;
+    user_name = [[PTBR + 2 * (userSP - 4) / 512] * 512 + (userSP - 4) % 512];
+    password = [[PTBR + 2 * (userSP - 3) / 512] * 512 + (userSP - 3) % 512];
+
+    // if current user is not root or if current process is not the shell,
+    // return -2
+    if([SYSTEM_STATUS_TABLE + 0] != ROOT || current_PID != 2) then
+        [process_table_entry + 9] = 0;
+        [return_address] = -2;
+        SP = userSP;
+        ireturn;
+    endif;
+
+
+    // if user already exists, return -1
+
+    alias index_in_user_table R12;
+    index_in_user_table = 0;
+    while(index_in_user_table < MAX_USER_NUM) do
+        if([USER_TABLE + 2 * index_in_user_table + 0] == user_name) then
+            [process_table_entry + 9] = 0;
+            [return_address] = -1;
+            SP = userSP;
+            ireturn;
+        endif;
+        index_in_user_table = index_in_user_table + 1;
+    endwhile;
+
+    index_in_user_table = 0;
+    while(index_in_user_table < MAX_USER_NUM) do 
+        if([USER_TABLE + 2 * index_in_user_table + 0] == -1) then
+            // free entry found
+            break;
+        endif;
+        index_in_user_table = index_in_user_table + 1;
+    endwhile;
+
+    // if no free entry is found, return -3
+    if(index_in_user_table == MAX_USER_NUM) then
+        [process_table_entry + 9] = 0;
+        [return_address] = -3;
+        SP = userSP;
+        ireturn;
+    endif;
+
+
+    encrypt R11;
+    // now the alias password holds the encrypted password
+    [USER_TABLE + 2 * index_in_user_table + 0] = user_name;
+    [USER_TABLE + 2 * index_in_user_table + 1] = password;
+
+    // reset the mode flag and return 0
+    [process_table_entry + 9] = 0;
+    [return_address] = 0;
+    SP = userSP;
+    ireturn;
+
+endif;
+
+
+if(system_call_number == INT_REMUSR) then
+    // set the mode flag
+    [process_table_entry + 9] =  INT_REMUSR;
+
+    // user_name is the argument 
+    alias user_name R10;
+    user_name = [[PTBR + 2 * (userSP - 4) / 512] * 512 + (userSP - 4) % 512];
+
+
+    // if current user is not root or if current process is not the shell,
+    // return -2
+    if([SYSTEM_STATUS_TABLE + 0] != ROOT || current_PID != SHELL_PROCESS) then
+        [process_table_entry + 9] = 0;
+        [return_address] = -2;
+        SP = userSP;
+        ireturn;
+    endif;
+    
+    // if user to be removed is root or kernel
+    if(user_name == "root" || user_name == "kernel") then
+        [process_table_entry + 9] = 0;
+        [return_address] = -2;
+        SP = userSP;
+        ireturn;
+    endif;
+
+    alias index_in_user_table R11;
+    index_in_user_table = 0;
+    while(index_in_user_table < MAX_USER_NUM) do 
+        if([USER_TABLE + 2 * index_in_user_table + 0] == user_name) then
+            break;
+        endif;
+        index_in_user_table = index_in_user_table + 1;
+    endwhile;
+
+    if(index_in_user_table == MAX_USER_NUM) then
+        // no such entry found, hence return -1
+        [process_table_entry + 9] = 0;
+        [return_address] = -1;
+        SP = userSP;
+        ireturn;
+    endif;
+
+
+    // loop through the files and return -3 if there are files of the user 
+    // present on the disk
+
+    alias cnt R12;
+    while(cnt < MAX_FILE_NUM) do
+        // number is saved in the user table, hence return -3
+        if([ROOT_FILE + 8 * cnt + 3] == index_in_user_table) then
+            // return -3
+            [process_table_entry + 9] = 0;
+            [return_address] = -3;
+            SP = userSP;
+            ireturn;
+        endif;
+        cnt = cnt + 1;
+    endwhile;
+
+    // invalidate the entry in user table entry
+    [USER_TABLE + 2 * index_in_user_table + 0] = -1;
+    [USER_TABLE + 2 * index_in_user_table + 1] = -1;
+    
+    // resetting the mode flag
+    [process_table_entry + 9] = 0;
+    // return 0
+    [return_address] = 0;
+
+    SP = userSP;
+    ireturn;
+
+
+endif;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

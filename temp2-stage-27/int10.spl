@@ -1,0 +1,47 @@
+// exit system call
+
+
+// setting mode flag to exit system call number 10
+[PROCESS_TABLE + [SYSTEM_STATUS_TABLE + 1] * 16 + 9] = INT_EXIT;
+
+[PROCESS_TABLE + [SYSTEM_STATUS_TABLE + 1] * 16 + 13] = SP;
+SP = [PROCESS_TABLE + [SYSTEM_STATUS_TABLE + 1] * 16 + 11] * 512 - 1;
+
+// is the below multipush necessary ??
+multipush(R1);
+R1 = EXIT_PROCESS;
+R2 = [SYSTEM_STATUS_TABLE + 1];
+call PROCESS_MANAGER;
+multipop(R1);
+
+
+
+call CONTEXT_SWITCH;
+
+
+
+
+
+// //breakpoint;
+// alias currentPID R10;
+// currentPID = [SYSTEM_STATUS_TABLE + 1];
+// [PROCESS_TABLE + currentPID * 16 + 4] = TERMINATED;
+// alias check_for_non_terminated R11;
+// alias counter R12;
+// check_for_non_terminated = 0;
+// counter = 1;
+// while(counter < 16) do 
+// 	if([PROCESS_TABLE + counter * 16 + 4] != TERMINATED) then
+// 		check_for_non_terminated = 1;
+// 		break;
+// 	endif;
+// 	counter = counter + 1;
+// endwhile;
+// //breakpoint;
+// if(check_for_non_terminated == 0) then 
+// 	halt;
+// else
+// 	call CONTEXT_SWITCH;
+// endif;
+// 
+// 

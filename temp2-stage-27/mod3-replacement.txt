@@ -1,0 +1,100 @@
+
+if(functionNum == BUFFERED_READ) then
+    // arguments are disk block num, offset, physical memory address
+    alias disk_block_num R2;
+    alias offset R3;
+    alias phy_memory_address R4;
+    
+    // NOTE: Physical memory address must be provided.
+    
+
+    // identify the buffer, disk_block_num % 4, 
+
+    // BUFFER_BASE is the constant 71
+
+    alias buffer_number R5;
+    buffer_number = disk_block_num % 4;
+
+    // acquire the buffer 
+    multipush(R1, R2, R3, R4, R5);
+    R1 = ACQUIRE_BUFFER;
+    R2 = buffer_number;
+    R3 = [SYSTEM_STATUS_TABLE + 1];
+    call RESOURCE_MANAGER;
+    multipop(R1, R2, R3, R4, R5);
+    // print("bufferacquired");
+
+    // print("checkbufferread");
+    // print([BUFFER_TABLE + 4 * buffer_number + 0]);
+    // print(disk_block_num);
+
+    // if buffer contains a different disk block
+    if([BUFFER_TABLE + 4 * buffer_number + 0] != disk_block_num) then
+        // print("enteredHere");
+        // check dirty bit 
+        if([BUFFER_TABLE + 4 * buffer_number + 1] == 1) then
+            // write back the contents of the buffer to the disk 
+            // by calling disk store
+            multipush(R1, R2, R3, R4, R5);
+            R1 = DISK_STORE;
+            R4 = disk_block_num;
+            // disk block num is R2, hence save R4 before
+            // changing R2 to pid
+            R3 = BUFFER_BASE + buffer_number;
+            R2 = [SYSTEM_STATUS_TABLE + 1];
+            call DEVICE_MANAGER;
+            multipop(R1, R2, R3, R4, R5);
+
+            // mark the buffer as clean 
+            [BUFFER_TABLE + 4 * buffer_number + 1] = 0;
+
+        endif;
+
+        // print("GOINGTOLOAD");
+        // print(BUFFER_BASE + buffer_number);
+        // print(disk_block_num);
+
+
+        // loading the required block into the buffer
+        multipush(R1, R2, R3, R4, R5);
+        R1 = DISK_LOAD;
+        R3 = BUFFER_BASE + buffer_number;
+        // disk block num is R2, hence save R4 before
+        // changing R2 to pid
+        R4 = disk_block_num;
+        R2 = [SYSTEM_STATUS_TABLE + 1];
+        call DEVICE_MANAGER;
+        multipop(R1, R2, R3, R4, R5);
+
+        // set the new disk block in the buffer table entry 
+        [BUFFER_TABLE + 4 * buffer_number + 0] = disk_block_num;
+
+    endif;
+    // is the below correct ??? 
+    // print("inBufferedRead");
+    // print(disk_block_num);
+    // print(buffer_number);
+    // print(offset);
+    // print(BUFFER_BASE + buffer_number);
+    // print([BUFFER_BASE + buffer_number]);
+    // print(phy_memory_address);
+
+    [phy_memory_address] = [(BUFFER_BASE + buffer_number) * 512 + (offset % 512)];
+
+
+    // release buffer 
+    multipush(R1, R2, R3, R4, R5);
+    R1 = RELEASE_BUFFER;
+    R3 = [SYSTEM_STATUS_TABLE + 1];
+    R2 = buffer_number;
+    call RESOURCE_MANAGER;
+    multipop(R1, R2, R3, R4, R5);
+
+
+    // release buffer results in success always ??
+    return;
+
+
+
+
+endif;

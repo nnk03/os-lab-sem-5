@@ -1,0 +1,24 @@
+int main(){
+decl
+    int temp, uid;
+    int userName;
+enddecl
+
+begin
+    uid = 0;
+    // max number of users allowed is 16
+    while(uid < 16) do
+        userName = exposcall("Getuname", uid);
+        if(userName != -1) then
+            temp = exposcall("Write", -2, userName);
+        endif;
+
+        uid = uid + 1;
+    endwhile;
+    return 0;
+
+end
+
+
+
+}
