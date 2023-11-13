@@ -36,7 +36,7 @@ load --exec $HOME/myexpos/stage-26-27/cat.xsm
 load --exec $HOME/myexpos/stage-26-27/cp.xsm
 load --exec $HOME/myexpos/stage-26-27/lu.xsm
 load --exec $HOME/myexpos/stage-26-27/ru.xsm
-load --exec $HOME/myexpos/stage-26-27/merge.xsm
+load --exec $HOME/myexpos/temp-stage-27/merge.xsm
 load --exec $HOME/myexpos/stage-26-27/m_store.xsm
 load --exec $HOME/myexpos/stage-26-27/m_sort.xsm
 load --exec $HOME/myexpos/stage-26-27/m_merge.xsm

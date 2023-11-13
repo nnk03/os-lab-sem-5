@@ -10,6 +10,7 @@ if(functionNum == SWAP_OUT) then
     alias cnt R5;
     alias maxTick R6;
     alias process_to_select R7;
+    process_to_select = -1;
     // Choose a process to swap out. (other than the IDLE, Shell or INIT)
     // Loop through the Process Table and find a non-swapped process that is in the WAIT_PROCESS state.
     // If there are no non-swapped processes in the WAIT_PROCESS state, find a non-swapped process in the WAIT_SEMAPHORE state.
