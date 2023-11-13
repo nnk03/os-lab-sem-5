@@ -1,0 +1,43 @@
+int main()
+{
+decl
+    int temp, pid, a;
+    string input, userName, password;
+enddecl
+begin
+    a=1;
+    while(a == 1) do
+        temp = exposcall("Write",-2,"---Enter---");
+        temp = exposcall("Read",-1, input);
+        if(input != "Shutdown" AND input != "Logout" AND input != "Setpwd") then
+            pid = exposcall("Fork");
+            if(pid < 0) then
+                temp = exposcall("Write",-2, "Fork Failure");
+                continue;
+            endif;
+            if(pid != 0) then
+                temp = exposcall("Wait",pid);
+            else
+                temp = exposcall("Exec",input);
+                if(temp != 0) then
+                    temp = exposcall("Write",-2, "BAD COMMAND");
+                    break;
+                endif;
+            endif;
+        else
+            if(input == "Shutdown" OR input == "Logout") then
+                temp = exposcall(input);
+            else
+                temp = exposcall("Read", -1, userName);
+                temp = exposcall("Read", -1, password);
+                temp = exposcall("Write", -2, userName);
+                temp = exposcall("Write", -2, password);
+                temp = exposcall("Setpwd", userName, password);
+            endif;
+                
+            break;
+        endif;
+    endwhile;
+    return 0;
+end
+}

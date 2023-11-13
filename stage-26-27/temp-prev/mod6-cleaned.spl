@@ -1,0 +1,294 @@
+// PAGER MODULE --> SWAP IN and SWAP out
+
+alias functionNum R1;
+// argument is current pid
+alias current_PID R2;
+
+
+
+if(functionNum == SWAP_OUT) then
+    alias cnt R5;
+    alias maxTick R6;
+    alias process_to_select R7;
+    // Choose a process to swap out. (other than the IDLE, Shell or INIT)
+    // Loop through the Process Table and find a non-swapped process that is in the WAIT_PROCESS state.
+    // If there are no non-swapped processes in the WAIT_PROCESS state, find a non-swapped process in the WAIT_SEMAPHORE state.
+    // If there are no non-swapped processes in the WAIT_PROCESS and WAIT_SEMAPHORE state, 
+            // find process with the highest TICK which is not running, terminated, allocated or swapped.
+
+    maxTick = -1;
+    
+    cnt = 3;
+    while(cnt < MAX_PROC_NUM) do
+        if([PROCESS_TABLE + cnt * 16 + 6] == 0 && [PROCESS_TABLE + cnt * 16 + 4] == WAIT_PROCESS) then
+            process_to_select = cnt;
+            break;
+        endif;
+
+        cnt = cnt + 1;
+    endwhile;
+
+    if(process_to_select == -1) then
+        // no process in WAIT_PROCESS
+        cnt = 3;
+        while(cnt < MAX_PROC_NUM) do
+            if([PROCESS_TABLE + 16 * cnt + 6] == 0 && [PROCESS_TABLE + 16 * cnt + 4] == WAIT_SEMAPHORE) then
+                process_to_select = cnt;
+                break;
+            endif;
+            cnt = cnt + 1;
+        endwhile;
+        
+        if(process_to_select == -1) then
+            // no process in WAIT_PROCESS and WAIT_SEMAPHORE
+            cnt = 3;
+            while(cnt < MAX_PROC_NUM) do
+                alias process_table_entry_local R8;
+                process_table_entry_local = PROCESS_TABLE + 16 * cnt;
+                alias state_of_process R9;
+                state_of_process = [process_table_entry_local + 4];
+                if([process_table_entry_local + 0] > maxTick) then
+
+                    if(state_of_process != RUNNING && state_of_process != TERMINATED && state_of_process != ALLOCATED && [process_table_entry_local + 6] != 1) then
+                        process_to_select = cnt;
+                        maxTick = [process_table_entry_local + 0];
+                    endif;
+
+                endif;
+
+                cnt = cnt + 1;
+            endwhile;
+
+
+
+        endif;
+
+    endif;
+
+    if(process_to_select == -1) then
+        // no process found , set paging status to 0 and return
+        [SYSTEM_STATUS_TABLE + 5] = 0;
+        return;
+    endif;
+
+    alias process_table_entry R8;
+    process_table_entry = PROCESS_TABLE + 16 * process_to_select;
+    // set the TICK field to 0
+    [process_table_entry + 0] = 0;
+
+    alias page_table_entry R9;
+    page_table_entry = PAGE_TABLE_BASE + 20 * process_to_select;
+
+
+    // deallocate valid code pages by calling release_page
+    cnt = 8;
+    while(cnt < 16) do
+        multipush(R1, R2, R5, R6, R7, R8, R9);
+        R1 = RELEASE_PAGE;
+        R2 = [page_table_entry + cnt];
+        call MEMORY_MANAGER;
+        multipop(R1, R2, R5, R6, R7, R8, R9);
+        // invalidate page table entry
+        [page_table_entry + cnt] = -1;
+
+        cnt = cnt + 2;
+    endwhile;
+
+
+
+    // for each heap_page that is valid and not shared
+    alias page R10;
+
+    alias disk_map_table_entry R11;
+    disk_map_table_entry = DISK_MAP_TABLE + 10 * process_to_select;
+
+    alias cnt_page R12;
+    cnt_page = 2;
+
+    while(cnt_page < 10) do
+        if(cnt_page <= 3 || cnt_page >= 8) then
+
+            page = [page_table_entry + 2 * cnt_page];
+            if(page != -1 && ((cnt_page <= 3 && [MEMORY_FREE_LIST + page] == 1) || (cnt_page >= 8))) then
+                // get a free swap block
+                // only need to push R1, R2, R5, but thought of taking no risk
+                // but, optimizing pager module led to pushing only R5, since only R5 is used in GET_SWAP_BLOCK
+                // multipush(R1, R2, R5, R6, R7, R8, R9, R10, R11, R12);
+                multipush(R5);
+                R1 = GET_SWAP_BLOCK;
+                call MEMORY_MANAGER;
+                multipop(R5);
+                // multipop(R1, R2, R5, R6, R7, R8, R9, R10, R11, R12);
+
+                if(R0 != -1) then
+                    // store the disk block num in DISK_MAP_TABLE
+                    [disk_map_table_entry + cnt_page] = R0;
+                    multipush(R1, R2, R5, R6, R7, R8, R9, R10, R11, R12);
+                    R1 = DISK_STORE;
+                    R2 = current_PID;
+                    R3 = page;
+                    R4 = R0;
+                    multipop(R1, R2, R5, R6, R7, R8, R9, R10, R11, R12);
+
+                    // call the release_page to deallocate the page
+                    multipush(R1, R2, R5, R6, R7, R8, R9, R10, R11, R12);
+                    R1 = RELEASE_PAGE;
+                    R2 = page;
+                    call MEMORY_MANAGER;
+                    multipop(R1, R2, R5, R6, R7, R8, R9, R10, R11, R12);
+
+                    [page_table_entry + 2 * cnt_page] = -1;
+
+                endif;
+
+
+
+            endif;
+
+        endif;
+        cnt_page = cnt_page + 1;
+
+    endwhile;
+
+
+
+
+    // set the swap flag of the process_table_entry to 1
+    [process_table_entry + 6] = 0;
+
+
+    // In the System Status Table, increment the SWAP_COUNT and reset the PAGING_STATUS back to 0
+    [SYSTEM_STATUS_TABLE + 4] = [SYSTEM_STATUS_TABLE + 4] + 1;
+    [SYSTEM_STATUS_TABLE + 5] = 0;
+
+
+    return;
+
+endif;
+
+
+
+
+
+
+if(functionNum == SWAP_IN) then
+
+
+    alias cnt R5;
+    alias maxTick R6;
+    alias process_to_select R7;
+    process_to_select = -1;
+
+    // Loop through the Process Table and find the 
+    // swapped process in the READY state with the highest TICK.
+    // If there is no such process in the READY 
+    // state, reset the PAGING_STATUS field to 0 and Return.
+    cnt = 0;
+    maxTick = -1;
+
+    while(cnt < MAX_PROC_NUM) do
+        alias process_table_entry_local R8;
+        process_table_entry_local = PROCESS_TABLE + 16 * cnt;
+        if([process_table_entry_local + 6] == 1 && [process_table_entry_local + 4] == READY && [process_table_entry_local + 0] > maxTick) then
+
+            maxTick = [process_table_entry_local + 0];
+            process_to_select = cnt;
+        endif;
+
+        cnt = cnt + 1;
+    endwhile;
+
+    if(process_to_select == -1) then
+        [SYSTEM_STATUS_TABLE + 5] = 0;
+        return;
+    endif;
+
+    alias process_table_entry R8;
+    process_table_entry = PROCESS_TABLE + 16 * process_to_select;
+    alias disk_block_num R9;
+    alias page_table_entry R10;
+    page_table_entry = PAGE_TABLE_BASE + process_to_select * 20;
+
+    // set the tick field to zero
+    [process_table_entry + 0] = 0;
+    
+    alias cnt_page R11;
+    cnt_page = 2;
+
+    alias disk_map_table_entry R12;
+    disk_map_table_entry = DISK_MAP_TABLE + 10 * process_to_select;
+
+    while(cnt_page < 10) do
+        if(cnt_page <= 3 || cnt_page >= 8) then
+            // for each heap page that is swapped out,
+            // call get free page
+            // no need to push R9, because R9 will anyways be changed
+            multipush(R1, R2, R5, R6, R7, R8, R10, R11, R12);
+            R1 = GET_FREE_PAGE;
+            call MEMORY_MANAGER;
+            multipop(R1, R2, R5, R6, R7, R8, R10, R11, R12);
+            // R0 contains the free mem page
+
+            // get the disk_block_num from DISK_MAP_TABLE
+            disk_block_num = [disk_map_table_entry + cnt_page];
+
+            // call disk load
+            multipush(R1, R2, R5, R6, R7, R8, R9, R10, R11, R12);
+            R1 = DISK_LOAD;
+            R2 = current_PID;
+            R3 = R0;
+            R4 = disk_block_num;
+            call DEVICE_MANAGER;
+            multipop(R1, R2, R5, R6, R7, R8, R9, R10, R11, R12);
+
+            // free the swap block by calling release block
+            multipush(R1, R2, R5, R6, R7, R8, R9, R10, R11, R12);
+            R1 = RELEASE_BLOCK;
+            R2 = disk_block_num;
+            call MEMORY_MANAGER;
+            multipop(R1, R2, R5, R6, R7, R8, R9, R10, R11, R12);
+
+            // R0 will still contain the free mem page
+            [page_table_entry + 2 * cnt_page] = R0;
+            [page_table_entry + 2 * cnt_page + 1] = "0110";
+            [disk_map_table_entry + cnt_page] = -1;
+
+        endif;
+
+        cnt_page = cnt_page + 1;
+    endwhile;
+
+
+
+
+    // set the swap flag in process_table_entry to 0
+    [process_table_entry + 6] = 0;
+
+    // decrement swap count in SYSTEM_STATUS_TABLE
+    [SYSTEM_STATUS_TABLE + 4] = [SYSTEM_STATUS_TABLE + 4] - 1;
+
+    // reset paging status back to 0
+    [SYSTEM_STATUS_TABLE + 5] = 0;
+
+
+    return;
+
+
+endif;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
