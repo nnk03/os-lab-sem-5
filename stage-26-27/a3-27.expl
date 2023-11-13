@@ -13,7 +13,7 @@ begin
           
     if(fd>=0) then
         iter=1;
-        while(iter<=1000) do
+        while(iter<=1200) do
             temp=exposcall("Write",fd, iter);
             iter=iter+1;
         endwhile;    
@@ -22,6 +22,7 @@ begin
         pid=exposcall("Fork");
         pid=exposcall("Fork");
         pid=exposcall("Fork");
+        //pid=exposcall("Fork");
         temp = exposcall("Exec","pgm1.xsm");
     else
         temp=exposcall("Write",-2, "OPEN FAIL");

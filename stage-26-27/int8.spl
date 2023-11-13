@@ -28,7 +28,6 @@ R1 = GET_PCB_ENTRY;
 call PROCESS_MANAGER;
 multipop(R4, R6, R7, R9);
 
-    print("HERE");
 // if return value is -1
 if(R0 == -1) then
     [[parent_page_table + 2 * (userSP - 1) / 512] * 512 + ((userSP - 1) % 512)] = -1;
@@ -64,10 +63,14 @@ endif;
 
 // stack pages for child process
 
+// print("HEREBEFORE");
+// print(R0);
 multipush(R4, R5, R6, R7, R8, R9, R10);
 R1 = GET_FREE_PAGE;
 call MEMORY_MANAGER;
 multipop(R4, R5, R6, R7, R8, R9, R10);
+// print("HERE");
+// print(R0);
 [child_page_table + 16] = R0;
 [child_page_table + 17] = "0110";
 

@@ -16,20 +16,46 @@ if(functionNum == GET_FREE_PAGE) then
     // incrementing WAIT_MEM_COUNT
     [SYSTEM_STATUS_TABLE + 3] = [SYSTEM_STATUS_TABLE + 3] + 1;
     
-    
+    alias cnt R10;
+    cnt = 0;
+    //alias flag R11;
+    //flag = 0;
+    //while(cnt < NUM_MEM_PAGES) do 
+    //    if([MEMORY_FREE_LIST + cnt] == 0) then
+    //        flag = 1;
+    //    endif;
+    //    cnt = cnt + 1;
+    //endwhile;
+
+    // while(flag == 0) do 
     while([SYSTEM_STATUS_TABLE + 2] == 0) do 
         [process_table_entry + 4] = WAIT_MEM;
-        multipush(R1, R8, R9);
+        multipush(R1, R8, R9, R10);
         call CONTEXT_SWITCH;
-        multipop(R1, R8, R9);
+        multipop(R1, R8, R9, R10);
+        // cnt = 0;
+        // flag = 0;
+        // while(cnt < NUM_MEM_PAGES) do
+        //     if([MEMORY_FREE_LIST + cnt] == 0) then
+        //         flag = 1;
+        //     endif;
+        //     cnt = cnt + 1;
+        // endwhile;
     endwhile;
+    
+    // while([SYSTEM_STATUS_TABLE + 2] == 0) do 
+    //     [process_table_entry + 4] = WAIT_MEM;
+    //     multipush(R1, R8, R9);
+    //     call CONTEXT_SWITCH;
+    //     multipop(R1, R8, R9);
+    // endwhile;
     // decrementing WAIT_MEM_COUNT
     [SYSTEM_STATUS_TABLE + 3] = [SYSTEM_STATUS_TABLE + 3] - 1;
 
     // decrementing MEM_FREE_COUNT
     [SYSTEM_STATUS_TABLE + 2] = [SYSTEM_STATUS_TABLE + 2] - 1;
 
-    alias cnt R10;
+    // alias cnt R10;
     cnt = 0;
     while(cnt < NUM_MEM_PAGES) do 
         if([MEMORY_FREE_LIST + cnt] == 0) then
