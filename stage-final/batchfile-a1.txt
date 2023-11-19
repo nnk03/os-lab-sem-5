@@ -1,6 +1,6 @@
 fdisk
-load --os $HOME/myexpos/stage-final/os-startup.xsm
-load --module 7 $HOME/myexpos/stage-final/boot-module.xsm
+load --os $HOME/myexpos/stage-26/os-startup.xsm
+load --module 7 $HOME/myexpos/stage-26/boot-module.xsm
 load --library $HOME/myexpos/expl/library.lib
 load --idle $HOME/myexpos/stage-final/idle-process.xsm
 load --init $HOME/myexpos/stage-final/login.xsm
@@ -36,6 +36,5 @@ load --exec $HOME/myexpos/stage-final/cat.xsm
 load --exec $HOME/myexpos/stage-final/cp.xsm
 load --exec $HOME/myexpos/stage-final/lu.xsm
 load --exec $HOME/myexpos/stage-final/ru.xsm
-load --exec $HOME/myexpos/stage-final/a1-25.xsm
 dump --inodeusertable
 dump --rootfile

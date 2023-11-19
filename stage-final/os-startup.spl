@@ -149,6 +149,7 @@ PTBR = PAGE_TABLE_BASE;  //as PID of idle process is 0
 // endwhile;
 
 
+[70 * 512] = [69 * 512 + 1];
 
 SP = 8 * 512;
 // breakpoint;
