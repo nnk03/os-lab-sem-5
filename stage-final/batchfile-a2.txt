@@ -1,0 +1,43 @@
+fdisk
+load --os $HOME/myexpos/final/second-os-startup.xsm
+load --module 7 $HOME/myexpos/final/second-boot-module.xsm
+load --library $HOME/myexpos/expl/library.lib
+load --idle $HOME/myexpos/final/idle-process.xsm
+load --init $HOME/myexpos/final/login.xsm
+load --shell $HOME/myexpos/final/shell3.xsm
+load --exhandler $HOME/myexpos/final/exhandler.xsm
+load --int=console $HOME/myexpos/final/console-int.xsm
+load --int=disk $HOME/myexpos/final/disk-int.xsm
+load --int=timer $HOME/myexpos/final/timer-new.xsm
+load --int=4 $HOME/myexpos/final/int4.xsm
+load --int=5 $HOME/myexpos/final/int5.xsm
+load --int=6 $HOME/myexpos/final/int6-new.xsm
+load --int=7 $HOME/myexpos/final/int7-new.xsm
+load --int=8 $HOME/myexpos/final/int8.xsm
+load --int=9 $HOME/myexpos/final/int9-cleaned.xsm
+load --int=10 $HOME/myexpos/final/int10.xsm
+load --int=11 $HOME/myexpos/final/int11.xsm
+load --int=12 $HOME/myexpos/final/int12.xsm
+load --int=13 $HOME/myexpos/final/second-int13.xsm
+load --int=14 $HOME/myexpos/final/second-int14.xsm
+load --int=15 $HOME/myexpos/final/int15.xsm
+load --int=16 $HOME/myexpos/final/int16.xsm
+load --int=17 $HOME/myexpos/final/int17.xsm
+load --module 0 $HOME/myexpos/final/mod0.xsm
+load --module 1 $HOME/myexpos/final/mod1.xsm
+load --module 2 $HOME/myexpos/final/mod2.xsm
+load --module 3 $HOME/myexpos/final/mod3.xsm
+load --module 4 $HOME/myexpos/final/mod4.xsm
+load --module 5 $HOME/myexpos/final/scheduler-new.xsm
+load --module 6 $HOME/myexpos/final/mod6-cleaned.xsm
+load --exec $HOME/myexpos/final/ls.xsm
+load --exec $HOME/myexpos/final/rm.xsm
+load --exec $HOME/myexpos/final/cat.xsm
+load --exec $HOME/myexpos/final/cp.xsm
+load --exec $HOME/myexpos/final/lu.xsm
+load --exec $HOME/myexpos/final/ru.xsm
+load --exec $HOME/myexpos/final/a1-27.xsm
+load --exec $HOME/myexpos/final/pid.xsm
+load --exec $HOME/myexpos/final/a2-27.xsm
+dump --inodeusertable
+dump --rootfile
