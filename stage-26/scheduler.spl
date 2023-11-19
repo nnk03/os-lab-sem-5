@@ -89,7 +89,7 @@ endif;
 [process_table_entry + 9] = 0;
 
 multipop(BP);
-//breakpoint;
+breakpoint;
 return;
 
 
