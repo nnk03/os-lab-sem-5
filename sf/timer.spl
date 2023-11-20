@@ -1,0 +1,102 @@
+[PROCESS_TABLE + ([SYSTEM_STATUS_TABLE + 1] * 16) + 13] = SP;
+// Setting SP to UArea Page cntber * 512 - 1
+
+SP = [PROCESS_TABLE + ([SYSTEM_STATUS_TABLE + 1] * 16) + 11] * 512 - 1;
+backup;
+alias cnt R5;
+cnt = 0;
+
+alias current_PID R6;
+alias process_table_entry R7;
+current_PID = [SYSTEM_STATUS_TABLE + 1];
+process_table_entry = PROCESS_TABLE + 16 * current_PID;
+
+
+// relevant for stage 27
+
+// if swapping is initiated
+if([SYSTEM_STATUS_TABLE + 5] == SWAP_IN || [SYSTEM_STATUS_TABLE + 5] == SWAP_OUT) then
+    if(current_PID == SWAPPER_DAEMON && [SYSTEM_STATUS_TABLE + 5] == SWAP_OUT) then
+        // call swap_out in Pager Module
+        multipush(R5, R6, R7);
+        R1 = SWAP_OUT;
+        // is the below argument necessary ?? 
+        R2 = current_PID;
+        call PAGER_MODULE;
+        multipop(R5, R6, R7);
+    else
+        if(current_PID == SWAPPER_DAEMON && [SYSTEM_STATUS_TABLE + 5] == SWAP_IN) then
+            // call swap in function
+            multipush(R5, R6, R7);
+            R1 = SWAP_IN;
+            R2 = current_PID;
+            // is the below argument necessary ?? 
+            call PAGER_MODULE;
+            multipop(R5, R6, R7);
+        endif;
+        // else if the current process is IDLE, skip to the end to perform context switch
+    endif;
+
+
+
+else
+    // if swapping is not initiated , check whether it must be initiated
+    if([SYSTEM_STATUS_TABLE + 2] < MEM_LOW) then
+        // swap out to be invoked during next timer interrupt
+        [SYSTEM_STATUS_TABLE + 5] = SWAP_OUT;
+    else
+        if([SYSTEM_STATUS_TABLE + 4] > 0) then
+
+            if([SYSTEM_STATUS_TABLE + 2] > MEM_HIGH) then
+                [SYSTEM_STATUS_TABLE + 5] = SWAP_IN;
+            endif;
+
+            cnt = 0;
+
+            while(cnt < MAX_PROC_NUM) do
+                // check the swap flag to find if the process is swapped out
+                if([PROCESS_TABLE + cnt * 16 + 6] == 1 && [PROCESS_TABLE + cnt * 16 + 0] > MAX_TICK) then
+                    [SYSTEM_STATUS_TABLE + 5] = SWAP_IN;
+                endif;
+                cnt = cnt + 1;
+            endwhile;
+
+        endif;
+
+    endif;
+endif;
+
+
+
+// end of stage 27
+
+[process_table_entry + 4] = READY;
+
+
+cnt = 0;
+while(cnt < MAX_PROC_NUM) do 
+        if([PROCESS_TABLE + cnt * 16 + 4] != TERMINATED) then
+            [PROCESS_TABLE + cnt * 16 + 0] = [PROCESS_TABLE + cnt * 16 + 0] + 1;
+        endif;
+    cnt = cnt + 1;
+endwhile;
+
+
+// not using R5, hereafter, hence no need to multipush and multipop R5
+call MOD_5;
+
+
+restore;
+SP = [PROCESS_TABLE + ( [SYSTEM_STATUS_TABLE + 1] * 16) + 13];
+[PROCESS_TABLE + ([SYSTEM_STATUS_TABLE + 1] * 16) + 9] = 0;
+
+
+//breakpoint;
+
+ireturn;
+
+
+
+
+
+

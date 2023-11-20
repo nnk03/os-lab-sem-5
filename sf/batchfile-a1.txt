@@ -1,0 +1,40 @@
+fdisk
+load --os $HOME/myexpos/sf/os-startup.xsm
+load --module 7 $HOME/myexpos/sf/boot-module.xsm
+load --library $HOME/myexpos/expl/library.lib
+load --idle $HOME/myexpos/sf/idle-process.xsm
+load --init $HOME/myexpos/sf/login.xsm
+load --shell $HOME/myexpos/sf/shell3.xsm
+load --exhandler $HOME/myexpos/sf/exhandler.xsm
+load --int=console $HOME/myexpos/sf/console-int.xsm
+load --int=disk $HOME/myexpos/sf/disk-int.xsm
+load --int=timer $HOME/myexpos/sf/timer.xsm
+load --int=4 $HOME/myexpos/sf/int4.xsm
+load --int=5 $HOME/myexpos/sf/int5.xsm
+load --int=6 $HOME/myexpos/sf/int6.xsm
+load --int=7 $HOME/myexpos/sf/int7.xsm
+load --int=8 $HOME/myexpos/sf/int8.xsm
+load --int=9 $HOME/myexpos/sf/int9.xsm
+load --int=10 $HOME/myexpos/sf/int10.xsm
+load --int=11 $HOME/myexpos/sf/int11.xsm
+load --int=12 $HOME/myexpos/sf/int12.xsm
+load --int=13 $HOME/myexpos/sf/int13.xsm
+load --int=14 $HOME/myexpos/sf/int14.xsm
+load --int=15 $HOME/myexpos/sf/int15.xsm
+load --int=16 $HOME/myexpos/sf/int16.xsm
+load --int=17 $HOME/myexpos/sf/int17.xsm
+load --module 0 $HOME/myexpos/sf/mod0.xsm
+load --module 1 $HOME/myexpos/sf/mod1.xsm
+load --module 2 $HOME/myexpos/sf/mod2.xsm
+load --module 3 $HOME/myexpos/sf/mod3.xsm
+load --module 4 $HOME/myexpos/sf/mod4.xsm
+load --module 5 $HOME/myexpos/sf/mod5.xsm
+load --module 6 $HOME/myexpos/sf/mod6.xsm
+load --exec $HOME/myexpos/sf/ls.xsm
+load --exec $HOME/myexpos/sf/rm.xsm
+load --exec $HOME/myexpos/sf/cat.xsm
+load --exec $HOME/myexpos/sf/cp.xsm
+load --exec $HOME/myexpos/sf/lu.xsm
+load --exec $HOME/myexpos/sf/ru.xsm
+dump --inodeusertable
+dump --rootfile

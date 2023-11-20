@@ -1,0 +1,35 @@
+int main(){
+decl
+    int temp, x, pid;
+enddecl
+begin
+    pid = exposcall("Fork");
+    if(pid == 0) then
+        x = 1;
+        while(x < 50) do
+            temp = exposcall("Write", -2, x);
+            x = x + 2;
+        endwhile;
+        temp = exposcall("Signal");
+        while(x < 100) do
+            temp = exposcall("Write", -2, x);
+            x = x + 2;
+        endwhile;
+    else
+        temp = exposcall("Wait", pid);
+        x = 2;
+        temp = exposcall("Write", -2, "signal");
+        temp = exposcall("Wait", pid);
+        while(x < 100) do
+            temp = exposcall("Write", -2, x);
+            x = x + 2;
+        endwhile;
+    endif;
+    
+    return 0;
+
+
+
+end
+
+}
