@@ -75,7 +75,7 @@ endwhile;
 //not going to use R15 any further, so no need to multipush R15
 
 // storing the inode index in the process table
-[processTableEntry + 7] = cnt;
+[processTableEntry + 7] = inodeEntry;
 
 // added new 
 cnt = 0;
@@ -143,6 +143,7 @@ SP = 8 * 512;
 [processTableEntry + 9] = 0;
 //breakpoint;
 ireturn;
+
 
 
 
